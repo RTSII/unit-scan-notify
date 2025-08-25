@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,7 +15,7 @@ interface ViolationField {
 }
 
 const ViolationTemplate = () => {
-  const [templateName, setTemplateName] = useState("Standard Violation Notice");
+  const [noticeName, setNoticeName] = useState("");
   const [fields, setFields] = useState<ViolationField[]>([
     { id: '1', label: 'Unit Number', type: 'text', required: true, placeholder: 'e.g., B2G' },
     { id: '2', label: 'Date of Violation', type: 'date', required: true },
@@ -23,6 +23,18 @@ const ViolationTemplate = () => {
     { id: '4', label: 'Violation Description', type: 'textarea', required: true, placeholder: 'Describe the violation...' },
     { id: '5', label: 'Location Details', type: 'text', required: false, placeholder: 'Parking spot, building area, etc.' },
   ]);
+
+  // Auto-populate notice name with Unit Number_MMDD format
+  useEffect(() => {
+    const unitNumberField = fields.find(field => field.label === 'Unit Number');
+    const currentDate = new Date();
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const day = String(currentDate.getDate()).padStart(2, '0');
+    
+    if (unitNumberField) {
+      setNoticeName(`${unitNumberField.label}_${month}${day}`);
+    }
+  }, [fields]);
 
   const addField = () => {
     const newField: ViolationField = {
@@ -46,31 +58,6 @@ const ViolationTemplate = () => {
 
   return (
     <div className="p-4 space-y-6 max-w-2xl mx-auto">
-      {/* Header */}
-      <div className="form-section">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-foreground">Violation Template</h2>
-          <Button className="bg-gradient-primary">
-            <Save className="w-4 h-4 mr-2" />
-            Save Template
-          </Button>
-        </div>
-        
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="templateName" className="text-sm font-medium">
-              Template Name
-            </Label>
-            <Input
-              id="templateName"
-              value={templateName}
-              onChange={(e) => setTemplateName(e.target.value)}
-              className="mt-1"
-            />
-          </div>
-        </div>
-      </div>
-
       {/* Fields Configuration */}
       <div className="form-section">
         <div className="flex items-center justify-between mb-4">
@@ -155,10 +142,10 @@ const ViolationTemplate = () => {
 
       {/* Preview Section */}
       <div className="form-section">
-        <h3 className="text-lg font-medium text-foreground mb-4">Template Preview</h3>
+        <h3 className="text-lg font-medium text-foreground mb-4">Notice Preview</h3>
         
         <div className="space-y-4 p-4 bg-muted/50 rounded-lg border border-border">
-          <h4 className="font-medium text-foreground">{templateName}</h4>
+          <h4 className="font-medium text-foreground">{noticeName}</h4>
           
           {fields.map((field) => (
             <div key={field.id} className="space-y-2">
@@ -184,6 +171,36 @@ const ViolationTemplate = () => {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Notice Name Section - Moved to Bottom */}
+      <div className="form-section">
+        <Card className="border border-border">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg font-medium text-foreground">Notice Name</CardTitle>
+              <Button className="bg-gradient-primary">
+                <Save className="w-4 h-4 mr-2" />
+                Save Notice
+              </Button>
+            </div>
+          </CardHeader>
+          
+          <CardContent>
+            <div>
+              <Label htmlFor="noticeName" className="text-sm font-medium">
+                Notice Name
+              </Label>
+              <Input
+                id="noticeName"
+                value={noticeName}
+                onChange={(e) => setNoticeName(e.target.value)}
+                className="mt-1"
+                placeholder="Tap to edit notice name"
+              />
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
