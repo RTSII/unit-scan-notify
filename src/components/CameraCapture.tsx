@@ -270,7 +270,7 @@ const CameraCapture = () => {
       {/* Dock at Bottom */}
       <Dock 
         items={dockItems}
-        className="bottom-0 mb-2"
+        className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50"
         baseItemSize={56}
         magnification={72}
         panelHeight={80}

@@ -79,7 +79,7 @@ export const Dock: React.FC<DockProps> = ({
   return (
     <div
       className={cn(
-        'fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50',
+        'z-50',
         className
       )}
       style={{ height: dockHeight }}
