@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { Camera, MapPin, Crosshair, RotateCw, Image as ImageIcon, X, Wrench, Settings } from "lucide-react";
+import { Camera, MapPin, Crosshair, Image as ImageIcon, X, Wrench, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
