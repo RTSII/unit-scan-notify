@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { Camera, MapPin, Crosshair, Image as ImageIcon, X, Wrench, Settings } from "lucide-react";
+import { Camera, MapPin, Crosshair, Image as ImageIcon, X, Wrench, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -146,22 +146,22 @@ const CameraCapture = () => {
 
   const dockItems: DockItemData[] = [
     {
-      icon: <Wrench className="w-6 h-6 text-white" />,
+      icon: <Wrench className="w-6 h-6 text-blue-500" />,
       label: "Tools",
       onClick: handleToolClick,
     },
     {
-      icon: <Camera className="w-6 h-6 text-white" />,
+      icon: <Camera className="w-6 h-6 text-blue-500" />,
       label: "Capture",
       onClick: handleCaptureClick,
     },
     {
-      icon: <ImageIcon className="w-6 h-6 text-white" />,
+      icon: <ImageIcon className="w-6 h-6 text-blue-500" />,
       label: "Gallery",
       onClick: () => {},
     },
     {
-      icon: <Settings className="w-6 h-6 text-white" />,
+      icon: <Trash2 className="w-6 h-6 text-blue-500" />,
       label: "Clear",
       onClick: clearContent,
     },
@@ -170,7 +170,7 @@ const CameraCapture = () => {
   return (
     <div 
       ref={cameraContainerRef}
-      className="relative h-screen bg-black overflow-hidden camera-container"
+      className="relative h-screen bg-black overflow-hidden camera-container pt-16"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -270,10 +270,10 @@ const CameraCapture = () => {
       {/* Dock at Bottom */}
       <Dock 
         items={dockItems}
-        className="bottom-6"
+        className="bottom-0 mb-2"
         baseItemSize={56}
         magnification={72}
-        panelHeight={72}
+        panelHeight={80}
       />
 
       {/* Status Indicator */}
