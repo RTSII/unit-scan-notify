@@ -12,16 +12,17 @@ interface ViolationField {
   type: 'text' | 'textarea' | 'date' | 'time';
   required: boolean;
   placeholder?: string;
+  value: string;
 }
 
 const ViolationTemplate = () => {
   const [noticeName, setNoticeName] = useState("");
   const [fields, setFields] = useState<ViolationField[]>([
-    { id: '1', label: 'Unit Number', type: 'text', required: true, placeholder: 'e.g., B2G' },
-    { id: '2', label: 'Date of Violation', type: 'date', required: true },
-    { id: '3', label: 'Time of Violation', type: 'time', required: true },
-    { id: '4', label: 'Violation Description', type: 'textarea', required: true, placeholder: 'Describe the violation...' },
-    { id: '5', label: 'Location Details', type: 'text', required: false, placeholder: 'Parking spot, building area, etc.' },
+    { id: '1', label: 'Unit Number', type: 'text', required: true, placeholder: 'e.g., B2G', value: '' },
+    { id: '2', label: 'Date', type: 'text', required: true, placeholder: '__/__', value: '' },
+    { id: '3', label: 'Time', type: 'text', required: true, placeholder: '__:__', value: '' },
+    { id: '4', label: 'Description', type: 'textarea', required: true, placeholder: 'Describe the violation...', value: '' },
+    { id: '5', label: 'Location', type: 'text', required: false, placeholder: 'Parking spot, building area, etc.', value: '' },
   ]);
 
   // Auto-populate notice name with Unit Number_MMDD format
@@ -42,12 +43,15 @@ const ViolationTemplate = () => {
       label: 'New Field',
       type: 'text',
       required: false,
+      value: '',
     };
     setFields([...fields, newField]);
   };
 
-  const removeField = (id: string) => {
-    setFields(fields.filter(field => field.id !== id));
+  const clearField = (id: string) => {
+    setFields(fields.map(field => 
+      field.id === id ? { ...field, value: '' } : field
+    ));
   };
 
   const updateField = (id: string, updates: Partial<ViolationField>) => {
@@ -69,15 +73,15 @@ const ViolationTemplate = () => {
         </div>
 
         <div className="space-y-4">
-          {fields.map((field, index) => (
+          {fields.map((field) => (
             <Card key={field.id} className="border border-border">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm">Field {index + 1}</CardTitle>
+                  <CardTitle className="text-sm">{field.label}</CardTitle>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => removeField(field.id)}
+                    onClick={() => clearField(field.id)}
                     className="text-destructive hover:text-destructive hover:bg-destructive/10"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -85,55 +89,22 @@ const ViolationTemplate = () => {
                 </div>
               </CardHeader>
               
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Field Label</Label>
-                    <Input
-                      value={field.label}
-                      onChange={(e) => updateField(field.id, { label: e.target.value })}
-                      placeholder="Field name"
-                      className="mt-1"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Field Type</Label>
-                    <select
-                      value={field.type}
-                      onChange={(e) => updateField(field.id, { type: e.target.value as ViolationField['type'] })}
-                      className="w-full mt-1 px-3 py-2 border border-input bg-background rounded-md text-sm"
-                    >
-                      <option value="text">Text Input</option>
-                      <option value="textarea">Text Area</option>
-                      <option value="date">Date</option>
-                      <option value="time">Time</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <Label className="text-xs text-muted-foreground">Placeholder Text</Label>
+              <CardContent>
+                {field.type === 'textarea' ? (
+                  <Textarea
+                    value={field.value}
+                    onChange={(e) => updateField(field.id, { value: e.target.value })}
+                    placeholder={field.placeholder}
+                    className="w-full"
+                  />
+                ) : (
                   <Input
-                    value={field.placeholder || ''}
-                    onChange={(e) => updateField(field.id, { placeholder: e.target.value })}
-                    placeholder="Enter placeholder text..."
-                    className="mt-1"
+                    value={field.value}
+                    onChange={(e) => updateField(field.id, { value: e.target.value })}
+                    placeholder={field.placeholder}
+                    className="w-full"
                   />
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id={`required-${field.id}`}
-                    checked={field.required}
-                    onChange={(e) => updateField(field.id, { required: e.target.checked })}
-                    className="w-4 h-4 text-primary bg-background border-border rounded focus:ring-primary"
-                  />
-                  <Label htmlFor={`required-${field.id}`} className="text-sm">
-                    Required field
-                  </Label>
-                </div>
+                )}
               </CardContent>
             </Card>
           ))}
