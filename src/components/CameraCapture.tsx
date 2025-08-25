@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { Camera, MapPin, Crosshair, RotateCw, Image as ImageIcon } from "lucide-react";
+import { Camera, MapPin, Crosshair, RotateCw, Image as ImageIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import TargetSizeSelector from "@/components/TargetSizeSelector";
 
@@ -10,8 +10,11 @@ const CameraCapture = () => {
   const [targetSize, setTargetSize] = useState<TargetSize>('medium');
   const [location, setLocation] = useState<GeolocationPosition | null>(null);
   const [showTargetOverlay, setShowTargetOverlay] = useState(false);
+  const [targetPosition, setTargetPosition] = useState({ x: 50, y: 50 }); // Percentage from top-left
+  const [isDragging, setIsDragging] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const cameraContainerRef = useRef<HTMLDivElement>(null);
 
   const getTargetDimensions = (size: TargetSize) => {
     switch (size) {
@@ -82,10 +85,48 @@ const CameraCapture = () => {
     setTimeout(() => capturePhoto(), 150);
   };
 
+  // Touch event handlers for movable target
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (!showTargetOverlay || !cameraContainerRef.current) return;
+    
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = cameraContainerRef.current.getBoundingClientRect();
+    
+    const x = ((touch.clientX - rect.left) / rect.width) * 100;
+    const y = ((touch.clientY - rect.top) / rect.height) * 100;
+    
+    setTargetPosition({ x: Math.max(10, Math.min(90, x)), y: Math.max(10, Math.min(90, y)) });
+    setIsDragging(true);
+  }, [showTargetOverlay]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isDragging || !cameraContainerRef.current) return;
+    
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = cameraContainerRef.current.getBoundingClientRect();
+    
+    const x = ((touch.clientX - rect.left) / rect.width) * 100;
+    const y = ((touch.clientY - rect.top) / rect.height) * 100;
+    
+    setTargetPosition({ x: Math.max(10, Math.min(90, x)), y: Math.max(10, Math.min(90, y)) });
+  }, [isDragging]);
+
+  const handleTouchEnd = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
   const targetDimensions = getTargetDimensions(targetSize);
 
   return (
-    <div className="relative h-screen bg-black overflow-hidden camera-container">
+    <div 
+      ref={cameraContainerRef}
+      className="relative h-screen bg-black overflow-hidden camera-container"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Camera Video */}
       <video
         ref={videoRef}
@@ -102,12 +143,21 @@ const CameraCapture = () => {
       {/* Target Overlay */}
       {showTargetOverlay && (
         <div
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 target-overlay rounded-lg"
+          className="absolute target-overlay rounded-lg border-2 border-primary pointer-events-none z-30"
           style={{
+            left: `${targetPosition.x}%`,
+            top: `${targetPosition.y}%`,
             width: targetDimensions.width,
             height: targetDimensions.height,
+            transform: 'translate(-50%, -50%)',
+            boxShadow: '0 0 0 2px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(255,255,255,0.5)',
           }}
-        />
+        >
+          {/* Center Aiming Marker */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <X className="w-6 h-6 text-primary drop-shadow-lg" strokeWidth={3} />
+          </div>
+        </div>
       )}
 
       {/* Top Controls */}
