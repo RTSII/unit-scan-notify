@@ -8,10 +8,10 @@ interface TargetSizeSelectorProps {
 }
 
 const TargetSizeSelector = ({ selectedSize, onSizeChange }: TargetSizeSelectorProps) => {
-  const sizes: { id: TargetSize; label: string; description: string }[] = [
-    { id: 'small', label: 'S', description: 'Minor violations' },
-    { id: 'medium', label: 'M', description: 'Standard violations' },
-    { id: 'large', label: 'L', description: 'Major violations' },
+  const sizes: { id: TargetSize; label: string }[] = [
+    { id: 'small', label: 'S' },
+    { id: 'medium', label: 'M' },
+    { id: 'large', label: 'L' },
   ];
 
   return (
@@ -25,7 +25,7 @@ const TargetSizeSelector = ({ selectedSize, onSizeChange }: TargetSizeSelectorPr
             size="sm"
             onClick={() => onSizeChange(size.id)}
             className={`
-              flex-1 flex flex-col items-center gap-1 py-3 h-auto
+              flex-1 flex items-center justify-center py-3 h-auto
               ${selectedSize === size.id 
                 ? 'bg-primary text-primary-foreground border-primary' 
                 : 'bg-white/90 border-white/20 hover:bg-white'
@@ -33,7 +33,6 @@ const TargetSizeSelector = ({ selectedSize, onSizeChange }: TargetSizeSelectorPr
             `}
           >
             <span className="text-lg font-bold">{size.label}</span>
-            <span className="text-xs opacity-80">{size.description}</span>
           </Button>
         ))}
       </div>

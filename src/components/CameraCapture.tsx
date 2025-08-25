@@ -1,7 +1,11 @@
 import { useState, useRef, useCallback } from "react";
-import { Camera, MapPin, Crosshair, RotateCw, Image as ImageIcon, X } from "lucide-react";
+import { Camera, MapPin, Crosshair, RotateCw, Image as ImageIcon, X, Wrench, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import TargetSizeSelector from "@/components/TargetSizeSelector";
+import { Dock } from "@/components/ui/dock";
+import type { DockItemData } from "@/components/ui/dock";
 
 type TargetSize = 'small' | 'medium' | 'large';
 
@@ -12,6 +16,9 @@ const CameraCapture = () => {
   const [showTargetOverlay, setShowTargetOverlay] = useState(false);
   const [targetPosition, setTargetPosition] = useState({ x: 50, y: 50 }); // Percentage from top-left
   const [isDragging, setIsDragging] = useState(false);
+  const [showToolPanel, setShowToolPanel] = useState(false);
+  const [showTargetPanel, setShowTargetPanel] = useState(false);
+  
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cameraContainerRef = useRef<HTMLDivElement>(null);
@@ -85,6 +92,24 @@ const CameraCapture = () => {
     setTimeout(() => capturePhoto(), 150);
   };
 
+  const handleToolClick = () => {
+    setShowToolPanel(!showToolPanel);
+    if (showTargetPanel) setShowTargetPanel(false);
+  };
+
+  const handleTargetClick = () => {
+    setShowTargetPanel(!showTargetPanel);
+    setShowTargetOverlay(!showTargetOverlay);
+  };
+
+  const clearContent = () => {
+    setShowTargetOverlay(false);
+    setShowToolPanel(false);
+    setShowTargetPanel(false);
+    setLocation(null);
+    setTargetPosition({ x: 50, y: 50 });
+  };
+
   // Touch event handlers for movable target
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (!showTargetOverlay || !cameraContainerRef.current) return;
@@ -118,6 +143,29 @@ const CameraCapture = () => {
   }, []);
 
   const targetDimensions = getTargetDimensions(targetSize);
+
+  const dockItems: DockItemData[] = [
+    {
+      icon: <Wrench className="w-6 h-6 text-white" />,
+      label: "Tools",
+      onClick: handleToolClick,
+    },
+    {
+      icon: <Camera className="w-6 h-6 text-white" />,
+      label: "Capture",
+      onClick: handleCaptureClick,
+    },
+    {
+      icon: <ImageIcon className="w-6 h-6 text-white" />,
+      label: "Gallery",
+      onClick: () => {},
+    },
+    {
+      icon: <Settings className="w-6 h-6 text-white" />,
+      label: "Clear",
+      onClick: clearContent,
+    },
+  ];
 
   return (
     <div 
@@ -160,98 +208,87 @@ const CameraCapture = () => {
         </div>
       )}
 
-      {/* Top Controls */}
-      <div className="absolute top-0 left-0 right-0 z-10 p-4">
-        <div className="camera-controls flex items-center justify-between">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={getCurrentLocation}
-            className="bg-white/90 border-white/20 hover:bg-white"
-          >
-            <MapPin className="w-4 h-4 mr-2" />
-            GPS
-          </Button>
-          
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowTargetOverlay(!showTargetOverlay)}
-              className={`bg-white/90 border-white/20 hover:bg-white ${showTargetOverlay ? 'bg-primary text-primary-foreground' : ''}`}
-            >
-              <Crosshair className="w-4 h-4" />
-            </Button>
-          </div>
+      {/* Tool Panel */}
+      {showToolPanel && (
+        <div className="absolute top-4 left-4 right-4 z-40">
+          <Card className="bg-black/80 backdrop-blur-sm border-white/20">
+            <CardContent className="p-4">
+              <div className="flex gap-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={getCurrentLocation}
+                  className="bg-white/10 border-white/20 hover:bg-white/20 text-white"
+                >
+                  <MapPin className="w-4 h-4 mr-2" />
+                  GPS
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleTargetClick}
+                  className={`bg-white/10 border-white/20 hover:bg-white/20 text-white ${showTargetOverlay ? 'bg-primary/30' : ''}`}
+                >
+                  <Crosshair className="w-4 h-4 mr-2" />
+                  Target
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </div>
+      )}
 
       {/* Location Display */}
       {location && (
         <div className="absolute top-20 left-4 right-4 z-10">
-          <div className="camera-controls text-sm">
-            <div className="text-green-600 font-medium">📍 Location Acquired</div>
-            <div className="text-muted-foreground text-xs">
-              {location.coords.latitude.toFixed(6)}, {location.coords.longitude.toFixed(6)}
-            </div>
-          </div>
+          <Card className="bg-black/80 backdrop-blur-sm border-white/20">
+            <CardContent className="p-3">
+              <div className="text-green-400 font-medium text-sm">📍 Location Acquired</div>
+              <div className="text-white/70 text-xs">
+                {location.coords.latitude.toFixed(6)}, {location.coords.longitude.toFixed(6)}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
 
       {/* Target Size Selector */}
-      <div className="absolute top-32 left-4 right-4 z-10">
-        <TargetSizeSelector
-          selectedSize={targetSize}
-          onSizeChange={setTargetSize}
-        />
-      </div>
-
-      {/* Bottom Controls */}
-      <div className="absolute bottom-0 left-0 right-0 z-10 p-6">
-        <div className="flex items-center justify-center gap-8">
-          {/* Gallery Button */}
-          <Button
-            variant="outline"
-            size="lg"
-            className="bg-white/90 border-white/20 hover:bg-white rounded-full w-14 h-14"
-          >
-            <ImageIcon className="w-6 h-6" />
-          </Button>
-
-          {/* Capture Button */}
-          <Button
-            onClick={handleCaptureClick}
-            disabled={isCapturing}
-            className={`
-              capture-button transition-all duration-150
-              ${isCapturing ? 'animate-pulse-capture bg-primary' : ''}
-            `}
-          >
-            <Camera className="w-6 h-6 text-black" />
-          </Button>
-
-          {/* Switch Camera Button */}
-          <Button
-            variant="outline"
-            size="lg"
-            className="bg-white/90 border-white/20 hover:bg-white rounded-full w-14 h-14"
-          >
-            <RotateCw className="w-6 h-6" />
-          </Button>
+      {showTargetPanel && (
+        <div className="absolute top-32 left-4 right-4 z-40">
+          <Card className="bg-black/80 backdrop-blur-sm border-white/20">
+            <CardContent className="p-4">
+              <TargetSizeSelector
+                selectedSize={targetSize}
+                onSizeChange={setTargetSize}
+              />
+            </CardContent>
+          </Card>
         </div>
-      </div>
+      )}
+
+      {/* Dock at Bottom */}
+      <Dock 
+        items={dockItems}
+        className="bottom-6"
+        baseItemSize={56}
+        magnification={72}
+        panelHeight={72}
+      />
 
       {/* Status Indicator */}
       {isCapturing && (
         <div className="absolute inset-0 z-20 bg-white/20 flex items-center justify-center">
-          <div className="camera-controls px-6 py-3">
-            <div className="text-center">
-              <div className="text-lg font-medium">Capturing Photo...</div>
-              <div className="text-sm text-muted-foreground mt-1">
-                Processing with AI detection
+          <Card className="bg-black/80 backdrop-blur-sm border-white/20">
+            <CardContent className="p-6">
+              <div className="text-center">
+                <div className="text-lg font-medium text-white">Capturing Photo...</div>
+                <div className="text-sm text-white/70 mt-1">
+                  Processing with AI detection
+                </div>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       )}
     </div>
