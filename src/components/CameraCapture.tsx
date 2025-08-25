@@ -170,7 +170,7 @@ const CameraCapture = () => {
   return (
     <div 
       ref={cameraContainerRef}
-      className="relative h-screen bg-black overflow-hidden camera-container pt-16"
+      className="relative h-[calc(100vh-8rem)] bg-black overflow-hidden camera-container"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
