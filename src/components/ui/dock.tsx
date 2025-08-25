@@ -77,32 +77,25 @@ export const Dock: React.FC<DockProps> = ({
   const mouseX = useMotionValue(Infinity);
 
   return (
-    <div
+    <motion.div
+      onMouseMove={(e) => mouseX.set(e.pageX)}
+      onMouseLeave={() => mouseX.set(Infinity)}
       className={cn(
-        'z-50',
+        'flex h-full items-end justify-center gap-4 rounded-2xl bg-gray-950/10 backdrop-blur-md border border-white/20 px-4 pb-3',
         className
       )}
-      style={{ height: dockHeight }}
+      style={{ height: panelHeight }}
     >
-      <motion.div
-        onMouseMove={(e) => mouseX.set(e.pageX)}
-        onMouseLeave={() => mouseX.set(Infinity)}
-        className={cn(
-          'flex h-full items-end justify-center gap-4 rounded-2xl bg-gray-950/10 backdrop-blur-md border border-white/20 px-4 pb-3'
-        )}
-        style={{ height: panelHeight }}
-      >
-        {items.map((item, i) => (
-          <DockItem
-            key={i}
-            item={item}
-            mouseX={mouseX}
-            distance={distance}
-            baseItemSize={baseItemSize}
-            magnification={magnification}
-          />
-        ))}
-      </motion.div>
-    </div>
+      {items.map((item, i) => (
+        <DockItem
+          key={i}
+          item={item}
+          mouseX={mouseX}
+          distance={distance}
+          baseItemSize={baseItemSize}
+          magnification={magnification}
+        />
+      ))}
+    </motion.div>
   );
 };

@@ -11,6 +11,7 @@ type TargetSize = 'small' | 'medium' | 'large';
 
 const CameraCapture = () => {
   const [isCapturing, setIsCapturing] = useState(false);
+  const [isCameraActive, setIsCameraActive] = useState(false);
   const [targetSize, setTargetSize] = useState<TargetSize>('medium');
   const [location, setLocation] = useState<GeolocationPosition | null>(null);
   const [showTargetOverlay, setShowTargetOverlay] = useState(false);
@@ -31,24 +32,6 @@ const CameraCapture = () => {
       default: return { width: 180, height: 180 };
     }
   };
-
-  const startCamera = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { 
-          facingMode: 'environment',
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
-        }
-      });
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-    } catch (error) {
-      console.error('Error accessing camera:', error);
-    }
-  }, []);
 
   const getCurrentLocation = useCallback(() => {
     if (navigator.geolocation) {
@@ -87,9 +70,30 @@ const CameraCapture = () => {
     setIsCapturing(false);
   }, [location, targetSize]);
 
-  const handleCaptureClick = () => {
-    setIsCapturing(true);
-    setTimeout(() => capturePhoto(), 150);
+  const handleCameraClick = async () => {
+    if (!isCameraActive) {
+      // First click: activate camera
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { 
+            facingMode: 'environment',
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          }
+        });
+        
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          setIsCameraActive(true);
+        }
+      } catch (error) {
+        console.error('Error accessing camera:', error);
+      }
+    } else {
+      // Second click: capture photo
+      setIsCapturing(true);
+      setTimeout(() => capturePhoto(), 150);
+    }
   };
 
   const handleToolClick = () => {
@@ -108,6 +112,14 @@ const CameraCapture = () => {
     setShowTargetPanel(false);
     setLocation(null);
     setTargetPosition({ x: 50, y: 50 });
+    setIsCameraActive(false);
+    
+    // Stop camera stream if active
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+    }
   };
 
   // Touch event handlers for movable target
@@ -151,9 +163,9 @@ const CameraCapture = () => {
       onClick: handleToolClick,
     },
     {
-      icon: <Camera className="w-6 h-6 text-blue-500" />,
+      icon: <Camera className={`w-6 h-6 ${isCameraActive ? 'text-red-500' : 'text-blue-500'}`} />,
       label: "Capture",
-      onClick: handleCaptureClick,
+      onClick: handleCameraClick,
     },
     {
       icon: <ImageIcon className="w-6 h-6 text-blue-500" />,
@@ -170,20 +182,21 @@ const CameraCapture = () => {
   return (
     <div 
       ref={cameraContainerRef}
-      className="relative h-[calc(100vh-8rem)] bg-black overflow-hidden camera-container"
+      className="relative h-[calc(100vh-9rem)] bg-black overflow-hidden camera-container"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
       {/* Camera Video */}
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        muted
-        onLoadedMetadata={startCamera}
-        className="absolute inset-0 w-full h-full object-cover"
-      />
+      {isCameraActive && (
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      )}
       
       {/* Hidden Canvas for Photo Capture */}
       <canvas ref={canvasRef} className="hidden" />
@@ -268,13 +281,14 @@ const CameraCapture = () => {
       )}
 
       {/* Dock at Bottom */}
-      <Dock 
-        items={dockItems}
-        className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50"
-        baseItemSize={56}
-        magnification={72}
-        panelHeight={80}
-      />
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-50">
+        <Dock 
+          items={dockItems}
+          baseItemSize={56}
+          magnification={72}
+          panelHeight={80}
+        />
+      </div>
 
       {/* Status Indicator */}
       {isCapturing && (
