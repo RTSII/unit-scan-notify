@@ -171,7 +171,8 @@ const CameraCapture = () => {
       {/* Camera View */}
       <div 
         ref={cameraContainerRef}
-        className="flex-1 relative bg-gray-800 overflow-hidden"
+        className="flex-1 relative overflow-hidden"
+        style={{ backgroundColor: '#2C3E50' }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -191,7 +192,17 @@ const CameraCapture = () => {
         {!cameraActive && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
-              <Camera className="w-24 h-24 text-gray-500 mx-auto mb-4" />
+              <div className="w-32 h-24 mx-auto mb-4 relative">
+                {/* Camera body */}
+                <div className="w-full h-full bg-gray-500 rounded-lg relative">
+                  {/* Camera lens */}
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-gray-700 rounded-full">
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 bg-gray-800 rounded-full"></div>
+                  </div>
+                  {/* Camera top */}
+                  <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-8 h-4 bg-gray-500 rounded-t-md"></div>
+                </div>
+              </div>
               <p className="text-gray-400 text-lg">Camera is off</p>
             </div>
           </div>
@@ -297,24 +308,24 @@ const CameraCapture = () => {
       </div>
 
       {/* Bottom Controls */}
-      <div className="bg-black p-6">
-        <div className="flex items-center justify-center space-x-8">
+      <div className="bg-black py-8 px-6">
+        <div className="flex items-center justify-center space-x-12">
           {/* Power Button */}
           <Button
             variant="ghost"
             size="icon"
             onClick={handlePowerClick}
-            className="text-white hover:bg-white/10 w-12 h-12"
+            className="text-white hover:bg-white/10 w-14 h-14"
           >
-            <Power className="w-6 h-6" />
+            <Power className="w-7 h-7" />
           </Button>
 
           {/* Capture Button */}
           <Button
             onClick={handleCaptureClick}
-            className="w-20 h-20 rounded-full bg-white text-black hover:bg-gray-200 flex items-center justify-center p-0"
+            className="w-20 h-20 rounded-full bg-white text-black hover:bg-gray-200 flex items-center justify-center p-0 shadow-lg"
           >
-            <div className="w-2 h-2 bg-black rounded-full"></div>
+            <div className="w-3 h-3 bg-black rounded-full"></div>
           </Button>
 
           {/* Settings Button */}
@@ -322,27 +333,27 @@ const CameraCapture = () => {
             variant="ghost"
             size="icon"
             onClick={handleToolClick}
-            className="text-white hover:bg-white/10 w-12 h-12"
+            className="text-white hover:bg-white/10 w-14 h-14"
           >
-            <Wrench className="w-6 h-6" />
+            <Wrench className="w-7 h-7" />
           </Button>
         </div>
       </div>
 
       {/* Bottom Navigation */}
-      <div className="bg-black border-t border-gray-700">
-        <div className="flex items-center justify-around py-2">
-          <div className="flex flex-col items-center py-2">
+      <div className="bg-black border-t border-gray-800">
+        <div className="flex items-center justify-around py-3">
+          <div className="flex flex-col items-center py-1">
             <Camera className="w-6 h-6 text-blue-500 mb-1" />
-            <span className="text-blue-500 text-xs">Capture</span>
+            <span className="text-blue-500 text-xs font-medium">Capture</span>
           </div>
-          <div className="flex flex-col items-center py-2">
-            <FileText className="w-6 h-6 text-gray-400 mb-1" />
-            <span className="text-gray-400 text-xs">Details</span>
+          <div className="flex flex-col items-center py-1">
+            <FileText className="w-6 h-6 text-gray-500 mb-1" />
+            <span className="text-gray-500 text-xs">Details</span>
           </div>
-          <div className="flex flex-col items-center py-2">
-            <Share className="w-6 h-6 text-gray-400 mb-1" />
-            <span className="text-gray-400 text-xs">Export</span>
+          <div className="flex flex-col items-center py-1">
+            <Share className="w-6 h-6 text-gray-500 mb-1" />
+            <span className="text-gray-500 text-xs">Export</span>
           </div>
         </div>
       </div>
