@@ -42,33 +42,6 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Tab Navigation */}
-      <nav className="bg-card border-b border-border">
-        <div className="flex">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`
-                  flex-1 flex items-center justify-center gap-2 py-4 px-4
-                  font-medium transition-all duration-200 touch-target
-                  ${isActive 
-                    ? 'tab-active border-b-2 border-primary' 
-                    : 'tab-inactive hover:bg-secondary/50'
-                  }
-                `}
-              >
-                <Icon className="w-5 h-5" />
-                <span className="text-sm">{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </nav>
 
       {/* Main Content */}
       <main className="flex-1 overflow-hidden">
