@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { Camera, MapPin, Crosshair, Image as ImageIcon, X, Wrench, Trash2, Power, Home, FileText, Share } from "lucide-react";
+import { Camera, MapPin, Crosshair, Image as ImageIcon, X, Wrench, Trash2, Power, FileText, Share } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -167,15 +167,7 @@ const CameraCapture = () => {
   const targetDimensions = getTargetDimensions(targetSize);
 
   return (
-    <div className="h-screen bg-gray-900 flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 bg-gray-800">
-        <h1 className="text-white text-xl font-semibold">Capture</h1>
-        <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
-          <Home className="w-6 h-6" />
-        </Button>
-      </div>
-
+    <div className="h-full bg-gray-900 flex flex-col">
       {/* Camera View */}
       <div 
         ref={cameraContainerRef}

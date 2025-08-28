@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Camera, FileText, Download } from "lucide-react";
+import { Camera, FileText, Download, Home } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import CameraCapture from "@/components/CameraCapture";
 import ViolationTemplate from "@/components/ViolationTemplate";
 import ExportCenter from "@/components/ExportCenter";
@@ -31,16 +32,12 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-card border-b border-border px-4 py-3">
-        <div className="flex items-center justify-between">
-          <h1 className="text-lg font-semibold text-foreground">
-            Violation Notice Manager
-          </h1>
-          <div className="text-sm text-muted-foreground">
-            Sandpiper Run
-          </div>
-        </div>
-      </header>
+      <div className="flex items-center justify-between p-4 bg-gray-800">
+        <h1 className="text-white text-xl font-semibold">Capture</h1>
+        <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
+          <Home className="w-6 h-6" />
+        </Button>
+      </div>
 
 
       {/* Main Content */}
