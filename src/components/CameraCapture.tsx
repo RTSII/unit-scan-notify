@@ -1,35 +1,13 @@
 import { useState, useRef, useCallback } from "react";
-import { Camera, MapPin, Crosshair, Image as ImageIcon, X, Wrench, Trash2, Power, FileText, Share } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import TargetSizeSelector from "@/components/TargetSizeSelector";
-
-type TargetSize = 'small' | 'medium' | 'large';
 
 const CameraCapture = () => {
-  const [isCapturing, setIsCapturing] = useState(false);
-  const [cameraActive, setCameraActive] = useState(false);
-  const [targetSize, setTargetSize] = useState<TargetSize>('medium');
-  const [location, setLocation] = useState<GeolocationPosition | null>(null);
-  const [showTargetOverlay, setShowTargetOverlay] = useState(false);
-  const [targetPosition, setTargetPosition] = useState({ x: 50, y: 50 }); // Percentage from top-left
-  const [isDragging, setIsDragging] = useState(false);
-  const [showToolPanel, setShowToolPanel] = useState(false);
-  const [showTargetPanel, setShowTargetPanel] = useState(false);
+  const [isPowerOn, setIsPowerOn] = useState(false);
+  const [captureState, setCaptureState] = useState<'initial' | 'confirm'>('initial');
+  const [showDetails, setShowDetails] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const cameraContainerRef = useRef<HTMLDivElement>(null);
-
-  const getTargetDimensions = (size: TargetSize) => {
-    switch (size) {
-      case 'small': return { width: 120, height: 120 };
-      case 'medium': return { width: 180, height: 180 };
-      case 'large': return { width: 240, height: 240 };
-      default: return { width: 180, height: 180 };
-    }
-  };
 
   const startCamera = useCallback(async () => {
     try {
@@ -43,7 +21,6 @@ const CameraCapture = () => {
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        setCameraActive(true);
       }
     } catch (error) {
       console.error('Error accessing camera:', error);
@@ -55,308 +32,197 @@ const CameraCapture = () => {
       const stream = videoRef.current.srcObject as MediaStream;
       stream.getTracks().forEach(track => track.stop());
       videoRef.current.srcObject = null;
-      setCameraActive(false);
     }
   }, []);
-
-  const getCurrentLocation = useCallback(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => setLocation(position),
-        (error) => console.error('Error getting location:', error)
-      );
-    }
-  }, []);
-
-  const capturePhoto = useCallback(() => {
-    if (!videoRef.current || !canvasRef.current) return;
-
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-
-    if (!ctx) return;
-
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    
-    ctx.drawImage(video, 0, 0);
-
-    // Get image data with metadata
-    const imageData = canvas.toDataURL('image/jpeg', 0.9);
-    const timestamp = new Date();
-    
-    console.log('Photo captured:', {
-      imageData: imageData.substring(0, 50) + '...',
-      timestamp,
-      location,
-      targetSize
-    });
-
-    setIsCapturing(false);
-  }, [location, targetSize]);
-
-  const handleCaptureClick = () => {
-    if (!cameraActive) {
-      startCamera();
-    } else {
-      setIsCapturing(true);
-      setTimeout(() => capturePhoto(), 150);
-    }
-  };
 
   const handlePowerClick = () => {
-    if (cameraActive) {
+    if (isPowerOn) {
       stopCamera();
+      setIsPowerOn(false);
     } else {
       startCamera();
+      setIsPowerOn(true);
     }
   };
 
-  const handleToolClick = () => {
-    setShowToolPanel(!showToolPanel);
-    if (showTargetPanel) setShowTargetPanel(false);
+  const handleCaptureClick = () => {
+    if (captureState === 'initial') {
+      setCaptureState('confirm');
+    }
   };
 
-  const handleTargetClick = () => {
-    setShowTargetPanel(!showTargetPanel);
-    setShowTargetOverlay(!showTargetOverlay);
+  const handleCancelCapture = () => {
+    setCaptureState('initial');
   };
 
-  const clearContent = () => {
-    setShowTargetOverlay(false);
-    setShowToolPanel(false);
-    setShowTargetPanel(false);
-    setLocation(null);
-    setTargetPosition({ x: 50, y: 50 });
-    stopCamera();
+  const handleConfirmCapture = () => {
+    // Handle photo capture logic here
+    console.log('Photo captured');
+    setShowDetails(true);
+    setCaptureState('initial');
   };
 
-  // Touch event handlers for movable target
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (!showTargetOverlay || !cameraContainerRef.current) return;
-    
-    e.preventDefault();
-    const touch = e.touches[0];
-    const rect = cameraContainerRef.current.getBoundingClientRect();
-    
-    const x = ((touch.clientX - rect.left) / rect.width) * 100;
-    const y = ((touch.clientY - rect.top) / rect.height) * 100;
-    
-    setTargetPosition({ x: Math.max(10, Math.min(90, x)), y: Math.max(10, Math.min(90, y)) });
-    setIsDragging(true);
-  }, [showTargetOverlay]);
+  const handleBackFromDetails = () => {
+    setShowDetails(false);
+  };
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isDragging || !cameraContainerRef.current) return;
-    
-    e.preventDefault();
-    const touch = e.touches[0];
-    const rect = cameraContainerRef.current.getBoundingClientRect();
-    
-    const x = ((touch.clientX - rect.left) / rect.width) * 100;
-    const y = ((touch.clientY - rect.top) / rect.height) * 100;
-    
-    setTargetPosition({ x: Math.max(10, Math.min(90, x)), y: Math.max(10, Math.min(90, y)) });
-  }, [isDragging]);
+  if (showDetails) {
+    return (
+      <div className="h-screen bg-[var(--background-color)] text-[var(--text-primary)] flex flex-col">
+        {/* Details Header */}
+        <header className="bg-black/50 backdrop-blur-sm absolute top-0 left-0 right-0 z-10">
+          <div className="container mx-auto px-4">
+            <div className="flex justify-between items-center h-20">
+              <button className="p-2" onClick={handleBackFromDetails}>
+                <span className="material-symbols-outlined text-white">arrow_back_ios_new</span>
+              </button>
+              <h1 className="text-xl font-semibold">Details</h1>
+              <button className="p-2">
+                <span className="material-symbols-outlined text-white">home</span>
+              </button>
+            </div>
+          </div>
+        </header>
 
-  const handleTouchEnd = useCallback(() => {
-    setIsDragging(false);
-  }, []);
+        {/* Details Content */}
+        <main className="pt-20 p-4 flex-grow">
+          <p>This is the details screen.</p>
+          <p>The image would be displayed here along with other details.</p>
+        </main>
 
-  const targetDimensions = getTargetDimensions(targetSize);
+        {/* Details Footer */}
+        <footer className="bg-black/50 backdrop-blur-sm pb-4">
+          <nav className="border-t border-[var(--accent-color)]">
+            <div className="flex justify-around items-center h-16">
+              <button 
+                className="flex flex-col items-center gap-1 text-[var(--text-secondary)]"
+                onClick={handleBackFromDetails}
+              >
+                <span className="material-symbols-outlined">photo_camera</span>
+                <span className="text-xs font-medium">Capture</span>
+              </button>
+              <div className="flex flex-col items-center gap-1 text-[var(--primary-color)]">
+                <span className="material-symbols-outlined font-bold">description</span>
+                <span className="text-xs font-semibold">Details</span>
+              </div>
+              <button className="flex flex-col items-center gap-1 text-[var(--text-secondary)]">
+                <span className="material-symbols-outlined">ios_share</span>
+                <span className="text-xs font-medium">Export</span>
+              </button>
+            </div>
+          </nav>
+        </footer>
+      </div>
+    );
+  }
 
   return (
-    <div className="h-full bg-gray-900 flex flex-col">
-      {/* Camera View */}
-      <div 
-        ref={cameraContainerRef}
-        className="flex-1 relative overflow-hidden"
-        style={{ backgroundColor: '#2C3E50' }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+    <div className="h-screen bg-[var(--background-color)] text-[var(--text-primary)] flex flex-col justify-between">
+      {/* Main Content */}
+      <main 
+        className="flex-grow flex items-center justify-center bg-gray-900" 
+        style={{ paddingTop: '5rem', paddingBottom: '11rem' }}
       >
-        {/* Camera Video */}
-        {cameraActive && (
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-        )}
-        
         {/* Camera Off State */}
-        {!cameraActive && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center">
-              <div className="w-32 h-24 mx-auto mb-4 relative">
-                {/* Camera body */}
-                <div className="w-full h-full bg-gray-500 rounded-lg relative">
-                  {/* Camera lens */}
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-gray-700 rounded-full">
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 bg-gray-800 rounded-full"></div>
-                  </div>
-                  {/* Camera top */}
-                  <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-8 h-4 bg-gray-500 rounded-t-md"></div>
-                </div>
-              </div>
-              <p className="text-gray-400 text-lg">Camera is off</p>
-            </div>
+        {!isPowerOn && (
+          <div className="text-center">
+            <span className="material-symbols-outlined text-gray-600 text-9xl">photo_camera</span>
+            <p className="text-[var(--text-secondary)] mt-2">Camera is off</p>
           </div>
         )}
-        
+
+        {/* Camera On State */}
+        {isPowerOn && (
+          <div className="w-full h-full bg-gray-700 flex items-center justify-center relative">
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <p className="text-white relative z-10">Live Camera Preview</p>
+          </div>
+        )}
+
         {/* Hidden Canvas for Photo Capture */}
         <canvas ref={canvasRef} className="hidden" />
+      </main>
 
-        {/* Target Overlay */}
-        {showTargetOverlay && cameraActive && (
-          <div
-            className="absolute target-overlay rounded-lg border-2 border-primary pointer-events-none z-30"
-            style={{
-              left: `${targetPosition.x}%`,
-              top: `${targetPosition.y}%`,
-              width: targetDimensions.width,
-              height: targetDimensions.height,
-              transform: 'translate(-50%, -50%)',
-              boxShadow: '0 0 0 2px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(255,255,255,0.5)',
-            }}
-          >
-            {/* Center Aiming Marker */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <X className="w-6 h-6 text-primary drop-shadow-lg" strokeWidth={3} />
+      {/* Footer */}
+      <footer className="bg-black/50 backdrop-blur-sm pb-4">
+        <div className="container mx-auto px-4">
+          {/* Capture Confirm State */}
+          {captureState === 'confirm' && (
+            <div className="flex-col items-center justify-center pb-4">
+              <div className="flex justify-center gap-16 w-full">
+                <button 
+                  className="w-16 h-16 bg-[var(--color-red)] rounded-full flex items-center justify-center shadow-lg transform active:scale-95 transition-transform"
+                  onClick={handleCancelCapture}
+                >
+                  <span className="material-symbols-outlined text-white text-4xl">close</span>
+                </button>
+                <button 
+                  className="w-16 h-16 bg-[var(--color-green)] rounded-full flex items-center justify-center shadow-lg transform active:scale-95 transition-transform"
+                  onClick={handleConfirmCapture}
+                >
+                  <span className="material-symbols-outlined text-white text-4xl">check</span>
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Tool Panel */}
-        {showToolPanel && (
-          <div className="absolute top-4 left-4 right-4 z-40">
-            <Card className="bg-black/80 backdrop-blur-sm border-white/20">
-              <CardContent className="p-4">
-                <div className="flex gap-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={getCurrentLocation}
-                    className="bg-white/10 border-white/20 hover:bg-white/20 text-white"
-                  >
-                    <MapPin className="w-4 h-4 mr-2" />
-                    GPS
-                  </Button>
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleTargetClick}
-                    className={`bg-white/10 border-white/20 hover:bg-white/20 text-white ${showTargetOverlay ? 'bg-primary/30' : ''}`}
-                  >
-                    <Crosshair className="w-4 h-4 mr-2" />
-                    Target
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+          {/* Main Controls */}
+          <div className="flex justify-between items-center h-28">
+            {/* Power Button */}
+            <button className="p-2" onClick={handlePowerClick}>
+              <span 
+                className={`material-symbols-outlined text-3xl ${
+                  isPowerOn ? 'text-[var(--color-green)]' : 'text-[var(--color-red)]'
+                }`}
+              >
+                power_settings_new
+              </span>
+            </button>
 
-        {/* Location Display */}
-        {location && (
-          <div className="absolute top-20 left-4 right-4 z-10">
-            <Card className="bg-black/80 backdrop-blur-sm border-white/20">
-              <CardContent className="p-3">
-                <div className="text-green-400 font-medium text-sm">📍 Location Acquired</div>
-                <div className="text-white/70 text-xs">
-                  {location.coords.latitude.toFixed(6)}, {location.coords.longitude.toFixed(6)}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+            {/* Capture Button - Only show in initial state */}
+            {captureState === 'initial' && (
+              <div className="flex-grow flex justify-center">
+                <button 
+                  className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg transform active:scale-95 transition-transform"
+                  onClick={handleCaptureClick}
+                  disabled={!isPowerOn}
+                >
+                  <div className="w-18 h-18 bg-white rounded-full border-4 border-black"></div>
+                </button>
+              </div>
+            )}
 
-        {/* Target Size Selector */}
-        {showTargetPanel && (
-          <div className="absolute top-32 left-4 right-4 z-40">
-            <Card className="bg-black/80 backdrop-blur-sm border-white/20">
-              <CardContent className="p-4">
-                <TargetSizeSelector
-                  selectedSize={targetSize}
-                  onSizeChange={setTargetSize}
-                />
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Status Indicator */}
-        {isCapturing && (
-          <div className="absolute inset-0 z-20 bg-white/20 flex items-center justify-center">
-            <Card className="bg-black/80 backdrop-blur-sm border-white/20">
-              <CardContent className="p-6">
-                <div className="text-center">
-                  <div className="text-lg font-medium text-white">Capturing Photo...</div>
-                  <div className="text-sm text-white/70 mt-1">
-                    Processing with AI detection
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-      </div>
-
-      {/* Bottom Controls */}
-      <div className="bg-black py-8 px-6">
-        <div className="flex items-center justify-center space-x-12">
-          {/* Power Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handlePowerClick}
-            className="text-white hover:bg-white/10 w-14 h-14"
-          >
-            <Power className="w-7 h-7" />
-          </Button>
-
-          {/* Capture Button */}
-          <Button
-            onClick={handleCaptureClick}
-            className="w-20 h-20 rounded-full bg-white text-black hover:bg-gray-200 flex items-center justify-center p-0 shadow-lg"
-          >
-            <div className="w-3 h-3 bg-black rounded-full"></div>
-          </Button>
-
-          {/* Settings Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleToolClick}
-            className="text-white hover:bg-white/10 w-14 h-14"
-          >
-            <Wrench className="w-7 h-7" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Bottom Navigation */}
-      <div className="bg-black border-t border-gray-800">
-        <div className="flex items-center justify-around py-3">
-          <div className="flex flex-col items-center py-1">
-            <Camera className="w-6 h-6 text-blue-500 mb-1" />
-            <span className="text-blue-500 text-xs font-medium">Capture</span>
-          </div>
-          <div className="flex flex-col items-center py-1">
-            <FileText className="w-6 h-6 text-gray-500 mb-1" />
-            <span className="text-gray-500 text-xs">Details</span>
-          </div>
-          <div className="flex flex-col items-center py-1">
-            <Share className="w-6 h-6 text-gray-500 mb-1" />
-            <span className="text-gray-500 text-xs">Export</span>
+            {/* Settings Button */}
+            <button className="p-2">
+              <span className="material-symbols-outlined text-white text-3xl">build</span>
+            </button>
           </div>
         </div>
-      </div>
+
+        {/* Bottom Navigation */}
+        <nav className="border-t border-[var(--accent-color)]">
+          <div className="flex justify-around items-center h-16">
+            <div className="flex flex-col items-center gap-1 text-[var(--primary-color)]">
+              <span className="material-symbols-outlined font-bold">photo_camera</span>
+              <span className="text-xs font-semibold">Capture</span>
+            </div>
+            <button className="flex flex-col items-center gap-1 text-[var(--text-secondary)]">
+              <span className="material-symbols-outlined">description</span>
+              <span className="text-xs font-medium">Details</span>
+            </button>
+            <button className="flex flex-col items-center gap-1 text-[var(--text-secondary)]">
+              <span className="material-symbols-outlined">ios_share</span>
+              <span className="text-xs font-medium">Export</span>
+            </button>
+          </div>
+        </nav>
+      </footer>
     </div>
   );
 };

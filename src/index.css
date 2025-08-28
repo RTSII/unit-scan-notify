@@ -1,220 +1,80 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Professional Violation Notice Management App Design System */
+:root {
+  --primary-color: #0d7ff2;
+  --background-color: #000000;
+  --surface-color: #1c1c1e;
+  --text-primary: #ffffff;
+  --text-secondary: #8e8e93;
+  --accent-color: #3a3a3c;
+  --color-red: #ef4444;
+  --color-green: #22c55e;
 
-@layer base {
-  :root {
-    /* Base colors - High contrast for outdoor visibility */
-    --background: 0 0% 98%;
-    --foreground: 220 13% 18%;
-
-    /* Card system */
-    --card: 0 0% 100%;
-    --card-foreground: 220 13% 18%;
-
-    /* Primary - Professional blue theme */
-    --primary: 217 79% 56%; /* #2563eb */
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 217 79% 48%;
-    --primary-muted: 217 79% 56% / 0.1;
-
-    /* Secondary - Clean neutrals */
-    --secondary: 220 13% 95%;
-    --secondary-foreground: 220 13% 18%;
-    --secondary-hover: 220 13% 92%;
-
-    /* Accent - Success and status colors */
-    --accent: 142 71% 45%;
-    --accent-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
-
-    /* Camera interface colors */
-    --camera-overlay: 0 0% 0% / 0.8;
-    --camera-controls: 0 0% 100% / 0.9;
-    --target-highlight: 217 79% 56%;
-    --capture-button: 0 0% 100%;
-    --capture-button-active: 217 79% 56%;
-
-    /* Form and data colors */
-    --muted: 220 13% 95%;
-    --muted-foreground: 220 9% 46%;
-    --border: 220 13% 91%;
-    --input: 220 13% 95%;
-    --input-border: 220 13% 87%;
-    --ring: 217 79% 56%;
-
-    /* Status colors */
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --success: 142 71% 45%;
-    --success-foreground: 0 0% 100%;
-
-    /* Spacing and layout */
-    --radius: 0.75rem;
-    --touch-target: 2.75rem; /* 44px minimum touch target */
-
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(217 79% 56%), hsl(217 79% 48%));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(220 13% 98%));
-    --gradient-camera: linear-gradient(180deg, hsl(0 0% 0% / 0.3), hsl(0 0% 0% / 0.7));
-
-    /* Shadows - Enhanced for mobile */
-    --shadow-sm: 0 1px 2px hsl(220 13% 18% / 0.05);
-    --shadow-md: 0 4px 6px hsl(220 13% 18% / 0.07);
-    --shadow-lg: 0 10px 15px hsl(220 13% 18% / 0.1);
-    --shadow-camera: 0 8px 25px hsl(0 0% 0% / 0.3);
-
-    /* Animations */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: all 0.15s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 3.9%;
+  --primary: 240 5.9% 10%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 240 4.8% 95.9%;
+  --secondary-foreground: 240 5.9% 10%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 240 10% 3.9%;
+  --chart-1: 12 76% 61%;
+  --chart-2: 173 58% 39%;
+  --chart-3: 197 37% 24%;
+  --chart-4: 43 74% 66%;
+  --chart-5: 27 87% 67%;
+  --radius: 0.5rem;
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-
-  body {
-    @apply bg-background text-foreground font-sans;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  }
-
-  /* Touch-friendly interactive elements */
-  button, [role="button"], input[type="submit"] {
-    min-height: var(--touch-target);
-    min-width: var(--touch-target);
-  }
-
-  /* Camera specific styles */
-  .camera-container {
-    position: relative;
-    overflow: hidden;
-    background: hsl(var(--camera-overlay));
-  }
-
-  .target-overlay {
-    pointer-events: none;
-    background: transparent;
-    border: 2px solid hsl(var(--target-highlight));
-    box-shadow: 0 0 0 9999px hsl(var(--camera-overlay));
-  }
+.dark {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --card: 240 10% 3.9%;
+  --card-foreground: 0 0% 98%;
+  --popover: 240 10% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 0 0% 98%;
+  --primary-foreground: 240 5.9% 10%;
+  --secondary: 240 3.7% 15.9%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --ring: 240 4.9% 83.9%;
+  --chart-1: 220 70% 50%;
+  --chart-2: 160 60% 45%;
+  --chart-3: 30 80% 55%;
+  --chart-4: 280 65% 60%;
+  --chart-5: 340 75% 55%;
 }
 
-@layer components {
-  /* Camera interface components */
-  .capture-button {
-    @apply relative w-16 h-16 rounded-full border-4 border-white bg-white;
-    @apply hover:bg-primary active:scale-95 transition-all duration-150;
-    box-shadow: var(--shadow-camera);
-  }
-
-  .camera-controls {
-    @apply backdrop-blur-sm bg-white/90 rounded-xl p-4;
-    box-shadow: var(--shadow-md);
-  }
-
-  /* Professional form elements */
-  .form-section {
-    @apply bg-card rounded-xl p-4 border border-border;
-    box-shadow: var(--shadow-sm);
-  }
-
-  /* Tab system */
-  .tab-active {
-    @apply bg-primary text-primary-foreground;
-  }
-
-  .tab-inactive {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
-  }
+body {
+  font-family: 'Work Sans', sans-serif;
+  min-height: max(884px, 100dvh);
 }
 
-@layer utilities {
-  /* Custom gradients */
-  .bg-gradient-primary {
-    background: var(--gradient-primary);
-  }
-
-  .bg-gradient-card {
-    background: var(--gradient-card);
-  }
-
-  .bg-gradient-camera {
-    background: var(--gradient-camera);
-  }
-
-  /* Custom shadows */
-  .shadow-camera {
-    box-shadow: var(--shadow-camera);
-  }
-
-  .shadow-professional {
-    box-shadow: var(--shadow-lg);
-  }
-
-  /* Touch targets */
-  .touch-target {
-    min-height: var(--touch-target);
-    min-width: var(--touch-target);
-  }
+.material-symbols-outlined {
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 400, 
+  'GRAD' 0,
+  'opsz' 24
 }
