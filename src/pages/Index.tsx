@@ -30,7 +30,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-screen bg-gray-900 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-gray-800">
         <h1 className="text-white text-xl font-semibold">Capture</h1>
@@ -38,7 +38,6 @@ const Index = () => {
           <Home className="w-6 h-6" />
         </Button>
       </div>
-
 
       {/* Main Content */}
       <main className="flex-1 overflow-hidden">
