@@ -30,24 +30,8 @@ const Index = () => {
   };
 
   return (
-    <div className="h-screen bg-[var(--background-color)] flex flex-col">
-      {/* Header */}
-      <header className="bg-black/50 backdrop-blur-sm absolute top-0 left-0 right-0 z-10">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center h-20">
-            <div></div>
-            <h1 className="text-xl font-semibold text-white">Capture</h1>
-            <button className="p-2">
-              <span className="material-symbols-outlined text-white">home</span>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="flex-1 overflow-hidden">
-        {renderContent()}
-      </main>
+    <div className="w-full">
+      {renderContent()}
     </div>
   );
 };

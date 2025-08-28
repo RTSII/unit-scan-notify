@@ -68,30 +68,28 @@ const CameraCapture = () => {
 
   if (showDetails) {
     return (
-      <div className="h-screen bg-[var(--background-color)] text-[var(--text-primary)] flex flex-col">
+      <div className="fixed inset-0 bg-[var(--background-color)] text-[var(--text-primary)] flex flex-col overflow-hidden z-20">
         {/* Details Header */}
-        <header className="bg-black/50 backdrop-blur-sm absolute top-0 left-0 right-0 z-10">
-          <div className="container mx-auto px-4">
-            <div className="flex justify-between items-center h-20">
-              <button className="p-2" onClick={handleBackFromDetails}>
-                <span className="material-symbols-outlined text-white">arrow_back_ios_new</span>
-              </button>
-              <h1 className="text-xl font-semibold">Details</h1>
-              <button className="p-2">
-                <span className="material-symbols-outlined text-white">home</span>
-              </button>
-            </div>
+        <header className="bg-black/50 backdrop-blur-sm flex-shrink-0 z-10">
+          <div className="flex justify-between items-center h-20 px-4">
+            <button className="p-2" onClick={handleBackFromDetails}>
+              <span className="material-symbols-outlined text-white">arrow_back_ios_new</span>
+            </button>
+            <h1 className="text-xl font-semibold">Details</h1>
+            <button className="p-2">
+              <span className="material-symbols-outlined text-white">home</span>
+            </button>
           </div>
         </header>
 
         {/* Details Content */}
-        <main className="pt-20 p-4 flex-grow">
+        <main className="flex-1 p-4 overflow-auto">
           <p>This is the details screen.</p>
           <p>The image would be displayed here along with other details.</p>
         </main>
 
         {/* Details Footer */}
-        <footer className="bg-black/50 backdrop-blur-sm pb-4">
+        <footer className="bg-black/50 backdrop-blur-sm flex-shrink-0 pb-safe-bottom">
           <nav className="border-t border-[var(--accent-color)]">
             <div className="flex justify-around items-center h-16">
               <button 
@@ -117,12 +115,20 @@ const CameraCapture = () => {
   }
 
   return (
-    <div className="h-screen bg-[var(--background-color)] text-[var(--text-primary)] flex flex-col justify-between">
+    <div className="fixed inset-0 bg-[var(--background-color)] text-[var(--text-primary)] flex flex-col overflow-hidden">
+      {/* Header */}
+      <header className="bg-black/50 backdrop-blur-sm flex-shrink-0 z-10">
+        <div className="flex justify-between items-center h-20 px-4">
+          <div></div>
+          <h1 className="text-xl font-semibold text-white">Capture</h1>
+          <button className="p-2">
+            <span className="material-symbols-outlined text-white">home</span>
+          </button>
+        </div>
+      </header>
+
       {/* Main Content */}
-      <main 
-        className="flex-grow flex items-center justify-center bg-gray-900" 
-        style={{ paddingTop: '5rem', paddingBottom: '11rem' }}
-      >
+      <main className="flex-1 flex items-center justify-center bg-gray-900 overflow-hidden">
         {/* Camera Off State */}
         {!isPowerOn && (
           <div className="text-center">
@@ -150,59 +156,57 @@ const CameraCapture = () => {
       </main>
 
       {/* Footer */}
-      <footer className="bg-black/50 backdrop-blur-sm pb-4">
-        <div className="container mx-auto px-4">
-          {/* Capture Confirm State */}
-          {captureState === 'confirm' && (
-            <div className="flex-col items-center justify-center pb-4">
-              <div className="flex justify-center gap-16 w-full">
-                <button 
-                  className="w-16 h-16 bg-[var(--color-red)] rounded-full flex items-center justify-center shadow-lg transform active:scale-95 transition-transform"
-                  onClick={handleCancelCapture}
-                >
-                  <span className="material-symbols-outlined text-white text-4xl">close</span>
-                </button>
-                <button 
-                  className="w-16 h-16 bg-[var(--color-green)] rounded-full flex items-center justify-center shadow-lg transform active:scale-95 transition-transform"
-                  onClick={handleConfirmCapture}
-                >
-                  <span className="material-symbols-outlined text-white text-4xl">check</span>
-                </button>
-              </div>
+      <footer className="bg-black/50 backdrop-blur-sm flex-shrink-0 pb-safe-bottom">
+        {/* Capture Confirm State */}
+        {captureState === 'confirm' && (
+          <div className="flex justify-center py-4">
+            <div className="flex gap-16">
+              <button 
+                className="w-16 h-16 bg-[var(--color-red)] rounded-full flex items-center justify-center shadow-lg transform active:scale-95 transition-transform"
+                onClick={handleCancelCapture}
+              >
+                <span className="material-symbols-outlined text-white text-4xl">close</span>
+              </button>
+              <button 
+                className="w-16 h-16 bg-[var(--color-green)] rounded-full flex items-center justify-center shadow-lg transform active:scale-95 transition-transform"
+                onClick={handleConfirmCapture}
+              >
+                <span className="material-symbols-outlined text-white text-4xl">check</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Main Controls */}
+        <div className="flex justify-between items-center h-28 px-4">
+          {/* Power Button */}
+          <button className="p-2" onClick={handlePowerClick}>
+            <span 
+              className={`material-symbols-outlined text-3xl ${
+                isPowerOn ? 'text-[var(--color-green)]' : 'text-[var(--color-red)]'
+              }`}
+            >
+              power_settings_new
+            </span>
+          </button>
+
+          {/* Capture Button - Only show in initial state */}
+          {captureState === 'initial' && (
+            <div className="flex-grow flex justify-center">
+              <button 
+                className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg transform active:scale-95 transition-transform"
+                onClick={handleCaptureClick}
+                disabled={!isPowerOn}
+              >
+                <div className="w-18 h-18 bg-white rounded-full border-4 border-black"></div>
+              </button>
             </div>
           )}
 
-          {/* Main Controls */}
-          <div className="flex justify-between items-center h-28">
-            {/* Power Button */}
-            <button className="p-2" onClick={handlePowerClick}>
-              <span 
-                className={`material-symbols-outlined text-3xl ${
-                  isPowerOn ? 'text-[var(--color-green)]' : 'text-[var(--color-red)]'
-                }`}
-              >
-                power_settings_new
-              </span>
-            </button>
-
-            {/* Capture Button - Only show in initial state */}
-            {captureState === 'initial' && (
-              <div className="flex-grow flex justify-center">
-                <button 
-                  className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg transform active:scale-95 transition-transform"
-                  onClick={handleCaptureClick}
-                  disabled={!isPowerOn}
-                >
-                  <div className="w-18 h-18 bg-white rounded-full border-4 border-black"></div>
-                </button>
-              </div>
-            )}
-
-            {/* Settings Button */}
-            <button className="p-2">
-              <span className="material-symbols-outlined text-white text-3xl">build</span>
-            </button>
-          </div>
+          {/* Settings Button */}
+          <button className="p-2">
+            <span className="material-symbols-outlined text-white text-3xl">build</span>
+          </button>
         </div>
 
         {/* Bottom Navigation */}
