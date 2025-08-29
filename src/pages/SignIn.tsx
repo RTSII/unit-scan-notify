@@ -32,80 +32,82 @@ const SignIn = () => {
       </div>
 
       {/* Content Container */}
-      <div className="relative z-10 flex items-center justify-center min-h-screen p-8">
-        <div className="w-full max-w-6xl flex flex-col items-center">
-          {/* Hero Section with SPR and Vice City Text */}
-          <div className="mb-12 text-center">
+      <div className="relative z-10 min-h-screen p-8">
+        <div className="w-full max-w-6xl">
+          {/* Hero Section with SPR and Vice City Text - Upper Left */}
+          <div className="mb-12 text-left">
             {/* SPR Block Letters */}
             <div className="relative mb-4">
-              <h1 className="text-9xl md:text-[12rem] font-black text-vice-blue tracking-wider drop-shadow-2xl vice-block-letters">
+              <h1 className="text-5xl md:text-7xl font-black text-vice-blue tracking-wider drop-shadow-2xl vice-block-letters">
                 SPR
               </h1>
               
-              {/* Vice City Cursive Text */}
-              <div className="absolute -bottom-8 right-8 md:right-16">
-                <h2 className="text-4xl md:text-6xl font-bold text-vice-pink vice-city-font drop-shadow-lg transform rotate-[-5deg]">
+              {/* Vice City Cursive Text with Neon Glow */}
+              <div className="absolute -bottom-4 left-12 md:left-20">
+                <h2 className="text-2xl md:text-4xl font-bold text-vice-pink vice-city-font drop-shadow-lg transform rotate-[-5deg] vice-neon-glow">
                   Vice City
                 </h2>
                 {/* Decorative Elements */}
-                <div className="absolute -top-2 -right-4 w-12 h-1 bg-vice-pink transform rotate-45"></div>
-                <div className="absolute -bottom-2 -left-4 w-8 h-1 bg-vice-cyan transform rotate-[-30deg]"></div>
+                <div className="absolute -top-1 -right-2 w-8 h-0.5 bg-vice-pink transform rotate-45"></div>
+                <div className="absolute -bottom-1 -left-2 w-6 h-0.5 bg-vice-cyan transform rotate-[-30deg]"></div>
               </div>
             </div>
           </div>
 
-          {/* Sign In Card */}
-          <Card className="w-full max-w-md bg-black/40 backdrop-blur-md border-vice-cyan/30 shadow-2xl shadow-vice-purple/20">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl font-bold text-white">Sign In</CardTitle>
-              <CardDescription className="text-vice-cyan">
-                Enter the neon-soaked paradise
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-vice-pink font-semibold">
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  className="bg-black/30 border-vice-cyan/50 text-white placeholder:text-gray-400 focus:border-vice-pink focus:ring-vice-pink"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-vice-pink font-semibold">
-                  Password
-                </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  className="bg-black/30 border-vice-cyan/50 text-white placeholder:text-gray-400 focus:border-vice-pink focus:ring-vice-pink"
-                />
-              </div>
-            </CardContent>
-            <CardFooter className="flex flex-col space-y-4">
-              <Button className="w-full bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink text-white font-bold py-3 shadow-lg shadow-vice-pink/30 transition-all duration-300 transform hover:scale-105">
-                Sign In
-              </Button>
-              <div className="text-center space-y-2">
-                <p className="text-sm text-vice-cyan">
-                  Don't have an account?{' '}
-                  <span className="text-vice-pink font-semibold cursor-pointer hover:underline">
-                    Sign up
-                  </span>
-                </p>
-                <p className="text-xs text-gray-400">
-                  Forgot your password?{' '}
-                  <span className="text-vice-cyan cursor-pointer hover:underline">
-                    Reset it
-                  </span>
-                </p>
-              </div>
-            </CardFooter>
-          </Card>
+          {/* Sign In Card - Centered */}
+          <div className="flex justify-center items-center min-h-[60vh]">
+            <Card className="w-full max-w-md bg-black/40 backdrop-blur-md border-vice-cyan/30 shadow-2xl shadow-vice-purple/20">
+              <CardHeader className="text-center">
+                <CardTitle className="text-2xl font-bold text-white">Sign In</CardTitle>
+                <CardDescription className="text-vice-cyan">
+                  Enter the neon-soaked paradise
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-vice-pink font-semibold">
+                    Email
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    className="bg-black/30 border-vice-cyan/50 text-white placeholder:text-gray-400 focus:border-vice-pink focus:ring-vice-pink"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-vice-pink font-semibold">
+                    Password
+                  </Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="Enter your password"
+                    className="bg-black/30 border-vice-cyan/50 text-white placeholder:text-gray-400 focus:border-vice-pink focus:ring-vice-pink"
+                  />
+                </div>
+              </CardContent>
+              <CardFooter className="flex flex-col space-y-4">
+                <Button className="w-full bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink text-white font-bold py-3 shadow-lg shadow-vice-pink/30 transition-all duration-300 transform hover:scale-105">
+                  Sign In
+                </Button>
+                <div className="text-center space-y-2">
+                  <p className="text-sm text-vice-cyan">
+                    Don't have an account?{' '}
+                    <span className="text-vice-pink font-semibold cursor-pointer hover:underline">
+                      Sign up
+                    </span>
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    Forgot your password?{' '}
+                    <span className="text-vice-cyan cursor-pointer hover:underline">
+                      Reset it
+                    </span>
+                  </p>
+                </div>
+              </CardFooter>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
