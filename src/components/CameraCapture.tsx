@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Camera } from "lucide-react";
+import { Plus, Camera, Power } from "lucide-react";
 
 const CameraCapture = () => {
   const [isPowerOn, setIsPowerOn] = useState(false);
@@ -264,7 +264,7 @@ const CameraCapture = () => {
                     }`} 
                   />
                 </button>
-                <label className="block text-sm font-medium text-[var(--primary-color)] ml-1.5">Description</label>
+                <label className="block text-sm font-medium text-[var(--color-neon-fuscia)] ml-1.5">Description</label>
               </div>
               {isDescriptionExpanded && (
                 <Textarea
@@ -285,48 +285,46 @@ const CameraCapture = () => {
                   onClick={() => setFormData(prev => ({ ...prev, includePhotos: !prev.includePhotos }))}
                   className="p-1 hover:bg-[var(--accent-color)]/20 rounded-full transition-colors flex items-center justify-center"
                 >
-                  <Plus 
+                  <Power 
                     size={14} 
-                    className={`text-[var(--primary-color)] transition-transform duration-200 ${
-                      formData.includePhotos ? 'rotate-45' : ''
+                    className={`transition-colors duration-200 ${
+                      formData.includePhotos ? 'text-[var(--color-green)]' : 'text-[var(--color-red)]'
                     }`} 
                   />
                 </button>
-                <label className="block text-sm font-medium text-[var(--primary-color)] ml-1.5">Photo Evidence</label>
+                <label className="block text-sm font-medium text-[var(--color-neon-fuscia)] ml-1.5">Photo Evidence</label>
               </div>
-              {formData.includePhotos && (
-                <div className="flex gap-3 items-center justify-center">
-                  {/* Captured Photo Placeholder */}
-                  <Card className="bg-[var(--surface-color)] border-[var(--accent-color)] w-20 h-20 flex-shrink-0">
-                    <CardContent className="p-1">
-                      <div className="w-full h-full bg-gray-700 rounded flex items-center justify-center relative">
-                        {capturedImages.length > 0 ? (
-                          <>
-                            <Camera className="w-6 h-6 text-gray-400" />
-                            <div className="absolute inset-0 bg-blue-500/20 rounded flex items-center justify-center">
-                              <span className="text-xs text-white font-semibold">Captured</span>
-                            </div>
-                          </>
-                        ) : (
-                          <div className="flex flex-col items-center justify-center">
-                            <Camera className="w-5 h-5 text-gray-500 mb-1" />
-                            <span className="text-xs text-gray-500">Photo</span>
+              <div className="flex gap-3 items-center justify-center">
+                {/* Captured Photo Placeholder */}
+                <Card className="bg-[var(--surface-color)] border-[var(--accent-color)] w-20 h-20 flex-shrink-0">
+                  <CardContent className="p-1">
+                    <div className="w-full h-full bg-gray-700 rounded flex items-center justify-center relative">
+                      {capturedImages.length > 0 ? (
+                        <>
+                          <Camera className="w-6 h-6 text-gray-400" />
+                          <div className="absolute inset-0 bg-blue-500/20 rounded flex items-center justify-center">
+                            <span className="text-xs text-white font-semibold">Captured</span>
                           </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  {/* Add Image Button */}
-                  <Card className="bg-[var(--surface-color)] border-[var(--accent-color)] border-dashed cursor-pointer hover:bg-[var(--accent-color)]/20 transition-colors w-20 h-20 flex-shrink-0">
-                    <CardContent className="p-1">
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Plus className="w-6 h-6 text-[var(--primary-color)]" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
+                        </>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center">
+                          <Camera className="w-5 h-5 text-gray-500 mb-1" />
+                          <span className="text-xs text-gray-500">Photo</span>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                {/* Add Image Button */}
+                <Card className="bg-[var(--surface-color)] border-[var(--accent-color)] border-dashed cursor-pointer hover:bg-[var(--accent-color)]/20 transition-colors w-20 h-20 flex-shrink-0">
+                  <CardContent className="p-1">
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Plus className="w-6 h-6 text-[var(--primary-color)]" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </div>
         </main>
