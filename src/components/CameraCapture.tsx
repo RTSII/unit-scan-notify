@@ -129,7 +129,7 @@ const CameraCapture = () => {
             {/* Date, Time & Unit Combined Row */}
             <div className="flex gap-3 items-end justify-center">
               <div className="w-20">
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1 text-center">Date</label>
+                <label className="block text-sm font-medium text-[var(--primary-color)] mb-1 text-center">Date</label>
                 <Input
                   value={formData.date}
                   onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
@@ -138,7 +138,7 @@ const CameraCapture = () => {
                 />
               </div>
               <div className="w-24">
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1 text-center">Time</label>
+                <label className="block text-sm font-medium text-[var(--primary-color)] mb-1 text-center">Time</label>
                 <Input
                   value={formData.time}
                   onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
@@ -147,7 +147,7 @@ const CameraCapture = () => {
                 />
               </div>
               <div className="w-20">
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1 text-center">Unit</label>
+                <label className="block text-sm font-medium text-[var(--primary-color)] mb-1 text-center">Unit</label>
                 <Input
                   value={formData.unit}
                   onChange={(e) => {
@@ -165,7 +165,7 @@ const CameraCapture = () => {
 
             {/* Violation Types */}
             <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-3 text-center">Violation Type (Select applicable)</label>
+              <label className="block text-sm font-medium text-[var(--primary-color)] mb-3 text-center">Violation Type (Select applicable)</label>
               <div className="space-y-3">
                 <div className="flex items-center space-x-3">
                   <Checkbox
@@ -264,7 +264,7 @@ const CameraCapture = () => {
                     }`} 
                   />
                 </button>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] ml-1.5">Description</label>
+                <label className="block text-sm font-medium text-[var(--primary-color)] ml-1.5">Description</label>
               </div>
               {isDescriptionExpanded && (
                 <Textarea
@@ -295,7 +295,7 @@ const CameraCapture = () => {
                     Include Photo(s)
                   </label>
                 </div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] ml-1.5">Photo Evidence</label>
+                <label className="block text-sm font-medium text-[var(--primary-color)] ml-1.5">Photo Evidence</label>
               </div>
               <div className="flex gap-3">
                 {/* Captured Photo Placeholder */}
