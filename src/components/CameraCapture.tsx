@@ -279,25 +279,8 @@ const CameraCapture = () => {
 
             {/* Image Attachments */}
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <div className="flex items-center space-x-2">
-                  <div className="w-6 flex justify-start">
-                    <Checkbox
-                      id="include-photos"
-                      checked={formData.includePhotos}
-                      onCheckedChange={(checked) => 
-                        setFormData(prev => ({ ...prev, includePhotos: !!checked }))
-                      }
-                      className="border-[var(--accent-color)] data-[state=checked]:bg-[var(--primary-color)] h-2 w-2 [&>span>svg]:h-3 [&>span>svg]:w-3"
-                    />
-                  </div>
-                  <label htmlFor="include-photos" className="text-white text-xs cursor-pointer ml-3">
-                    Include Photo(s)
-                  </label>
-                </div>
-                <label className="block text-sm font-medium text-[var(--primary-color)] ml-1.5">Photo Evidence</label>
-              </div>
-              <div className="flex gap-3">
+              <label className="block text-sm font-medium text-[var(--primary-color)] mb-3 text-center">Photo Evidence</label>
+              <div className="flex gap-3 items-center justify-center">
                 {/* Captured Photo Placeholder */}
                 <Card className="bg-[var(--surface-color)] border-[var(--accent-color)] w-20 h-20 flex-shrink-0">
                   <CardContent className="p-1">
@@ -327,6 +310,23 @@ const CameraCapture = () => {
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Include Photos Checkbox */}
+                <div className="flex flex-col items-center space-y-2">
+                  <div className="w-6 flex justify-center">
+                    <Checkbox
+                      id="include-photos"
+                      checked={formData.includePhotos}
+                      onCheckedChange={(checked) => 
+                        setFormData(prev => ({ ...prev, includePhotos: !!checked }))
+                      }
+                      className="border-[var(--accent-color)] data-[state=checked]:bg-[var(--primary-color)] h-3 w-3"
+                    />
+                  </div>
+                  <label htmlFor="include-photos" className="text-white text-xs cursor-pointer text-center">
+                    Include<br/>Photo(s)
+                  </label>
+                </div>
               </div>
             </div>
           </div>
