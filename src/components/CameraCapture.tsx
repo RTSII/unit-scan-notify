@@ -10,6 +10,7 @@ const CameraCapture = () => {
   const [isPowerOn, setIsPowerOn] = useState(false);
   const [captureState, setCaptureState] = useState<'initial' | 'confirm'>('initial');
   const [showDetails, setShowDetails] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   
   // Form state for Details tab
   const [formData, setFormData] = useState({
@@ -250,13 +251,27 @@ const CameraCapture = () => {
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Description</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium text-[var(--text-secondary)]">Description</label>
+                <button
+                  type="button"
+                  onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                  className="p-1 hover:bg-[var(--accent-color)]/20 rounded-full transition-colors"
+                >
+                  <Plus 
+                    size={16} 
+                    className={`text-[var(--primary-color)] transition-transform duration-200 ${
+                      isDescriptionExpanded ? 'rotate-45' : ''
+                    }`} 
+                  />
+                </button>
+              </div>
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Enter additional details..."
-                className="bg-[var(--surface-color)] border-[var(--accent-color)] text-white min-h-[100px] text-base resize-none"
-                rows={4}
+                className="bg-[var(--surface-color)] border-[var(--accent-color)] text-white text-base resize-none transition-all duration-300"
+                rows={isDescriptionExpanded ? 8 : 3}
               />
             </div>
 
