@@ -252,11 +252,11 @@ const CameraCapture = () => {
             {/* Description */}
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <button
-                  type="button"
-                  onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                  className="p-1 hover:bg-[var(--accent-color)]/20 rounded-full transition-colors"
-                >
+                  <button
+                    type="button"
+                    onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                    className="p-1 hover:bg-[var(--accent-color)]/20 rounded-full transition-colors flex items-center justify-center"
+                  >
                   <Plus 
                     size={14} 
                     className={`text-[var(--primary-color)] transition-transform duration-200 ${
