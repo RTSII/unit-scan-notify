@@ -288,7 +288,7 @@ const CameraCapture = () => {
                       onCheckedChange={(checked) => 
                         setFormData(prev => ({ ...prev, includePhotos: !!checked }))
                       }
-                      className="border-[var(--accent-color)] data-[state=checked]:bg-[var(--primary-color)] h-3 w-3"
+                      className="border-[var(--accent-color)] data-[state=checked]:bg-[var(--primary-color)] h-2 w-2 [&>span>svg]:h-3 [&>span>svg]:w-3"
                     />
                   </div>
                   <label htmlFor="include-photos" className="text-white text-xs cursor-pointer ml-1.5">
