@@ -280,19 +280,26 @@ const CameraCapture = () => {
                 </div>
               </div>
               <div className="flex gap-3">
-                {/* Show captured image thumbnail first */}
-                {capturedImages.length > 0 && (
-                  <Card className="bg-[var(--surface-color)] border-[var(--accent-color)] w-20 h-20 flex-shrink-0">
-                    <CardContent className="p-1">
-                      <div className="w-full h-full bg-gray-700 rounded flex items-center justify-center relative">
-                        <Camera className="w-6 h-6 text-gray-400" />
-                        <div className="absolute inset-0 bg-blue-500/20 rounded flex items-center justify-center">
-                          <span className="text-xs text-white font-semibold">Captured</span>
+                {/* Captured Photo Placeholder */}
+                <Card className="bg-[var(--surface-color)] border-[var(--accent-color)] w-20 h-20 flex-shrink-0">
+                  <CardContent className="p-1">
+                    <div className="w-full h-full bg-gray-700 rounded flex items-center justify-center relative">
+                      {capturedImages.length > 0 ? (
+                        <>
+                          <Camera className="w-6 h-6 text-gray-400" />
+                          <div className="absolute inset-0 bg-blue-500/20 rounded flex items-center justify-center">
+                            <span className="text-xs text-white font-semibold">Captured</span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center">
+                          <Camera className="w-5 h-5 text-gray-500 mb-1" />
+                          <span className="text-xs text-gray-500">Photo</span>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
                 
                 {/* Add Image Button */}
                 <Card className="bg-[var(--surface-color)] border-[var(--accent-color)] border-dashed cursor-pointer hover:bg-[var(--accent-color)]/20 transition-colors w-20 h-20 flex-shrink-0">
