@@ -128,22 +128,22 @@ const CameraCapture = () => {
             
             {/* Date, Time & Unit Combined Row */}
             <div className="flex gap-3 items-end">
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Date</label>
+              <div className="w-20">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1 text-center">Date</label>
                 <Input
                   value={formData.date}
                   onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
                   placeholder="MM/DD"
-                  className="bg-[var(--surface-color)] border-[var(--accent-color)] text-white h-12 text-base"
+                  className="bg-[var(--surface-color)] border-[var(--accent-color)] text-white h-12 text-base text-center"
                 />
               </div>
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Time</label>
+              <div className="w-24">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1 text-center">Time</label>
                 <Input
                   value={formData.time}
                   onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
                   placeholder="00:00 AM"
-                  className="bg-[var(--surface-color)] border-[var(--accent-color)] text-white h-12 text-sm"
+                  className="bg-[var(--surface-color)] border-[var(--accent-color)] text-white h-12 text-sm text-center"
                 />
               </div>
               <div className="w-20">
