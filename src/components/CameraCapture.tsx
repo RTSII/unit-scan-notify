@@ -127,7 +127,7 @@ const CameraCapture = () => {
           <div className="max-w-md mx-auto space-y-4">
             
             {/* Date, Time & Unit Combined Row */}
-            <div className="flex gap-3 items-end">
+            <div className="flex gap-3 items-end justify-center">
               <div className="w-20">
                 <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1 text-center">Date</label>
                 <Input
