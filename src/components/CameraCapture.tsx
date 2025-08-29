@@ -280,7 +280,7 @@ const CameraCapture = () => {
             {/* Image Attachments */}
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <div className="flex items-center space-x-2 ml-6">
+                <div className="flex items-center space-x-2 ml-7">
                   <Checkbox
                     id="include-photos"
                     checked={formData.includePhotos}
