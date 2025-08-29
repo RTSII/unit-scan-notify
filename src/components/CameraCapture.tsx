@@ -140,9 +140,14 @@ const CameraCapture = () => {
                 <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Unit</label>
                 <Input
                   value={formData.unit}
-                  onChange={(e) => setFormData(prev => ({ ...prev, unit: e.target.value }))}
-                  placeholder="e.g. B2G"
-                  className="bg-[var(--surface-color)] border-[var(--accent-color)] text-white h-12 text-base"
+                  onChange={(e) => {
+                    let value = e.target.value.toUpperCase();
+                    // Force 1st and 3rd characters to be uppercase letters if they exist
+                    if (value.length >= 1) value = value.charAt(0).toUpperCase() + value.slice(1);
+                    if (value.length >= 3) value = value.slice(0, 2) + value.charAt(2).toUpperCase() + value.slice(3);
+                    setFormData(prev => ({ ...prev, unit: value }));
+                  }}
+                  className="bg-[var(--surface-color)] border-[var(--accent-color)] text-white h-12 text-base uppercase"
                 />
               </div>
             </div>
@@ -180,7 +185,7 @@ const CameraCapture = () => {
                     className="border-[var(--accent-color)] data-[state=checked]:bg-[var(--primary-color)]"
                   />
                   <label htmlFor="items-outside" className="text-white text-base cursor-pointer">
-                    Items left outside Unit entry
+                    Items left outside Unit
                   </label>
                 </div>
                 <div className="flex items-center space-x-3">
@@ -196,7 +201,7 @@ const CameraCapture = () => {
                     className="border-[var(--accent-color)] data-[state=checked]:bg-[var(--primary-color)]"
                   />
                   <label htmlFor="trash-outside" className="text-white text-base cursor-pointer">
-                    Trash left outside Unit entry
+                    Trash left outside Unit
                   </label>
                 </div>
                 <div className="flex items-center space-x-3">
@@ -319,17 +324,17 @@ const CameraCapture = () => {
           <nav className="border-t border-[var(--accent-color)]">
             <div className="flex justify-around items-center h-16">
               <button 
-                className="flex flex-col items-center gap-1 text-[var(--text-secondary)]"
+                className="flex flex-col items-center gap-1 text-[var(--primary-color)]"
                 onClick={handleBackFromDetails}
               >
                 <span className="material-symbols-outlined">photo_camera</span>
                 <span className="text-xs font-medium">Capture</span>
               </button>
-              <div className="flex flex-col items-center gap-1 text-[var(--primary-color)]">
+              <div className="flex flex-col items-center gap-1 text-[var(--color-green)]">
                 <span className="material-symbols-outlined font-bold">description</span>
                 <span className="text-xs font-semibold">Details</span>
               </div>
-              <button className="flex flex-col items-center gap-1 text-[var(--text-secondary)]">
+              <button className="flex flex-col items-center gap-1 text-[var(--primary-color)]">
                 <span className="material-symbols-outlined">ios_share</span>
                 <span className="text-xs font-medium">Export</span>
               </button>
@@ -438,18 +443,18 @@ const CameraCapture = () => {
         {/* Bottom Navigation */}
         <nav className="border-t border-[var(--accent-color)]">
           <div className="flex justify-around items-center h-16">
-            <div className="flex flex-col items-center gap-1 text-[var(--primary-color)]">
+            <div className="flex flex-col items-center gap-1 text-[var(--color-green)]">
               <span className="material-symbols-outlined font-bold">photo_camera</span>
               <span className="text-xs font-semibold">Capture</span>
             </div>
             <button 
-              className="flex flex-col items-center gap-1 text-[var(--text-secondary)]"
+              className="flex flex-col items-center gap-1 text-[var(--primary-color)]"
               onClick={() => setShowDetails(true)}
             >
               <span className="material-symbols-outlined">description</span>
               <span className="text-xs font-medium">Details</span>
             </button>
-            <button className="flex flex-col items-center gap-1 text-[var(--text-secondary)]">
+            <button className="flex flex-col items-center gap-1 text-[var(--primary-color)]">
               <span className="material-symbols-outlined">ios_share</span>
               <span className="text-xs font-medium">Export</span>
             </button>
