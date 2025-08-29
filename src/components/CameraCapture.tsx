@@ -21,6 +21,7 @@ const CameraCapture = () => {
       trashOutside: false,
       balconyItems: false
     },
+    balconyChoice: '', // 'balcony' or 'front'
     includePhotos: false,
     description: ''
   });
@@ -123,8 +124,6 @@ const CameraCapture = () => {
         {/* Details Content */}
         <main className="flex-1 p-4 overflow-auto">
           <div className="max-w-md mx-auto space-y-4">
-            {/* Form Title */}
-            <h2 className="text-2xl font-semibold text-center mb-6">Violation Notice</h2>
             
             {/* Date and Unit Row */}
             <div className="flex gap-4 items-center">
@@ -207,13 +206,44 @@ const CameraCapture = () => {
                     onCheckedChange={(checked) => 
                       setFormData(prev => ({
                         ...prev,
-                        violationTypes: { ...prev.violationTypes, balconyItems: !!checked }
+                        violationTypes: { ...prev.violationTypes, balconyItems: !!checked },
+                        balconyChoice: checked ? '' : ''
                       }))
                     }
                     className="border-[var(--accent-color)] data-[state=checked]:bg-[var(--primary-color)]"
                   />
                   <label htmlFor="balcony-items" className="text-white text-base cursor-pointer">
-                    Items left on balcony/front railing
+                    Items left on{' '}
+                    {formData.violationTypes.balconyItems ? (
+                      <span className="inline-flex gap-2 animate-pulse">
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, balconyChoice: 'balcony' }))}
+                          className={`px-2 py-1 rounded transition-all duration-300 ${
+                            formData.balconyChoice === 'balcony' 
+                              ? 'bg-[var(--primary-color)] text-white scale-105 shadow-lg' 
+                              : 'bg-transparent border border-[var(--primary-color)] text-[var(--primary-color)] hover:bg-[var(--primary-color)]/20'
+                          }`}
+                        >
+                          balcony
+                        </button>
+                        <span className="text-[var(--text-secondary)]">/</span>
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, balconyChoice: 'front' }))}
+                          className={`px-2 py-1 rounded transition-all duration-300 ${
+                            formData.balconyChoice === 'front' 
+                              ? 'bg-[var(--primary-color)] text-white scale-105 shadow-lg' 
+                              : 'bg-transparent border border-[var(--primary-color)] text-[var(--primary-color)] hover:bg-[var(--primary-color)]/20'
+                          }`}
+                        >
+                          front
+                        </button>
+                      </span>
+                    ) : (
+                      'balcony/front'
+                    )}{' '}
+                    railing
                   </label>
                 </div>
               </div>
@@ -250,16 +280,19 @@ const CameraCapture = () => {
                 </div>
               </div>
               <div className="flex gap-3">
-                {/* Captured Images First */}
-                {capturedImages.map((image, index) => (
-                  <Card key={index} className="bg-[var(--surface-color)] border-[var(--accent-color)] w-20 h-20 flex-shrink-0">
+                {/* Show captured image thumbnail first */}
+                {capturedImages.length > 0 && (
+                  <Card className="bg-[var(--surface-color)] border-[var(--accent-color)] w-20 h-20 flex-shrink-0">
                     <CardContent className="p-1">
-                      <div className="w-full h-full bg-gray-700 rounded flex items-center justify-center">
+                      <div className="w-full h-full bg-gray-700 rounded flex items-center justify-center relative">
                         <Camera className="w-6 h-6 text-gray-400" />
+                        <div className="absolute inset-0 bg-blue-500/20 rounded flex items-center justify-center">
+                          <span className="text-xs text-white font-semibold">Captured</span>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                )}
                 
                 {/* Add Image Button */}
                 <Card className="bg-[var(--surface-color)] border-[var(--accent-color)] border-dashed cursor-pointer hover:bg-[var(--accent-color)]/20 transition-colors w-20 h-20 flex-shrink-0">
