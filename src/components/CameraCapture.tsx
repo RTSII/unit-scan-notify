@@ -257,10 +257,10 @@ const CameraCapture = () => {
                     onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
                     className="p-1 hover:bg-[var(--accent-color)]/20 rounded-full transition-colors flex items-center justify-center"
                   >
-                  <Plus 
+                  <Power 
                     size={14} 
-                    className={`text-[var(--primary-color)] transition-transform duration-200 ${
-                      isDescriptionExpanded ? 'rotate-45' : ''
+                    className={`transition-colors duration-200 ${
+                      isDescriptionExpanded ? 'text-[var(--color-green)]' : 'text-[var(--color-red)]'
                     }`} 
                   />
                 </button>
