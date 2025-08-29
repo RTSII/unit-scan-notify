@@ -291,7 +291,7 @@ const CameraCapture = () => {
                       className="border-[var(--accent-color)] data-[state=checked]:bg-[var(--primary-color)] h-2 w-2 [&>span>svg]:h-3 [&>span>svg]:w-3"
                     />
                   </div>
-                  <label htmlFor="include-photos" className="text-white text-xs cursor-pointer ml-3">
+                  <label htmlFor="include-photos" className="text-white text-xs cursor-pointer ml-2">
                     Include Photo(s)
                   </label>
                 </div>
