@@ -69,14 +69,27 @@
 body {
   font-family: 'Work Sans', sans-serif;
   min-height: 100vh;
+  min-height: 100dvh;
   height: 100vh;
+  height: 100dvh;
+  width: 100vw;
+  width: 100dvw;
   overflow: hidden;
   margin: 0;
   padding: 0;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 #root {
   height: 100vh;
+  height: 100dvh;
+  width: 100vw;
+  width: 100dvw;
   overflow: hidden;
 }
 
@@ -88,16 +101,40 @@ body {
   'opsz' 24
 }
 
-/* Ensure no scrolling on mobile */
+/* Android and mobile optimizations */
 html, body {
   touch-action: manipulation;
   -webkit-overflow-scrolling: touch;
   position: fixed;
   width: 100%;
   height: 100%;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
 }
 
-/* Safe area support for iOS */
+/* Ensure proper touch targets for mobile (minimum 44px) */
+button, .cursor-pointer, [role="button"] {
+  min-height: 44px;
+  min-width: 44px;
+  touch-action: manipulation;
+}
+
+/* Improve form input experience on mobile */
+input, textarea, select {
+  font-size: 16px; /* Prevents zoom on iOS */
+  -webkit-appearance: none;
+  border-radius: 8px;
+}
+
+/* Android Chrome address bar handling */
+@media screen and (max-height: 700px) {
+  .fixed.inset-0 {
+    height: 100vh;
+    height: 100dvh;
+  }
+}
+
+/* Safe area support for iOS and Android */
 .pb-safe-bottom {
   padding-bottom: env(safe-area-inset-bottom);
 }

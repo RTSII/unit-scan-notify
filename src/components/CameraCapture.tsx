@@ -1,13 +1,48 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent } from "@/components/ui/card";
+import { Plus, Camera } from "lucide-react";
 
 const CameraCapture = () => {
   const [isPowerOn, setIsPowerOn] = useState(false);
   const [captureState, setCaptureState] = useState<'initial' | 'confirm'>('initial');
   const [showDetails, setShowDetails] = useState(false);
   
+  // Form state for Details tab
+  const [formData, setFormData] = useState({
+    date: '',
+    unit: '',
+    time: '',
+    violationTypes: {
+      itemsOutside: false,
+      trashOutside: false
+    },
+    description: ''
+  });
+  const [capturedImages, setCapturedImages] = useState<string[]>([]);
+  
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Auto-generate current date and time
+  useEffect(() => {
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = now.getHours();
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+
+    setFormData(prev => ({
+      ...prev,
+      date: `${month}/${day}`,
+      time: `${String(displayHours).padStart(2, '0')}:${minutes} ${ampm}`
+    }));
+  }, []);
 
   const startCamera = useCallback(async () => {
     try {
@@ -56,8 +91,9 @@ const CameraCapture = () => {
   };
 
   const handleConfirmCapture = () => {
-    // Handle photo capture logic here
+    // Handle photo capture logic here - simulate adding captured image
     console.log('Photo captured');
+    setCapturedImages(prev => [...prev, 'captured_image_' + Date.now()]); // Add captured image
     setShowDetails(true);
     setCaptureState('initial');
   };
@@ -84,8 +120,135 @@ const CameraCapture = () => {
 
         {/* Details Content */}
         <main className="flex-1 p-4 overflow-auto">
-          <p>This is the details screen.</p>
-          <p>The image would be displayed here along with other details.</p>
+          <div className="max-w-md mx-auto space-y-4">
+            {/* Form Title */}
+            <h2 className="text-2xl font-semibold text-center mb-6">Violation Notice</h2>
+            
+            {/* Date and Unit Row */}
+            <div className="flex gap-4 items-center">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Date</label>
+                <Input
+                  value={formData.date}
+                  onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                  placeholder="MM/DD"
+                  className="bg-[var(--surface-color)] border-[var(--accent-color)] text-white h-12 text-base"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Unit</label>
+                <Input
+                  value={formData.unit}
+                  onChange={(e) => setFormData(prev => ({ ...prev, unit: e.target.value }))}
+                  placeholder="e.g. B2G"
+                  className="bg-[var(--surface-color)] border-[var(--accent-color)] text-white h-12 text-base"
+                />
+              </div>
+            </div>
+
+            {/* Time Row */}
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Time</label>
+                <Input
+                  value={formData.time}
+                  onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
+                  placeholder="00:00 AM/PM"
+                  className="bg-[var(--surface-color)] border-[var(--accent-color)] text-white h-12 text-base"
+                />
+              </div>
+              <div className="flex-1">
+                {/* Empty space to align time under date */}
+              </div>
+            </div>
+
+            {/* Violation Types */}
+            <div>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-3">Violation Type (Select applicable)</label>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id="items-outside"
+                    checked={formData.violationTypes.itemsOutside}
+                    onCheckedChange={(checked) => 
+                      setFormData(prev => ({
+                        ...prev,
+                        violationTypes: { ...prev.violationTypes, itemsOutside: !!checked }
+                      }))
+                    }
+                    className="border-[var(--accent-color)] data-[state=checked]:bg-[var(--primary-color)]"
+                  />
+                  <label htmlFor="items-outside" className="text-white text-base cursor-pointer">
+                    Items left outside Unit entry
+                  </label>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id="trash-outside"
+                    checked={formData.violationTypes.trashOutside}
+                    onCheckedChange={(checked) => 
+                      setFormData(prev => ({
+                        ...prev,
+                        violationTypes: { ...prev.violationTypes, trashOutside: !!checked }
+                      }))
+                    }
+                    className="border-[var(--accent-color)] data-[state=checked]:bg-[var(--primary-color)]"
+                  />
+                  <label htmlFor="trash-outside" className="text-white text-base cursor-pointer">
+                    Trash left outside Unit entry
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Description</label>
+              <Textarea
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Enter additional details..."
+                className="bg-[var(--surface-color)] border-[var(--accent-color)] text-white min-h-[100px] text-base resize-none"
+                rows={4}
+              />
+            </div>
+
+            {/* Image Attachments */}
+            <div>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-3">Photo Evidence</label>
+              <div className="space-y-3">
+                {/* Captured Image */}
+                {capturedImages.length > 0 && (
+                  <div className="grid grid-cols-2 gap-3">
+                    {capturedImages.map((image, index) => (
+                      <Card key={index} className="bg-[var(--surface-color)] border-[var(--accent-color)]">
+                        <CardContent className="p-2">
+                          <div className="aspect-square bg-gray-700 rounded flex items-center justify-center">
+                            <Camera className="w-8 h-8 text-gray-400" />
+                          </div>
+                          <p className="text-xs text-[var(--text-secondary)] mt-1 text-center">
+                            Image {index + 1}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Add Image Button */}
+                <Card className="bg-[var(--surface-color)] border-[var(--accent-color)] border-dashed cursor-pointer hover:bg-[var(--accent-color)]/20 transition-colors">
+                  <CardContent className="p-4">
+                    <div className="flex flex-col items-center justify-center space-y-2">
+                      <div className="w-12 h-12 rounded-full bg-[var(--primary-color)] flex items-center justify-center">
+                        <Plus className="w-6 h-6 text-white" />
+                      </div>
+                      <p className="text-sm text-[var(--text-secondary)]">Add Image</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </div>
         </main>
 
         {/* Details Footer */}
