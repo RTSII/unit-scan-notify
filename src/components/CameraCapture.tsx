@@ -165,7 +165,7 @@ const CameraCapture = () => {
 
             {/* Violation Types */}
             <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-3">Violation Type (Select applicable)</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-3 text-center">Violation Type (Select applicable)</label>
               <div className="space-y-3">
                 <div className="flex items-center space-x-3">
                   <Checkbox
