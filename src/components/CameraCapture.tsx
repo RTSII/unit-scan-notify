@@ -125,19 +125,34 @@ const CameraCapture = () => {
         <main className="flex-1 p-4 overflow-auto">
           <div className="max-w-md mx-auto space-y-4">
             
-            {/* Date and Unit Row */}
-            <div className="flex gap-4 items-center">
+            {/* Date & Time Combined Row */}
+            <div className="flex gap-3 items-end">
               <div className="flex-1">
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Date</label>
-                <Input
-                  value={formData.date}
-                  onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                  placeholder="MM/DD"
-                  className="bg-[var(--surface-color)] border-[var(--accent-color)] text-white h-12 text-base"
-                />
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Date & Time</label>
+                <div className="flex gap-2">
+                  <Input
+                    value={formData.date}
+                    onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                    placeholder="MM/DD"
+                    className="bg-[var(--surface-color)] border-[var(--accent-color)] text-white h-12 text-base flex-1"
+                  />
+                  <div className="flex items-center px-2 text-[var(--text-secondary)]">
+                    <span className="text-lg">•</span>
+                  </div>
+                  <Input
+                    value={formData.time}
+                    onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
+                    placeholder="00:00 AM"
+                    className="bg-[var(--surface-color)] border-[var(--accent-color)] text-white h-12 text-base flex-1"
+                  />
+                </div>
               </div>
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Unit</label>
+            </div>
+
+            {/* Unit Row */}
+            <div className="flex justify-center">
+              <div className="w-24">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1 text-center">Unit</label>
                 <Input
                   value={formData.unit}
                   onChange={(e) => {
@@ -147,24 +162,9 @@ const CameraCapture = () => {
                     if (value.length >= 3) value = value.slice(0, 2) + value.charAt(2).toUpperCase() + value.slice(3);
                     setFormData(prev => ({ ...prev, unit: value }));
                   }}
-                  className="bg-[var(--surface-color)] border-[var(--accent-color)] text-white h-12 text-base uppercase"
+                  maxLength={3}
+                  className="bg-[var(--surface-color)] border-[var(--accent-color)] text-white h-12 text-base uppercase text-center font-semibold tracking-wider"
                 />
-              </div>
-            </div>
-
-            {/* Time Row */}
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Time</label>
-                <Input
-                  value={formData.time}
-                  onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
-                  placeholder="00:00 AM/PM"
-                  className="bg-[var(--surface-color)] border-[var(--accent-color)] text-white h-12 text-base"
-                />
-              </div>
-              <div className="flex-1">
-                {/* Empty space to align time under date */}
               </div>
             </div>
 
