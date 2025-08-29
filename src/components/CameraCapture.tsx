@@ -264,7 +264,7 @@ const CameraCapture = () => {
                     }`} 
                   />
                 </button>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] ml-7">Description</label>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] ml-1.5">Description</label>
               </div>
               {isDescriptionExpanded && (
                 <Textarea
@@ -293,7 +293,7 @@ const CameraCapture = () => {
                     Include Photo(s)
                   </label>
                 </div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] ml-7">Photo Evidence</label>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] ml-1.5">Photo Evidence</label>
               </div>
               <div className="flex gap-3">
                 {/* Captured Photo Placeholder */}
