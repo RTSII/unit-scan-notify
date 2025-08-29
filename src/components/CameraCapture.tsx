@@ -264,7 +264,7 @@ const CameraCapture = () => {
                     }`} 
                   />
                 </button>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] ml-6">Description</label>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] ml-9">Description</label>
               </div>
               {isDescriptionExpanded && (
                 <Textarea
