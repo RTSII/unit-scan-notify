@@ -280,14 +280,14 @@ const CameraCapture = () => {
             {/* Image Attachments */}
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 ml-6">
                   <Checkbox
                     id="include-photos"
                     checked={formData.includePhotos}
                     onCheckedChange={(checked) => 
                       setFormData(prev => ({ ...prev, includePhotos: !!checked }))
                     }
-                    className="border-[var(--accent-color)] data-[state=checked]:bg-[var(--primary-color)] h-3.5 w-3.5"
+                    className="border-[var(--accent-color)] data-[state=checked]:bg-[var(--primary-color)] h-3 w-3"
                   />
                   <label htmlFor="include-photos" className="text-white text-xs cursor-pointer">
                     Include Photo(s)
