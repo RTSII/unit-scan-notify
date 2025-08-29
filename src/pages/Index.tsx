@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Camera, FileText, Download, Home } from "lucide-react";
+import { Camera, FileText, Download, Home, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import CameraCapture from "@/components/CameraCapture";
 import ViolationTemplate from "@/components/ViolationTemplate";
 import ExportCenter from "@/components/ExportCenter";
@@ -30,7 +31,16 @@ const Index = () => {
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full relative">
+      {/* Preview Link for Sign In Page */}
+      <div className="absolute top-4 right-4 z-50">
+        <Link to="/signin">
+          <Button variant="outline" size="sm" className="bg-black/50 border-vice-cyan/50 text-white hover:bg-vice-cyan/20">
+            <LogIn className="w-4 h-4 mr-2" />
+            Preview Sign In
+          </Button>
+        </Link>
+      </div>
       {renderContent()}
     </div>
   );
