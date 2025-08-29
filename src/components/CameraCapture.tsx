@@ -18,8 +18,10 @@ const CameraCapture = () => {
     time: '',
     violationTypes: {
       itemsOutside: false,
-      trashOutside: false
+      trashOutside: false,
+      balconyItems: false
     },
+    includePhotos: false,
     description: ''
   });
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
@@ -198,6 +200,22 @@ const CameraCapture = () => {
                     Trash left outside Unit entry
                   </label>
                 </div>
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id="balcony-items"
+                    checked={formData.violationTypes.balconyItems}
+                    onCheckedChange={(checked) => 
+                      setFormData(prev => ({
+                        ...prev,
+                        violationTypes: { ...prev.violationTypes, balconyItems: !!checked }
+                      }))
+                    }
+                    className="border-[var(--accent-color)] data-[state=checked]:bg-[var(--primary-color)]"
+                  />
+                  <label htmlFor="balcony-items" className="text-white text-base cursor-pointer">
+                    Items left on balcony/front railing
+                  </label>
+                </div>
               </div>
             </div>
 
@@ -215,34 +233,39 @@ const CameraCapture = () => {
 
             {/* Image Attachments */}
             <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-3">Photo Evidence</label>
-              <div className="space-y-3">
-                {/* Captured Image */}
-                {capturedImages.length > 0 && (
-                  <div className="grid grid-cols-2 gap-3">
-                    {capturedImages.map((image, index) => (
-                      <Card key={index} className="bg-[var(--surface-color)] border-[var(--accent-color)]">
-                        <CardContent className="p-2">
-                          <div className="aspect-square bg-gray-700 rounded flex items-center justify-center">
-                            <Camera className="w-8 h-8 text-gray-400" />
-                          </div>
-                          <p className="text-xs text-[var(--text-secondary)] mt-1 text-center">
-                            Image {index + 1}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
+              <div className="flex justify-between items-center mb-3">
+                <label className="block text-sm font-medium text-[var(--text-secondary)]">Photo Evidence</label>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="include-photos"
+                    checked={formData.includePhotos}
+                    onCheckedChange={(checked) => 
+                      setFormData(prev => ({ ...prev, includePhotos: !!checked }))
+                    }
+                    className="border-[var(--accent-color)] data-[state=checked]:bg-[var(--primary-color)]"
+                  />
+                  <label htmlFor="include-photos" className="text-white text-sm cursor-pointer">
+                    Include Photo(s)
+                  </label>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                {/* Captured Images First */}
+                {capturedImages.map((image, index) => (
+                  <Card key={index} className="bg-[var(--surface-color)] border-[var(--accent-color)] w-20 h-20 flex-shrink-0">
+                    <CardContent className="p-1">
+                      <div className="w-full h-full bg-gray-700 rounded flex items-center justify-center">
+                        <Camera className="w-6 h-6 text-gray-400" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
                 
                 {/* Add Image Button */}
-                <Card className="bg-[var(--surface-color)] border-[var(--accent-color)] border-dashed cursor-pointer hover:bg-[var(--accent-color)]/20 transition-colors">
-                  <CardContent className="p-4">
-                    <div className="flex flex-col items-center justify-center space-y-2">
-                      <div className="w-12 h-12 rounded-full bg-[var(--primary-color)] flex items-center justify-center">
-                        <Plus className="w-6 h-6 text-white" />
-                      </div>
-                      <p className="text-sm text-[var(--text-secondary)]">Add Image</p>
+                <Card className="bg-[var(--surface-color)] border-[var(--accent-color)] border-dashed cursor-pointer hover:bg-[var(--accent-color)]/20 transition-colors w-20 h-20 flex-shrink-0">
+                  <CardContent className="p-1">
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Plus className="w-6 h-6 text-[var(--primary-color)]" />
                     </div>
                   </CardContent>
                 </Card>
