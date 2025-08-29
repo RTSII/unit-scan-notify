@@ -138,3 +138,35 @@ input, textarea, select {
 .pb-safe-bottom {
   padding-bottom: env(safe-area-inset-bottom);
 }
+
+/* Vice City / Vaporwave Custom Fonts and Effects */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Righteous&display=swap');
+
+.vice-block-letters {
+  font-family: 'Orbitron', monospace;
+  font-weight: 900;
+  text-shadow: 
+    0 0 10px #4169e1,
+    0 0 20px #4169e1,
+    0 0 30px #4169e1,
+    4px 4px 0px #000,
+    8px 8px 0px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(45deg, #4169e1, #00ffff, #4169e1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.vice-city-font {
+  font-family: 'Righteous', cursive;
+  text-shadow: 
+    0 0 5px #ff1493,
+    0 0 10px #ff1493,
+    0 0 15px #ff1493,
+    2px 2px 0px #000,
+    4px 4px 0px rgba(0, 0, 0, 0.7);
+  background: linear-gradient(45deg, #ff1493, #8b2fa0, #ff1493);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
