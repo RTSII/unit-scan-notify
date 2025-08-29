@@ -379,7 +379,10 @@ const CameraCapture = () => {
               <span className="material-symbols-outlined font-bold">photo_camera</span>
               <span className="text-xs font-semibold">Capture</span>
             </div>
-            <button className="flex flex-col items-center gap-1 text-[var(--text-secondary)]">
+            <button 
+              className="flex flex-col items-center gap-1 text-[var(--text-secondary)]"
+              onClick={() => setShowDetails(true)}
+            >
               <span className="material-symbols-outlined">description</span>
               <span className="text-xs font-medium">Details</span>
             </button>
