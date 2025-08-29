@@ -251,34 +251,35 @@ const CameraCapture = () => {
 
             {/* Description */}
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-sm font-medium text-[var(--text-secondary)]">Description</label>
+              <div className="flex items-center gap-2 mb-1">
                 <button
                   type="button"
                   onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
                   className="p-1 hover:bg-[var(--accent-color)]/20 rounded-full transition-colors"
                 >
                   <Plus 
-                    size={16} 
+                    size={14} 
                     className={`text-[var(--primary-color)] transition-transform duration-200 ${
                       isDescriptionExpanded ? 'rotate-45' : ''
                     }`} 
                   />
                 </button>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] ml-6">Description</label>
               </div>
-              <Textarea
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Enter additional details..."
-                className="bg-[var(--surface-color)] border-[var(--accent-color)] text-white text-base resize-none transition-all duration-300"
-                rows={isDescriptionExpanded ? 8 : 3}
-              />
+              {isDescriptionExpanded && (
+                <Textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Enter additional details..."
+                  className="bg-[var(--surface-color)] border-[var(--accent-color)] text-white text-base resize-none transition-all duration-300"
+                  rows={6}
+                />
+              )}
             </div>
 
             {/* Image Attachments */}
             <div>
-              <div className="flex justify-between items-center mb-3">
-                <label className="block text-sm font-medium text-[var(--text-secondary)]">Photo Evidence</label>
+              <div className="flex items-center gap-2 mb-3">
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="include-photos"
@@ -286,12 +287,13 @@ const CameraCapture = () => {
                     onCheckedChange={(checked) => 
                       setFormData(prev => ({ ...prev, includePhotos: !!checked }))
                     }
-                    className="border-[var(--accent-color)] data-[state=checked]:bg-[var(--primary-color)]"
+                    className="border-[var(--accent-color)] data-[state=checked]:bg-[var(--primary-color)] h-3 w-3"
                   />
-                  <label htmlFor="include-photos" className="text-white text-sm cursor-pointer">
+                  <label htmlFor="include-photos" className="text-white text-xs cursor-pointer">
                     Include Photo(s)
                   </label>
                 </div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] ml-4">Photo Evidence</label>
               </div>
               <div className="flex gap-3">
                 {/* Captured Photo Placeholder */}
