@@ -264,7 +264,7 @@ const CameraCapture = () => {
                     }`} 
                   />
                 </button>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] ml-9">Description</label>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] ml-7">Description</label>
               </div>
               {isDescriptionExpanded && (
                 <Textarea
@@ -287,13 +287,13 @@ const CameraCapture = () => {
                     onCheckedChange={(checked) => 
                       setFormData(prev => ({ ...prev, includePhotos: !!checked }))
                     }
-                    className="border-[var(--accent-color)] data-[state=checked]:bg-[var(--primary-color)] h-3 w-3"
+                    className="border-[var(--accent-color)] data-[state=checked]:bg-[var(--primary-color)] h-3.5 w-3.5"
                   />
                   <label htmlFor="include-photos" className="text-white text-xs cursor-pointer">
                     Include Photo(s)
                   </label>
                 </div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] ml-4">Photo Evidence</label>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] ml-7">Photo Evidence</label>
               </div>
               <div className="flex gap-3">
                 {/* Captured Photo Placeholder */}
