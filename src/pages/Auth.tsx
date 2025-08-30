@@ -82,43 +82,11 @@ export default function Auth() {
           {/* Logo/Title */}
           <div className="text-center">
             <div className="mb-4">
-              {/* SPR Text - Cyan with black outline */}
-              <div className="relative">
-                <h1 className="text-7xl md:text-9xl font-bold text-vice-cyan mb-2"
-                    style={{
-                      fontFamily: 'Orbitron, monospace',
-                      fontWeight: 900,
-                      textShadow: `
-                        4px 4px 0px #000,
-                        8px 8px 0px rgba(0, 0, 0, 0.5),
-                        0 0 10px #00ffff,
-                        0 0 20px #00ffff,
-                        0 0 30px #00ffff
-                      `,
-                      WebkitTextStroke: '2px #ff1493'
-                    }}>
-                  SPR
-                </h1>
-              </div>
-              
-              {/* Vice City Text - Pink script font */}
-              <div className="relative -mt-4">
-                <h2 className="text-3xl md:text-5xl text-vice-pink"
-                    style={{
-                      fontFamily: 'Righteous, cursive',
-                      textShadow: `
-                        2px 2px 0px #000,
-                        4px 4px 0px rgba(0, 0, 0, 0.7),
-                        0 0 5px #ff1493,
-                        0 0 10px #ff1493,
-                        0 0 15px #ff1493
-                      `,
-                      transform: 'rotate(-5deg)',
-                      WebkitTextStroke: '1px #8b2fa0'
-                    }}>
-                  vice city
-                </h2>
-              </div>
+              <img 
+                src="/lovable-uploads/796bf09e-507b-4780-a7b4-b0ff405ef9ef.png" 
+                alt="SPR Vice City Logo" 
+                className="w-64 md:w-80 mx-auto"
+              />
             </div>
             <p className="text-vice-cyan mt-4 text-sm opacity-80">Invitation Required</p>
           </div>
