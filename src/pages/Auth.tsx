@@ -61,23 +61,23 @@ export default function Auth() {
   return (
     <div className="h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue relative overflow-hidden">
       {/* Background effects */}
-      <div className="absolute inset-0 bg-black/20" />
+      <div className="absolute inset-0 bg-black/20 z-0" />
       
       {/* Animated waves */}
-      <div className="absolute bottom-0 left-0 w-full overflow-hidden opacity-30">
+      <div className="absolute bottom-0 left-0 w-full overflow-hidden opacity-30 z-10">
         <div className="wave-bg h-24 bg-gradient-to-r from-vice-cyan to-vice-pink animate-wave-1"></div>
         <div className="wave-bg h-16 bg-gradient-to-r from-vice-pink to-vice-purple animate-wave-2 -mt-8"></div>
         <div className="wave-bg h-12 bg-gradient-to-r from-vice-blue to-vice-cyan animate-wave-3 -mt-6"></div>
       </div>
 
       {/* Lens flares */}
-      <div className="absolute top-20 left-20 w-32 h-32 bg-vice-cyan rounded-full opacity-20 blur-xl animate-lens-flare-1"></div>
-      <div className="absolute top-40 right-32 w-24 h-24 bg-vice-pink rounded-full opacity-30 blur-lg animate-lens-flare-2"></div>
-      <div className="absolute bottom-32 left-32 w-40 h-40 bg-vice-purple rounded-full opacity-15 blur-2xl animate-lens-flare-3"></div>
-      <div className="absolute bottom-20 right-20 w-20 h-20 bg-vice-orange rounded-full opacity-25 blur-md animate-lens-flare-4"></div>
+      <div className="absolute top-20 left-20 w-32 h-32 bg-vice-cyan rounded-full opacity-20 blur-xl animate-lens-flare-1 z-10"></div>
+      <div className="absolute top-40 right-32 w-24 h-24 bg-vice-pink rounded-full opacity-30 blur-lg animate-lens-flare-2 z-10"></div>
+      <div className="absolute bottom-32 left-32 w-40 h-40 bg-vice-purple rounded-full opacity-15 blur-2xl animate-lens-flare-3 z-10"></div>
+      <div className="absolute bottom-20 right-20 w-20 h-20 bg-vice-orange rounded-full opacity-25 blur-md animate-lens-flare-4 z-10"></div>
 
       {/* Content */}
-      <div className="relative h-full overflow-y-auto flex items-center justify-center p-4 py-8">
+      <div className="relative h-full overflow-y-auto flex items-center justify-center p-4 py-8 z-20">
         <div className="w-full max-w-md space-y-4 my-4">
           {/* Logo/Title */}
           <div className="text-center">
