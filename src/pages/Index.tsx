@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { Camera, FileText, Download, LogOut, Settings, Loader2 } from "lucide-react";
+import { Camera, FileText, Download, LogOut, Settings, Loader2, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Navigate, useSearchParams } from "react-router-dom";
+import { Navigate, useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import CameraCapture from "@/components/CameraCapture";
 import ViolationTemplate from "@/components/ViolationTemplate";
@@ -13,6 +13,7 @@ type TabType = 'capture' | 'template' | 'export' | 'admin';
 const Index = () => {
   const { user, loading, signOut, profile } = useAuth();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabType>('capture');
 
   // Set active tab from URL params
@@ -67,6 +68,15 @@ const Index = () => {
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20">
         <div className="flex items-center gap-4">
+          <Button 
+            onClick={() => navigate('/')}
+            variant="outline" 
+            size="sm" 
+            className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20"
+          >
+            <Home className="w-4 h-4 mr-2" />
+            Home
+          </Button>
           <h1 className="text-2xl font-bold vice-block-letters">SPR</h1>
           <span className="text-vice-cyan">Vice City</span>
         </div>
