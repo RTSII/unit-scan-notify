@@ -146,7 +146,7 @@ export default function Auth() {
                     <Input
                       id="password"
                       type="password"
-                      placeholder="8+ characters, at least 1 number"
+                      placeholder="8+ letters, at least 1 number"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink"
