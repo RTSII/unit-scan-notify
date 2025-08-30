@@ -77,15 +77,11 @@ export default function Auth() {
         <div className="w-full max-w-md space-y-6">
           {/* Logo/Title */}
           <div className="text-center z-40 relative">
-            <div className="mb-4 bg-transparent">
+            <div className="mb-4">
               <img 
-                src="/lovable-uploads/15cf74de-910f-4d44-bf87-672b0a81ac37.png" 
+                src="/lovable-uploads/7d49a4ab-a465-4212-af1b-f924ab21a8f7.png" 
                 alt="SPR Vice City" 
-                className="mx-auto h-24 w-auto drop-shadow-lg"
-                style={{ 
-                  background: 'transparent',
-                  mixBlendMode: 'normal'
-                }}
+                className="mx-auto h-30 w-auto drop-shadow-lg"
               />
             </div>
             <p className="text-vice-cyan mt-2 text-sm opacity-80">Invitation Required</p>
