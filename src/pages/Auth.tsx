@@ -59,7 +59,7 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue relative overflow-hidden">
+    <div className="h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue relative overflow-hidden">
       {/* Background effects */}
       <div className="absolute inset-0 bg-black/20" />
       
@@ -77,18 +77,18 @@ export default function Auth() {
       <div className="absolute bottom-20 right-20 w-20 h-20 bg-vice-orange rounded-full opacity-25 blur-md animate-lens-flare-4"></div>
 
       {/* Content */}
-      <div className="relative min-h-screen flex items-center justify-center p-4 py-8 overflow-y-auto">
-        <div className="w-full max-w-md space-y-6 my-8">
+      <div className="relative h-full overflow-y-auto flex items-center justify-center p-4 py-8">
+        <div className="w-full max-w-md space-y-4 my-4">
           {/* Logo/Title */}
           <div className="text-center">
-            <div className="mb-4">
+            <div className="mb-3">
               <img 
-                src="/lovable-uploads/d2b8f6bc-7195-49e3-b6d2-1c05d64b584d.png" 
+                src="/lovable-uploads/b699a881-5561-4398-a70a-6b8d9222291d.png" 
                 alt="SPR Vice City Logo" 
-                className="w-64 md:w-80 mx-auto"
+                className="w-48 md:w-56 mx-auto"
               />
             </div>
-            <p className="text-vice-cyan mt-4 text-sm opacity-80">Invitation Required</p>
+            <p className="text-vice-cyan mt-2 text-sm opacity-80">Invitation Required</p>
           </div>
 
           {/* Auth Card */}
