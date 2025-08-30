@@ -83,9 +83,9 @@ export default function Auth() {
           <div className="text-center">
             <div className="mb-4">
               <img 
-                src="/lovable-uploads/796bf09e-507b-4780-a7b4-b0ff405ef9ef.png" 
+                src="/lovable-uploads/3c638171-e948-430d-8332-9ff15d89c7ce.png" 
                 alt="SPR Vice City Logo" 
-                className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 mx-auto object-contain"
+                className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 mx-auto object-contain drop-shadow-lg"
               />
             </div>
             <p className="text-vice-cyan mt-2 text-sm opacity-80">Invitation Required</p>
