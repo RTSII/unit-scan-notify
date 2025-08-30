@@ -78,7 +78,11 @@ export default function Auth() {
           {/* Logo/Title */}
           <div className="text-center z-40 relative">
             <div className="mb-4">
-              
+              <img 
+                src="/lovable-uploads/spr-vice-city-logo.png" 
+                alt="SPR Vice City" 
+                className="mx-auto h-24 w-auto"
+              />
             </div>
             <p className="text-vice-cyan mt-2 text-sm opacity-80">Invitation Required</p>
           </div>
