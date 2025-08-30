@@ -125,6 +125,23 @@ export type Database = {
         Args: { invite_email: string }
         Returns: string
       }
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_invite_by_token: {
+        Args: { token_input: string }
+        Returns: {
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+        }[]
+      }
+      validate_invite_token: {
+        Args: { token_input: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
