@@ -38,7 +38,7 @@ const SignIn = () => {
           <div className="mb-12 text-left">
             <div className="relative mb-4">
               <img 
-                src="/lovable-uploads/bdcbae56-499c-449c-bed0-53fa7af42ac6.png" 
+                src="/lovable-uploads/spr-vice-city-logo.png" 
                 alt="SPR Vice City Logo"
                 className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 object-contain drop-shadow-2xl relative z-50"
                 style={{ filter: 'drop-shadow(0 0 20px rgba(255, 0, 255, 0.3))' }}
