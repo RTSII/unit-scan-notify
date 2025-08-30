@@ -28,7 +28,7 @@ const Home = () => {
     {
       icon: FileText,
       label: "Details",
-      onClick: () => navigate('/dashboard?tab=template'),
+      onClick: () => navigate('/dashboard?tab=template&blank=true'),
       position: { x: 0, y: 100 }, // Bottom position
       color: "bg-vice-cyan hover:bg-vice-cyan/80"
     },

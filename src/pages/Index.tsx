@@ -49,11 +49,13 @@ const Index = () => {
   ];
 
   const renderContent = () => {
+    const isBlankMode = searchParams.get('blank') === 'true';
+    
     switch (activeTab) {
       case 'capture':
         return <CameraCapture />;
       case 'template':
-        return <ViolationTemplate />;
+        return <ViolationTemplate blankMode={isBlankMode} />;
       case 'export':
         return <ExportCenter />;
       case 'admin':

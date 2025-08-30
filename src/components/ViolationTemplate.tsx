@@ -15,7 +15,11 @@ interface ViolationField {
   value: string;
 }
 
-const ViolationTemplate = () => {
+interface ViolationTemplateProps {
+  blankMode?: boolean;
+}
+
+const ViolationTemplate = ({ blankMode = false }: ViolationTemplateProps) => {
   const [noticeName, setNoticeName] = useState("");
   const [fields, setFields] = useState<ViolationField[]>([
     { id: '1', label: 'Unit Number', type: 'text', required: true, placeholder: 'e.g., B2G', value: '' },
@@ -25,17 +29,19 @@ const ViolationTemplate = () => {
     { id: '5', label: 'Location', type: 'text', required: false, placeholder: 'Parking spot, building area, etc.', value: '' },
   ]);
 
-  // Auto-populate notice name with Unit Number_MMDD format
+  // Auto-populate notice name with Unit Number_MMDD format (only if not in blank mode)
   useEffect(() => {
-    const unitNumberField = fields.find(field => field.label === 'Unit Number');
-    const currentDate = new Date();
-    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-    const day = String(currentDate.getDate()).padStart(2, '0');
-    
-    if (unitNumberField) {
-      setNoticeName(`${unitNumberField.label}_${month}${day}`);
+    if (!blankMode) {
+      const unitNumberField = fields.find(field => field.label === 'Unit Number');
+      const currentDate = new Date();
+      const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+      const day = String(currentDate.getDate()).padStart(2, '0');
+      
+      if (unitNumberField) {
+        setNoticeName(`${unitNumberField.label}_${month}${day}`);
+      }
     }
-  }, [fields]);
+  }, [fields, blankMode]);
 
   const addField = () => {
     const newField: ViolationField = {
