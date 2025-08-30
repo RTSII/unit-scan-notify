@@ -35,7 +35,7 @@ const Home = () => {
     {
       icon: Database,
       label: "Directory",
-      onClick: () => navigate('/dashboard?tab=export'),
+      onClick: () => navigate('/books'),
       position: { x: 100, y: 50 }, // Right position
       color: "bg-vice-blue hover:bg-vice-blue/80"
     }

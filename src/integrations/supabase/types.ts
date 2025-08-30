@@ -74,6 +74,48 @@ export type Database = {
         }
         Relationships: []
       }
+      violation_forms: {
+        Row: {
+          created_at: string
+          date: string
+          description: string
+          id: string
+          location: string
+          photos: string[] | null
+          status: string
+          time: string
+          unit_number: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          description: string
+          id?: string
+          location: string
+          photos?: string[] | null
+          status?: string
+          time: string
+          unit_number: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+          location?: string
+          photos?: string[] | null
+          status?: string
+          time?: string
+          unit_number?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
