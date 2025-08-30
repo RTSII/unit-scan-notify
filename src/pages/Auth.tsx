@@ -7,9 +7,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Loader2, Mail, Lock, User, Chrome } from 'lucide-react';
-
 export default function Auth() {
-  const { user, loading, signUp, signIn, signInWithGoogle } = useAuth();
+  const {
+    user,
+    loading,
+    signUp,
+    signIn,
+    signInWithGoogle
+  } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,13 +25,10 @@ export default function Auth() {
   if (!loading && user) {
     return <Navigate to="/" replace />;
   }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) return;
-
     setIsLoading(true);
-    
     try {
       if (isSignUp) {
         await signUp(email, password, fullName);
@@ -37,7 +39,6 @@ export default function Auth() {
       setIsLoading(false);
     }
   };
-
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
@@ -46,20 +47,15 @@ export default function Auth() {
       setIsLoading(false);
     }
   };
-
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue flex items-center justify-center">
+    return <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-vice-pink mx-auto mb-4" />
           <p className="text-white">Loading...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue relative overflow-hidden">
+  return <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue relative overflow-hidden">
       {/* Background effects */}
       <div className="absolute inset-0 bg-black/20 z-0" />
       
@@ -82,12 +78,7 @@ export default function Auth() {
           {/* Logo/Title */}
           <div className="text-center z-40 relative">
             <div className="mb-4">
-              <img 
-                src="/lovable-uploads/spr-vice-city-logo.png" 
-                alt="SPR Vice City Logo"
-                className="w-20 h-20 sm:w-28 sm:h-28 md:w-36 md:h-36 mx-auto object-contain drop-shadow-2xl relative z-50"
-                style={{ filter: 'drop-shadow(0 0 20px rgba(255, 0, 255, 0.3))' }}
-              />
+              
             </div>
             <p className="text-vice-cyan mt-2 text-sm opacity-80">Invitation Required</p>
           </div>
@@ -99,44 +90,24 @@ export default function Auth() {
                 {isSignUp ? 'Create Account' : 'Sign In'}
               </CardTitle>
               <CardDescription className="text-vice-cyan/80">
-                {isSignUp 
-                  ? 'Register with your invitation email' 
-                  : 'Access your SPR account'
-                }
+                {isSignUp ? 'Register with your invitation email' : 'Access your SPR account'}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 pb-6">
               <form onSubmit={handleSubmit} className="space-y-4">
-                {isSignUp && (
-                  <div className="space-y-2">
+                {isSignUp && <div className="space-y-2">
                     <Label htmlFor="fullName" className="text-white">Name</Label>
                     <div className="relative">
                       <User className="absolute left-3 top-3 h-4 w-4 text-vice-cyan/60" />
-                      <Input
-                        id="fullName"
-                        type="text"
-                        placeholder="Enter your name"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink"
-                      />
+                      <Input id="fullName" type="text" placeholder="Enter your name" value={fullName} onChange={e => setFullName(e.target.value)} className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink" />
                     </div>
-                  </div>
-                )}
+                  </div>}
                 
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-white">Email</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-3 h-4 w-4 text-vice-cyan/60" />
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="Enter your email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink"
-                      required
-                    />
+                    <Input id="email" type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink" required />
                   </div>
                 </div>
                 
@@ -144,61 +115,31 @@ export default function Auth() {
                   <Label htmlFor="password" className="text-white">Password</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-vice-cyan/60" />
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="8+ letters, at least 1 number"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink"
-                      minLength={8}
-                      pattern="^(?=.*[0-9]).{8,}$"
-                      title="Password must be at least 8 characters and contain at least one number"
-                      required
-                    />
+                    <Input id="password" type="password" placeholder="8+ letters, at least 1 number" value={password} onChange={e => setPassword(e.target.value)} className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink" minLength={8} pattern="^(?=.*[0-9]).{8,}$" title="Password must be at least 8 characters and contain at least one number" required />
                   </div>
                 </div>
                 
-                <Button 
-                  type="submit" 
-                  className="w-full bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink text-white font-semibold"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : null}
+                <Button type="submit" className="w-full bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink text-white font-semibold" disabled={isLoading}>
+                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   {isSignUp ? 'Create Account' : 'Sign In'}
                 </Button>
               </form>
 
               <Separator className="bg-vice-cyan/20" />
 
-              <Button
-                onClick={handleGoogleSignIn}
-                variant="outline"
-                className="w-full bg-white/10 border-vice-cyan/30 text-white hover:bg-white/20"
-                disabled={isLoading}
-              >
+              <Button onClick={handleGoogleSignIn} variant="outline" className="w-full bg-white/10 border-vice-cyan/30 text-white hover:bg-white/20" disabled={isLoading}>
                 <Chrome className="h-4 w-4 mr-2" />
                 Continue with Google
               </Button>
 
               <div className="text-center pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsSignUp(!isSignUp)}
-                  className="text-vice-cyan hover:text-vice-pink text-sm transition-colors"
-                >
-                  {isSignUp 
-                    ? 'Already have an account? Sign in' 
-                    : "Don't have an account? Sign up"
-                  }
+                <button type="button" onClick={() => setIsSignUp(!isSignUp)} className="text-vice-cyan hover:text-vice-pink text-sm transition-colors">
+                  {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
                 </button>
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 }
