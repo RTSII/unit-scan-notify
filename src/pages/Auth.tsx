@@ -77,12 +77,49 @@ export default function Auth() {
       <div className="absolute bottom-20 right-20 w-20 h-20 bg-vice-orange rounded-full opacity-25 blur-md animate-lens-flare-4"></div>
 
       {/* Content */}
-      <div className="relative min-h-screen flex items-center justify-center p-4">
-        <div className="w-full max-w-md space-y-8">
+      <div className="relative min-h-screen flex items-center justify-center p-4 py-8 overflow-y-auto">
+        <div className="w-full max-w-md space-y-6 my-8">
           {/* Logo/Title */}
           <div className="text-center">
-            <h1 className="text-6xl md:text-8xl font-bold vice-block-letters mb-2">SPR</h1>
-            <h2 className="text-2xl md:text-3xl vice-city-font">Vice City</h2>
+            <div className="mb-4">
+              {/* SPR Text - Cyan with black outline */}
+              <div className="relative">
+                <h1 className="text-7xl md:text-9xl font-bold text-vice-cyan mb-2"
+                    style={{
+                      fontFamily: 'Orbitron, monospace',
+                      fontWeight: 900,
+                      textShadow: `
+                        4px 4px 0px #000,
+                        8px 8px 0px rgba(0, 0, 0, 0.5),
+                        0 0 10px #00ffff,
+                        0 0 20px #00ffff,
+                        0 0 30px #00ffff
+                      `,
+                      WebkitTextStroke: '2px #ff1493'
+                    }}>
+                  SPR
+                </h1>
+              </div>
+              
+              {/* Vice City Text - Pink script font */}
+              <div className="relative -mt-4">
+                <h2 className="text-3xl md:text-5xl text-vice-pink"
+                    style={{
+                      fontFamily: 'Righteous, cursive',
+                      textShadow: `
+                        2px 2px 0px #000,
+                        4px 4px 0px rgba(0, 0, 0, 0.7),
+                        0 0 5px #ff1493,
+                        0 0 10px #ff1493,
+                        0 0 15px #ff1493
+                      `,
+                      transform: 'rotate(-5deg)',
+                      WebkitTextStroke: '1px #8b2fa0'
+                    }}>
+                  vice city
+                </h2>
+              </div>
+            </div>
             <p className="text-vice-cyan mt-4 text-sm opacity-80">Invitation Required</p>
           </div>
 
@@ -99,7 +136,7 @@ export default function Auth() {
                 }
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 pb-6">
               <form onSubmit={handleSubmit} className="space-y-4">
                 {isSignUp && (
                   <div className="space-y-2">
@@ -174,7 +211,7 @@ export default function Auth() {
                 Continue with Google
               </Button>
 
-              <div className="text-center">
+              <div className="text-center pt-2">
                 <button
                   type="button"
                   onClick={() => setIsSignUp(!isSignUp)}
