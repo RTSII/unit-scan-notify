@@ -83,7 +83,7 @@ export default function Auth() {
           <div className="text-center">
             <div className="mb-3">
               <img 
-                src="/lovable-uploads/b699a881-5561-4398-a70a-6b8d9222291d.png" 
+                src="/lovable-uploads/6db4fdca-4b90-4115-bd4e-b53d1bb23e7a.png" 
                 alt="SPR Vice City Logo" 
                 className="w-48 md:w-56 mx-auto"
               />
