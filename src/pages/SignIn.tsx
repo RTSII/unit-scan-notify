@@ -34,23 +34,15 @@ const SignIn = () => {
       {/* Content Container */}
       <div className="relative z-10 min-h-screen p-8">
         <div className="w-full max-w-6xl">
-          {/* Hero Section with SPR and Vice City Text - Upper Left */}
+          {/* Hero Section with SPR Vice City Logo - Upper Left */}
           <div className="mb-12 text-left">
-            {/* SPR Block Letters */}
             <div className="relative mb-4">
-              <h1 className="text-5xl md:text-7xl font-black text-vice-blue tracking-wider drop-shadow-2xl vice-block-letters">
-                SPR
-              </h1>
-              
-              {/* Vice City Cursive Text with Neon Glow */}
-              <div className="absolute -bottom-4 left-12 md:left-20">
-                <h2 className="text-2xl md:text-4xl font-bold text-vice-pink vice-city-font drop-shadow-lg transform rotate-[-5deg] vice-neon-glow">
-                  Vice City
-                </h2>
-                {/* Decorative Elements */}
-                <div className="absolute -top-1 -right-2 w-8 h-0.5 bg-vice-pink transform rotate-45"></div>
-                <div className="absolute -bottom-1 -left-2 w-6 h-0.5 bg-vice-cyan transform rotate-[-30deg]"></div>
-              </div>
+              <img 
+                src="/lovable-uploads/bdcbae56-499c-449c-bed0-53fa7af42ac6.png" 
+                alt="SPR Vice City Logo"
+                className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 object-contain drop-shadow-2xl relative z-50"
+                style={{ filter: 'drop-shadow(0 0 20px rgba(255, 0, 255, 0.3))' }}
+              />
             </div>
           </div>
 
