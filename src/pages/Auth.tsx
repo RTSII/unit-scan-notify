@@ -146,10 +146,13 @@ export default function Auth() {
                     <Input
                       id="password"
                       type="password"
-                      placeholder="Enter your password"
+                      placeholder="8+ characters, at least 1 number"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink"
+                      minLength={8}
+                      pattern="^(?=.*[0-9]).{8,}$"
+                      title="Password must be at least 8 characters and contain at least one number"
                       required
                     />
                   </div>
