@@ -83,7 +83,7 @@ export default function Auth() {
           <div className="text-center z-40 relative">
             <div className="mb-4">
               <img 
-                src="/lovable-uploads/e81d0236-9f4f-49be-ac83-0f9d5d0ba67b.png" 
+                src="/lovable-uploads/f2410ffb-a33a-4bd4-a96b-53358fbcb041.png" 
                 alt="SPR Vice City Logo"
                 className="w-20 h-20 sm:w-28 sm:h-28 md:w-36 md:h-36 mx-auto object-contain drop-shadow-2xl relative z-50"
                 style={{ filter: 'drop-shadow(0 0 20px rgba(255, 0, 255, 0.3))' }}
