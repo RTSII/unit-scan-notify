@@ -59,7 +59,7 @@ export default function Auth() {
   }
 
   return (
-    <div className="h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue relative overflow-hidden">
       {/* Background effects */}
       <div className="absolute inset-0 bg-black/20 z-0" />
       
@@ -77,15 +77,15 @@ export default function Auth() {
       <div className="absolute bottom-20 right-20 w-20 h-20 bg-vice-orange rounded-full opacity-25 blur-md animate-lens-flare-4 z-10"></div>
 
       {/* Content */}
-      <div className="relative h-full flex flex-col justify-center p-4 z-30 max-h-screen overflow-hidden">
-        <div className="w-full max-w-md mx-auto space-y-6">
+      <div className="relative flex flex-col justify-start items-center p-4 pt-8 sm:pt-12 z-30 min-h-screen">
+        <div className="w-full max-w-md space-y-6">
           {/* Logo/Title */}
           <div className="text-center z-40 relative">
             <div className="mb-4">
               <img 
-                src="/lovable-uploads/b6712007-fdbb-47bc-9609-07aeba8618e2.png" 
+                src="/lovable-uploads/94c07169-ec4b-40c7-95c7-e38cc1455ea9.png" 
                 alt="SPR Vice City Logo" 
-                className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 mx-auto object-contain drop-shadow-2xl relative z-50"
+                className="w-20 h-20 sm:w-28 sm:h-28 md:w-36 md:h-36 mx-auto object-contain drop-shadow-2xl relative z-50"
                 style={{ filter: 'drop-shadow(0 0 20px rgba(255, 0, 255, 0.3))' }}
               />
             </div>
