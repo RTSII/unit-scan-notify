@@ -77,15 +77,16 @@ export default function Auth() {
       <div className="absolute bottom-20 right-20 w-20 h-20 bg-vice-orange rounded-full opacity-25 blur-md animate-lens-flare-4 z-10"></div>
 
       {/* Content */}
-      <div className="relative h-full overflow-y-auto flex items-center justify-center p-4 py-8 z-20">
-        <div className="w-full max-w-md space-y-4 my-4">
+      <div className="relative h-full flex flex-col justify-center p-4 z-30 max-h-screen overflow-hidden">
+        <div className="w-full max-w-md mx-auto space-y-6">
           {/* Logo/Title */}
-          <div className="text-center">
+          <div className="text-center z-40 relative">
             <div className="mb-4">
               <img 
-                src="/lovable-uploads/3c638171-e948-430d-8332-9ff15d89c7ce.png" 
+                src="/lovable-uploads/b6712007-fdbb-47bc-9609-07aeba8618e2.png" 
                 alt="SPR Vice City Logo" 
-                className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 mx-auto object-contain drop-shadow-lg"
+                className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 mx-auto object-contain drop-shadow-2xl relative z-50"
+                style={{ filter: 'drop-shadow(0 0 20px rgba(255, 0, 255, 0.3))' }}
               />
             </div>
             <p className="text-vice-cyan mt-2 text-sm opacity-80">Invitation Required</p>
