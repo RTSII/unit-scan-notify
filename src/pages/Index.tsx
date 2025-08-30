@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Camera, FileText, Download, LogOut, Settings, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Navigate } from "react-router-dom";
+import { Navigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import CameraCapture from "@/components/CameraCapture";
 import ViolationTemplate from "@/components/ViolationTemplate";
@@ -12,7 +12,16 @@ type TabType = 'capture' | 'template' | 'export' | 'admin';
 
 const Index = () => {
   const { user, loading, signOut, profile } = useAuth();
+  const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<TabType>('capture');
+
+  // Set active tab from URL params
+  useEffect(() => {
+    const tab = searchParams.get('tab') as TabType;
+    if (tab && ['capture', 'template', 'export', 'admin'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   // Redirect if not authenticated
   if (!loading && !user) {
