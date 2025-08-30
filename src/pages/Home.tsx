@@ -3,12 +3,14 @@ import { Camera, FileText, Database, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Home = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
+  const isMobile = useIsMobile();
 
   // Redirect if not authenticated
   if (!user) {
@@ -22,21 +24,21 @@ const Home = () => {
       icon: Camera,
       label: "Capture",
       onClick: () => navigate('/dashboard?tab=capture'),
-      position: { x: -100, y: 50 }, // Left position
+      position: { mobile: { x: -60, y: 40 }, desktop: { x: -100, y: 50 } },
       color: "bg-vice-pink hover:bg-vice-pink/80"
     },
     {
       icon: FileText,
       label: "Details",
       onClick: () => navigate('/dashboard?tab=template&blank=true'),
-      position: { x: 0, y: 100 }, // Bottom position
+      position: { mobile: { x: 0, y: 80 }, desktop: { x: 0, y: 100 } },
       color: "bg-vice-cyan hover:bg-vice-cyan/80"
     },
     {
       icon: Database,
       label: "Directory",
       onClick: () => navigate('/books'),
-      position: { x: 100, y: 50 }, // Right position
+      position: { mobile: { x: 60, y: 40 }, desktop: { x: 100, y: 50 } },
       color: "bg-vice-blue hover:bg-vice-blue/80"
     }
   ];
@@ -68,15 +70,15 @@ const Home = () => {
       </div>
 
       {/* Hero Section with Animated Greeting */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-start pt-8">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-start pt-4 sm:pt-8 px-4">
         <motion.div
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: "easeOut" }}
-          className="text-center mb-16"
+          className="text-center mb-8 sm:mb-16"
         >
           <motion.h1 
-            className="text-6xl md:text-8xl font-bold text-white drop-shadow-2xl vice-block-letters"
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold text-white drop-shadow-2xl vice-block-letters px-4"
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
@@ -98,12 +100,12 @@ const Home = () => {
           {/* Bird Button - positioned to align with the gate's bird circle */}
           <motion.button
             onClick={() => setShowMenu(!showMenu)}
-            className="relative z-20 w-24 h-24 rounded-full bg-white/20 backdrop-blur-md border-2 border-white/40 flex items-center justify-center hover:bg-white/30 transition-all duration-300 shadow-2xl"
+            className={`relative z-20 ${isMobile ? 'w-20 h-20' : 'w-24 h-24'} rounded-full bg-white/20 backdrop-blur-md border-2 border-white/40 flex items-center justify-center hover:bg-white/30 transition-all duration-300 shadow-2xl touch-manipulation`}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
             style={{
-              // Position to align with the bird in the gate image
-              marginTop: '-10vh'
+              // Position to align with the bird in the gate image, adjusted for mobile
+              marginTop: isMobile ? '-8vh' : '-10vh'
             }}
           >
             <div className="w-8 h-8 text-white">
@@ -132,8 +134,8 @@ const Home = () => {
                       animate={{ 
                         opacity: 1, 
                         scale: 1,
-                        x: item.position.x,
-                        y: item.position.y
+                        x: isMobile ? item.position.mobile.x : item.position.desktop.x,
+                        y: isMobile ? item.position.mobile.y : item.position.desktop.y
                       }}
                       exit={{ 
                         opacity: 0, 
@@ -151,7 +153,7 @@ const Home = () => {
                         item.onClick();
                         setShowMenu(false);
                       }}
-                      className={`absolute w-16 h-16 rounded-full ${item.color} backdrop-blur-md border border-white/30 flex flex-col items-center justify-center text-white shadow-xl transition-all duration-200`}
+                      className={`absolute ${isMobile ? 'w-18 h-18' : 'w-16 h-16'} rounded-full ${item.color} backdrop-blur-md border border-white/30 flex flex-col items-center justify-center text-white shadow-xl transition-all duration-200 touch-manipulation`}
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                     >
