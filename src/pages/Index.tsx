@@ -43,7 +43,7 @@ const Index = () => {
 
   const tabs = [
     { id: 'capture' as TabType, label: 'Capture', icon: Camera },
-    { id: 'template' as TabType, label: 'Notice', icon: FileText },
+    { id: 'template' as TabType, label: 'Details', icon: FileText },
     { id: 'export' as TabType, label: 'Export', icon: Download },
     ...(profile?.role === 'admin' ? [{ id: 'admin' as TabType, label: 'Admin', icon: Settings }] : []),
   ];
