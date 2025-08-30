@@ -108,13 +108,13 @@ export default function Auth() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 {isSignUp && (
                   <div className="space-y-2">
-                    <Label htmlFor="fullName" className="text-white">Full Name</Label>
+                    <Label htmlFor="fullName" className="text-white">Name</Label>
                     <div className="relative">
                       <User className="absolute left-3 top-3 h-4 w-4 text-vice-cyan/60" />
                       <Input
                         id="fullName"
                         type="text"
-                        placeholder="Enter your full name"
+                        placeholder="Enter your name"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
                         className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink"
