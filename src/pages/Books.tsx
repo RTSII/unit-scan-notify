@@ -172,7 +172,7 @@ const Books = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-vice-cyan">Recent</p>
+                  <p className="text-sm font-medium text-vice-cyan">This Week</p>
                   <p className="text-2xl font-bold text-white">
                     {forms.filter(form => 
                       new Date().getTime() - new Date(form.created_at).getTime() < 7 * 24 * 60 * 60 * 1000
