@@ -64,8 +64,8 @@ const DetailsPrevious = ({ blankMode = false }: DetailsPreviousProps) => {
         date: `${month}/${day}`,
         time: `${String(displayHours).padStart(2, '0')}:${minutes} ${ampm}`
       }));
-    } else {
-      // Clear all fields for dashboard Details mode or regular Details mode
+    } else if (blankMode) {
+      // For dashboard template tab - keep all fields blank
       setFormData({
         date: '',
         time: '',
