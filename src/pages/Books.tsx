@@ -165,20 +165,15 @@ const Books = () => {
 
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <BookOpen className="w-6 h-6 text-vice-pink" />
-            <h1 className="text-2xl font-bold vice-block-letters text-white">Books</h1>
-          </div>
-        </div>
+        <BookOpen className="w-6 h-6 text-vice-pink" />
+        <h1 className="text-2xl font-bold vice-block-letters text-white">Books</h1>
         <Button 
           onClick={() => navigate('/dashboard')}
-          variant="outline" 
+          variant="ghost" 
           size="sm" 
-          className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20"
+          className="text-white hover:bg-vice-cyan/20"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Home
+          <ArrowLeft className="w-5 h-5" />
         </Button>
       </div>
 
