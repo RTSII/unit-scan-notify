@@ -101,6 +101,23 @@ const Books = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20">
+        <BookOpen 
+          className="w-6 h-6 text-vice-pink cursor-pointer hover:text-vice-cyan transition-colors" 
+          onClick={() => navigate('/forms-directory')}
+        />
+        <h1 className="text-2xl font-bold vice-block-letters text-white">Books</h1>
+        <Button 
+          onClick={() => navigate('/dashboard')}
+          variant="ghost" 
+          size="sm" 
+          className="text-white hover:bg-vice-cyan/20"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </Button>
+      </div>
+
       {/* Stats */}
       <div className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
@@ -136,23 +153,6 @@ const Books = () => {
             </CardContent>
           </Card>
         </div>
-      </div>
-
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20">
-        <BookOpen 
-          className="w-6 h-6 text-vice-pink cursor-pointer hover:text-vice-cyan transition-colors" 
-          onClick={() => navigate('/forms-directory')}
-        />
-        <h1 className="text-2xl font-bold vice-block-letters text-white">Books</h1>
-        <Button 
-          onClick={() => navigate('/dashboard')}
-          variant="ghost" 
-          size="sm" 
-          className="text-white hover:bg-vice-cyan/20"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
       </div>
 
       <div className="p-4 space-y-6 max-w-6xl mx-auto">
