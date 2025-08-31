@@ -103,7 +103,7 @@ const Books = () => {
     <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue">
       {/* Stats */}
       <div className="p-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 max-w-4xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
           <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm">
             <CardContent className="p-3">
               <div className="flex items-center justify-between">
@@ -135,37 +135,15 @@ const Books = () => {
               </div>
             </CardContent>
           </Card>
-          
-          <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm">
-            <CardContent className="p-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-vice-cyan">Total Forms</p>
-                  <p className="text-lg font-bold text-white">{forms.length}</p>
-                </div>
-                <BookOpen 
-                  className="w-6 h-6 text-vice-pink cursor-pointer hover:text-vice-cyan transition-colors" 
-                  onClick={() => navigate('/forms-directory')}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm aspect-square">
-            <CardContent className="p-3 h-full flex flex-col items-center justify-center">
-              <BookOpen 
-                className="w-8 h-8 text-vice-pink cursor-pointer hover:text-vice-cyan transition-colors mb-2" 
-                onClick={() => navigate('/forms-directory')}
-              />
-              <p className="text-xs font-medium text-vice-cyan text-center">Directory</p>
-            </CardContent>
-          </Card>
         </div>
       </div>
 
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20">
-        <BookOpen className="w-6 h-6 text-vice-pink" />
+        <BookOpen 
+          className="w-6 h-6 text-vice-pink cursor-pointer hover:text-vice-cyan transition-colors" 
+          onClick={() => navigate('/forms-directory')}
+        />
         <h1 className="text-2xl font-bold vice-block-letters text-white">Books</h1>
         <Button 
           onClick={() => navigate('/dashboard')}
