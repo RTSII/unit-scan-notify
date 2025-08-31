@@ -362,7 +362,7 @@ const CameraCapture = () => {
         <div className="flex justify-between items-center h-20 px-4">
           <div></div>
           <h1 className="text-xl font-semibold text-white">Capture</h1>
-          <button className="p-2">
+          <button className="p-2" onClick={() => window.location.href = '/dashboard'}>
             <span className="material-symbols-outlined text-white">home</span>
           </button>
         </div>
