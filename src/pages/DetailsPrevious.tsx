@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 import DetailsPrevious from "@/components/DetailsPrevious";
 
-const Template = () => {
+const DetailsPreviousPage = () => {
   const { user, loading } = useAuth();
 
   // Redirect if not authenticated
@@ -26,4 +26,4 @@ const Template = () => {
   return <DetailsPrevious blankMode={true} />;
 };
 
-export default Template;
+export default DetailsPreviousPage;
