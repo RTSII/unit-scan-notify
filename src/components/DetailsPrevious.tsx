@@ -46,26 +46,10 @@ const DetailsPrevious = ({ blankMode = false }: DetailsPreviousProps) => {
   // Check if we're in Details-live mode (from capture flow) or dashboard Details mode
   const isDetailsLive = window.location.pathname.includes('details-live') || window.location.search.includes('live=true');
   
-  // Auto-populate date and time ONLY for Details-live mode (from capture flow)
-  // Keep fields blank for dashboard Details mode
+  // Keep all fields blank for template mode
   useEffect(() => {
-    if (blankMode && isDetailsLive) {
-      // Auto-fill for Details-live (from capture)
-      const currentDate = new Date();
-      const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-      const day = String(currentDate.getDate()).padStart(2, '0');
-      const hours = currentDate.getHours();
-      const minutes = String(currentDate.getMinutes()).padStart(2, '0');
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      const displayHours = hours % 12 || 12;
-      
-      setFormData(prev => ({
-        ...prev,
-        date: `${month}/${day}`,
-        time: `${String(displayHours).padStart(2, '0')}:${minutes} ${ampm}`
-      }));
-    } else if (blankMode) {
-      // For dashboard template tab - keep all fields blank
+    if (blankMode) {
+      // For template mode - keep all fields blank
       setFormData({
         date: '',
         time: '',
@@ -78,7 +62,7 @@ const DetailsPrevious = ({ blankMode = false }: DetailsPreviousProps) => {
         }
       });
     }
-  }, [blankMode, isDetailsLive]);
+  }, [blankMode]);
 
   const addField = () => {
     const newField: ViolationField = {
