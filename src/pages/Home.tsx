@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Camera, FileText, Database, LogOut } from "lucide-react";
+import { Camera, FileText, Database, LogOut, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -35,9 +35,9 @@ const Home = () => {
       color: "bg-vice-cyan hover:bg-vice-cyan/80"
     },
     {
-      icon: Database,
-      label: "Directory",
-      onClick: () => navigate('/books'),
+      icon: BookOpen,
+      label: "Books",
+      onClick: () => navigate('/forms-directory'),
       position: { mobile: { x: 60, y: 40 }, desktop: { x: 100, y: 50 } },
       color: "bg-vice-blue hover:bg-vice-blue/80"
     }
