@@ -44,6 +44,7 @@ const DetailsPrevious = ({ blankMode = false }: DetailsPreviousProps) => {
   });
 
   // Auto-populate date and time for Details-live mode (when blankMode=true)
+  // Clear fields for regular Details mode (when blankMode=false)
   useEffect(() => {
     if (blankMode) {
       const currentDate = new Date();
@@ -59,6 +60,19 @@ const DetailsPrevious = ({ blankMode = false }: DetailsPreviousProps) => {
         date: `${month}/${day}`,
         time: `${String(displayHours).padStart(2, '0')}:${minutes} ${ampm}`
       }));
+    } else {
+      // Clear all fields for regular Details mode
+      setFormData({
+        date: '',
+        time: '',
+        unit: '',
+        description: '',
+        violationTypes: {
+          itemsOutside: false,
+          trashOutside: false,
+          itemsBalcony: false,
+        }
+      });
     }
   }, [blankMode]);
 
