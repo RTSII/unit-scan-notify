@@ -101,23 +101,75 @@ const Books = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue">
+      {/* Stats */}
+      <div className="p-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl">
+          <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm">
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-vice-cyan">This Week</p>
+                  <p className="text-lg font-bold text-white">
+                    {forms.filter(form => 
+                      new Date().getTime() - new Date(form.created_at).getTime() < 7 * 24 * 60 * 60 * 1000
+                    ).length}
+                  </p>
+                </div>
+                <Clock className="w-6 h-6 text-vice-pink" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm">
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-vice-cyan">This Month</p>
+                  <p className="text-lg font-bold text-white">
+                    {forms.filter(form => 
+                      new Date(form.created_at).getMonth() === new Date().getMonth()
+                    ).length}
+                  </p>
+                </div>
+                <Calendar className="w-6 h-6 text-vice-pink" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm">
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-vice-cyan">Total Forms</p>
+                  <p className="text-lg font-bold text-white">{forms.length}</p>
+                </div>
+                <BookOpen 
+                  className="w-6 h-6 text-vice-pink cursor-pointer hover:text-vice-cyan transition-colors" 
+                  onClick={() => navigate('/forms-directory')}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20">
         <div className="flex items-center gap-4">
-          <Button 
-            onClick={() => navigate('/')}
-            variant="outline" 
-            size="sm" 
-            className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
-          </Button>
           <div className="flex items-center gap-2">
             <BookOpen className="w-6 h-6 text-vice-pink" />
             <h1 className="text-2xl font-bold vice-block-letters text-white">Books</h1>
           </div>
         </div>
+        <Button 
+          onClick={() => navigate('/dashboard')}
+          variant="outline" 
+          size="sm" 
+          className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Home
+        </Button>
       </div>
 
       <div className="p-4 space-y-6 max-w-6xl mx-auto">
@@ -136,53 +188,6 @@ const Books = () => {
             <Filter className="w-4 h-4 mr-2" />
             Filter
           </Button>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-vice-cyan">This Week</p>
-                  <p className="text-2xl font-bold text-white">
-                    {forms.filter(form => 
-                      new Date().getTime() - new Date(form.created_at).getTime() < 7 * 24 * 60 * 60 * 1000
-                    ).length}
-                  </p>
-                </div>
-                <Clock className="w-8 h-8 text-vice-pink" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-vice-cyan">This Month</p>
-                  <p className="text-2xl font-bold text-white">
-                    {forms.filter(form => 
-                      new Date(form.created_at).getMonth() === new Date().getMonth()
-                    ).length}
-                  </p>
-                </div>
-                <Calendar className="w-8 h-8 text-vice-pink" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-vice-cyan">Total Forms</p>
-                  <p className="text-2xl font-bold text-white">{forms.length}</p>
-                </div>
-                <BookOpen className="w-8 h-8 text-vice-pink" />
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Forms List */}
