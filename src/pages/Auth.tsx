@@ -81,7 +81,8 @@ export default function Auth() {
               <img 
                 src="/lovable-uploads/SPR.png" 
                 alt="SPR Vice City" 
-                className="mx-auto h-24 w-auto drop-shadow-lg"
+                className="mx-auto h-24 w-auto drop-shadow-[0_4px_8px_rgba(0,255,255,0.3)] opacity-100"
+                style={{ mixBlendMode: 'normal' }}
               />
             </div>
             <p className="text-vice-cyan mt-1 text-sm opacity-80">Invitation Required</p>
