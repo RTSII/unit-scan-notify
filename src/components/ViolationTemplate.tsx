@@ -43,7 +43,7 @@ const ViolationTemplate = ({ blankMode = false }: ViolationTemplateProps) => {
     }
   });
 
-  // Auto-populate date and time for Details-live mode
+  // Auto-populate date and time for Details-live mode (when blankMode=true)
   useEffect(() => {
     if (blankMode) {
       const currentDate = new Date();
@@ -109,7 +109,7 @@ const ViolationTemplate = ({ blankMode = false }: ViolationTemplateProps) => {
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
           </Button>
-          <h1 className="text-xl font-bold">Details-live</h1>
+          <h1 className="text-xl font-bold">{blankMode ? 'Details-live' : 'Details'}</h1>
           <Button 
             variant="ghost" 
             size="sm" 
