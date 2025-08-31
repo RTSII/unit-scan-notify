@@ -59,13 +59,12 @@ const Index = () => {
     icon: Settings
   }] : [])];
   const renderContent = () => {
-    const isBlankMode = searchParams.get('blank') === 'true';
     switch (activeTab) {
       case 'capture':
         return <CameraCapture />;
       case 'template':
-        // Show blank fields for the Details tab from dashboard
-        return <DetailsPrevious blankMode={false} />;
+        // Dashboard Details tab should show black UI with blank fields
+        return <DetailsPrevious blankMode={true} />;
       case 'export':
         return <ExportCenter />;
       case 'admin':
@@ -74,6 +73,65 @@ const Index = () => {
         return <CameraCapture />;
     }
   };
-  return;
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue">
+      <div className="container mx-auto p-4">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+          <div className="flex items-center space-x-4">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => navigate('/')}
+              className="text-white hover:bg-white/10"
+            >
+              <Home className="w-4 h-4 mr-2" />
+              Home
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={signOut}
+              className="text-white hover:bg-white/10"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex space-x-2 mb-6">
+          {tabs.map((tab) => (
+            <Button
+              key={tab.id}
+              variant={activeTab === tab.id ? "default" : "outline"}
+              onClick={() => {
+                setActiveTab(tab.id);
+                navigate(`/dashboard?tab=${tab.id}`);
+              }}
+              className={`
+                flex items-center space-x-2 
+                ${activeTab === tab.id 
+                  ? 'bg-gradient-primary text-white' 
+                  : 'border-vice-cyan/30 text-vice-cyan hover:bg-vice-cyan/10'
+                }
+              `}
+            >
+              <tab.icon className="w-4 h-4" />
+              <span>{tab.label}</span>
+            </Button>
+          ))}
+        </div>
+
+        {/* Tab Content */}
+        <div className="w-full">
+          {renderContent()}
+        </div>
+      </div>
+    </div>
+  );
 };
 export default Index;

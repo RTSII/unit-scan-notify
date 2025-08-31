@@ -43,10 +43,14 @@ const DetailsPrevious = ({ blankMode = false }: DetailsPreviousProps) => {
     }
   });
 
-  // Auto-populate date and time for Details-live mode (when blankMode=true)
-  // Clear fields for regular Details mode (when blankMode=false)
+  // Check if we're in Details-live mode (from capture flow) or dashboard Details mode
+  const isDetailsLive = window.location.pathname.includes('details-live') || window.location.search.includes('live=true');
+  
+  // Auto-populate date and time ONLY for Details-live mode (from capture flow)
+  // Keep fields blank for dashboard Details mode
   useEffect(() => {
-    if (blankMode) {
+    if (blankMode && isDetailsLive) {
+      // Auto-fill for Details-live (from capture)
       const currentDate = new Date();
       const month = String(currentDate.getMonth() + 1).padStart(2, '0');
       const day = String(currentDate.getDate()).padStart(2, '0');
@@ -61,7 +65,7 @@ const DetailsPrevious = ({ blankMode = false }: DetailsPreviousProps) => {
         time: `${String(displayHours).padStart(2, '0')}:${minutes} ${ampm}`
       }));
     } else {
-      // Clear all fields for regular Details mode
+      // Clear all fields for dashboard Details mode or regular Details mode
       setFormData({
         date: '',
         time: '',
@@ -74,7 +78,7 @@ const DetailsPrevious = ({ blankMode = false }: DetailsPreviousProps) => {
         }
       });
     }
-  }, [blankMode]);
+  }, [blankMode, isDetailsLive]);
 
   const addField = () => {
     const newField: ViolationField = {
