@@ -55,37 +55,37 @@ export default function Auth() {
         </div>
       </div>;
   }
-  return <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue relative overflow-hidden">
+  return <div className="h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue relative overflow-hidden">
       {/* Background effects */}
       <div className="absolute inset-0 bg-black/20 z-0" />
       
       {/* Animated waves */}
       <div className="absolute bottom-0 left-0 w-full overflow-hidden opacity-30 z-10">
-        <div className="wave-bg h-24 bg-gradient-to-r from-vice-cyan to-vice-pink animate-wave-1"></div>
-        <div className="wave-bg h-16 bg-gradient-to-r from-vice-pink to-vice-purple animate-wave-2 -mt-8"></div>
-        <div className="wave-bg h-12 bg-gradient-to-r from-vice-blue to-vice-cyan animate-wave-3 -mt-6"></div>
+        <div className="wave-bg h-16 bg-gradient-to-r from-vice-cyan to-vice-pink animate-wave-1"></div>
+        <div className="wave-bg h-12 bg-gradient-to-r from-vice-pink to-vice-purple animate-wave-2 -mt-6"></div>
+        <div className="wave-bg h-8 bg-gradient-to-r from-vice-blue to-vice-cyan animate-wave-3 -mt-4"></div>
       </div>
 
       {/* Lens flares */}
-      <div className="absolute top-20 left-20 w-32 h-32 bg-vice-cyan rounded-full opacity-20 blur-xl animate-lens-flare-1 z-10"></div>
-      <div className="absolute top-40 right-32 w-24 h-24 bg-vice-pink rounded-full opacity-30 blur-lg animate-lens-flare-2 z-10"></div>
-      <div className="absolute bottom-32 left-32 w-40 h-40 bg-vice-purple rounded-full opacity-15 blur-2xl animate-lens-flare-3 z-10"></div>
-      <div className="absolute bottom-20 right-20 w-20 h-20 bg-vice-orange rounded-full opacity-25 blur-md animate-lens-flare-4 z-10"></div>
+      <div className="absolute top-10 left-10 w-20 h-20 bg-vice-cyan rounded-full opacity-20 blur-xl animate-lens-flare-1 z-10"></div>
+      <div className="absolute top-20 right-16 w-16 h-16 bg-vice-pink rounded-full opacity-30 blur-lg animate-lens-flare-2 z-10"></div>
+      <div className="absolute bottom-20 left-16 w-24 h-24 bg-vice-purple rounded-full opacity-15 blur-2xl animate-lens-flare-3 z-10"></div>
+      <div className="absolute bottom-10 right-10 w-12 h-12 bg-vice-orange rounded-full opacity-25 blur-md animate-lens-flare-4 z-10"></div>
 
       {/* Content */}
-      <div className="relative flex flex-col justify-center items-center p-4 z-30 min-h-screen">
-        <div className="w-full max-w-md space-y-4">
+      <div className="relative flex flex-col justify-center items-center p-3 z-30 h-full">
+        <div className="w-full max-w-sm space-y-3">
           {/* Logo/Title */}
           <div className="text-center z-40 relative">
-            <div className="mb-3">
+            <div className="mb-2">
               <img 
                 src="/lovable-uploads/SPR.png" 
                 alt="SPR Vice City" 
-                className="mx-auto h-24 w-auto drop-shadow-[0_4px_8px_rgba(0,255,255,0.3)] opacity-100"
+                className="mx-auto h-16 w-auto drop-shadow-[0_4px_8px_rgba(0,255,255,0.3)] opacity-100"
                 style={{ mixBlendMode: 'normal' }}
               />
             </div>
-            <p className="text-vice-cyan mt-1 text-sm opacity-80">Invitation Required</p>
+            <p className="text-vice-cyan mt-1 text-xs opacity-80">Invitation Required</p>
           </div>
 
           {/* Auth Card */}
