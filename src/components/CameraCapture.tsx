@@ -116,7 +116,7 @@ const CameraCapture = () => {
               <span className="material-symbols-outlined text-white">arrow_back_ios_new</span>
             </button>
             <h1 className="text-xl font-semibold">Details</h1>
-            <button className="p-2" onClick={() => window.location.href = '/dashboard'}>
+            <button className="p-2" onClick={() => window.location.href = '/'}>
               <span className="material-symbols-outlined text-white">home</span>
             </button>
           </div>
@@ -362,7 +362,7 @@ const CameraCapture = () => {
         <div className="flex justify-between items-center h-20 px-4">
           <div></div>
           <h1 className="text-xl font-semibold text-white">Capture</h1>
-          <button className="p-2" onClick={() => window.location.href = '/dashboard'}>
+          <button className="p-2" onClick={() => window.location.href = '/'}>
             <span className="material-symbols-outlined text-white">home</span>
           </button>
         </div>
