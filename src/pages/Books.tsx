@@ -144,10 +144,14 @@ const Books = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-vice-cyan">Total Forms</p>
-                  <p className="text-2xl font-bold text-white">{forms.length}</p>
+                  <p className="text-sm font-medium text-vice-cyan">This Week</p>
+                  <p className="text-2xl font-bold text-white">
+                    {forms.filter(form => 
+                      new Date().getTime() - new Date(form.created_at).getTime() < 7 * 24 * 60 * 60 * 1000
+                    ).length}
+                  </p>
                 </div>
-                <BookOpen className="w-8 h-8 text-vice-pink" />
+                <Clock className="w-8 h-8 text-vice-pink" />
               </div>
             </CardContent>
           </Card>
@@ -172,14 +176,10 @@ const Books = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-vice-cyan">This Week</p>
-                  <p className="text-2xl font-bold text-white">
-                    {forms.filter(form => 
-                      new Date().getTime() - new Date(form.created_at).getTime() < 7 * 24 * 60 * 60 * 1000
-                    ).length}
-                  </p>
+                  <p className="text-sm font-medium text-vice-cyan">Total Forms</p>
+                  <p className="text-2xl font-bold text-white">{forms.length}</p>
                 </div>
-                <Clock className="w-8 h-8 text-vice-pink" />
+                <BookOpen className="w-8 h-8 text-vice-pink" />
               </div>
             </CardContent>
           </Card>
