@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Camera, FileText, Download, LogOut, Settings, Loader2, Home } from "lucide-react";
+import { Camera, FileText, Download, LogOut, Settings, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Navigate, useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,7 +8,7 @@ import DetailsPrevious from "@/components/DetailsPrevious";
 import ExportCenter from "@/components/ExportCenter";
 import AdminInvites from "@/components/AdminInvites";
 type TabType = 'capture' | 'template' | 'export' | 'admin';
-const Index = () => {
+const MainDashboard = () => {
   const {
     user,
     loading,
@@ -84,15 +84,6 @@ const Index = () => {
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={() => navigate('/')}
-              className="text-white hover:bg-white/10"
-            >
-              <Home className="w-4 h-4 mr-2" />
-              Home
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
               onClick={signOut}
               className="text-white hover:bg-white/10"
             >
@@ -110,7 +101,7 @@ const Index = () => {
               variant={activeTab === tab.id ? "default" : "outline"}
               onClick={() => {
                 setActiveTab(tab.id);
-                navigate(`/dashboard?tab=${tab.id}`);
+                navigate(`/?tab=${tab.id}`);
               }}
               className={`
                 flex items-center space-x-2 
@@ -134,4 +125,4 @@ const Index = () => {
     </div>
   );
 };
-export default Index;
+export default MainDashboard;
