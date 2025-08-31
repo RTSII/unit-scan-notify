@@ -73,18 +73,18 @@ export default function Auth() {
       <div className="absolute bottom-20 right-20 w-20 h-20 bg-vice-orange rounded-full opacity-25 blur-md animate-lens-flare-4 z-10"></div>
 
       {/* Content */}
-      <div className="relative flex flex-col justify-start items-center p-4 pt-8 sm:pt-12 z-30 min-h-screen">
-        <div className="w-full max-w-md space-y-6">
+      <div className="relative flex flex-col justify-center items-center p-4 z-30 min-h-screen">
+        <div className="w-full max-w-md space-y-4">
           {/* Logo/Title */}
           <div className="text-center z-40 relative">
-            <div className="mb-4">
+            <div className="mb-3">
               <img 
-                src="/lovable-uploads/7cbb78ce-a95e-4246-a9f8-02b76a137725.png" 
+                src="/lovable-uploads/f2410ffb-a33a-4bd4-a96b-53358fbcb041.png" 
                 alt="SPR Vice City" 
-                className="mx-auto h-30 w-auto drop-shadow-lg"
+                className="mx-auto h-24 w-auto drop-shadow-lg"
               />
             </div>
-            <p className="text-vice-cyan mt-2 text-sm opacity-80">Invitation Required</p>
+            <p className="text-vice-cyan mt-1 text-sm opacity-80">Invitation Required</p>
           </div>
 
           {/* Auth Card */}
