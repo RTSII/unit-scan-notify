@@ -127,7 +127,7 @@ const DetailsPrevious = ({ blankMode = false }: DetailsPreviousProps) => {
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
           </Button>
-          <h1 className="text-xl font-bold">{blankMode ? 'Details-live' : 'Details'}</h1>
+          <h1 className="text-xl font-bold">{isDetailsLive ? 'Details-live' : 'Details'}</h1>
           <Button 
             variant="ghost" 
             size="sm" 
