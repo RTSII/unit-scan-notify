@@ -103,7 +103,7 @@ const Books = () => {
     <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue">
       {/* Stats */}
       <div className="p-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 max-w-4xl">
           <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm">
             <CardContent className="p-3">
               <div className="flex items-center justify-between">
@@ -150,6 +150,16 @@ const Books = () => {
               </div>
             </CardContent>
           </Card>
+
+          <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm aspect-square">
+            <CardContent className="p-3 h-full flex flex-col items-center justify-center">
+              <BookOpen 
+                className="w-8 h-8 text-vice-pink cursor-pointer hover:text-vice-cyan transition-colors mb-2" 
+                onClick={() => navigate('/forms-directory')}
+              />
+              <p className="text-xs font-medium text-vice-cyan text-center">Directory</p>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
@@ -192,20 +202,14 @@ const Books = () => {
 
         {/* Forms List */}
         {filteredForms.length === 0 ? (
-          <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm">
-            <CardContent className="p-8 text-center">
-              <BookOpen className="w-12 h-12 text-vice-cyan mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-medium text-white mb-2">
-                {forms.length === 0 ? 'No Forms Saved Yet' : 'No Forms Match Your Search'}
-              </h3>
-              <p className="text-vice-cyan/70">
-                {forms.length === 0 
-                  ? 'Complete forms and save them from the Export tab to see them here.'
-                  : 'Try adjusting your search terms to find specific forms.'
-                }
-              </p>
-            </CardContent>
-          </Card>
+          <div className="text-center py-8">
+            <p className="text-vice-cyan/70">
+              {forms.length === 0 
+                ? 'Complete forms and save them from the Export tab to see them here.'
+                : 'No forms match your search terms.'
+              }
+            </p>
+          </div>
         ) : (
           <div className="space-y-4">
             <h3 className="text-lg font-medium text-white">
