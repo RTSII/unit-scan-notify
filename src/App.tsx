@@ -8,7 +8,8 @@ import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import Books from "./pages/Books";
 import Capture from "./pages/Capture";
-import Template from "./pages/Template";
+import DetailsPrevious from "./pages/DetailsPrevious";
+import DetailsLive from "./pages/DetailsLive";
 import Export from "./pages/Export";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
@@ -27,7 +28,8 @@ const App = () => (
             <Route path="/" element={<Home />} />
             <Route path="/dashboard" element={<Index />} />
             <Route path="/capture" element={<Capture />} />
-            <Route path="/template" element={<Template />} />
+            <Route path="/details-previous" element={<DetailsPrevious />} />
+            <Route path="/details-live" element={<DetailsLive />} />
             <Route path="/export" element={<Export />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/books" element={<Books />} />
