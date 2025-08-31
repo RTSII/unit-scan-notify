@@ -118,6 +118,25 @@ const Books = () => {
         </Button>
       </div>
 
+      {/* Search and Filter */}
+      <div className="p-4">
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-vice-cyan" />
+            <Input
+              placeholder="Search forms..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-black/30 border-vice-cyan/50 text-white placeholder:text-vice-cyan/70"
+            />
+          </div>
+          <Button variant="outline" className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20">
+            <Filter className="w-4 h-4 mr-2" />
+            Filter
+          </Button>
+        </div>
+      </div>
+
       {/* Stats */}
       <div className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
@@ -156,23 +175,6 @@ const Books = () => {
       </div>
 
       <div className="p-4 space-y-6 max-w-6xl mx-auto">
-        {/* Search and Filter */}
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-vice-cyan" />
-            <Input
-              placeholder="Search forms..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-black/30 border-vice-cyan/50 text-white placeholder:text-vice-cyan/70"
-            />
-          </div>
-          <Button variant="outline" className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20">
-            <Filter className="w-4 h-4 mr-2" />
-            Filter
-          </Button>
-        </div>
-
         {/* Forms List */}
         {filteredForms.length === 0 ? (
           <div className="text-center py-8">
