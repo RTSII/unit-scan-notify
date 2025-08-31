@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Navigate, useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import CameraCapture from "@/components/CameraCapture";
-import ViolationTemplate from "@/components/ViolationTemplate";
+import DetailsPrevious from "@/components/DetailsPrevious";
 import ExportCenter from "@/components/ExportCenter";
 import AdminInvites from "@/components/AdminInvites";
 
@@ -55,7 +55,7 @@ const Index = () => {
       case 'capture':
         return <CameraCapture />;
       case 'template':
-        return <ViolationTemplate blankMode={isBlankMode} />;
+        return <DetailsPrevious blankMode={isBlankMode} />;
       case 'export':
         return <ExportCenter />;
       case 'admin':

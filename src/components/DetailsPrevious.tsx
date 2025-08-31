@@ -16,11 +16,11 @@ interface ViolationField {
   value: string;
 }
 
-interface ViolationTemplateProps {
+interface DetailsPreviousProps {
   blankMode?: boolean;
 }
 
-const ViolationTemplate = ({ blankMode = false }: ViolationTemplateProps) => {
+const DetailsPrevious = ({ blankMode = false }: DetailsPreviousProps) => {
   const [noticeName, setNoticeName] = useState("");
   const [fields, setFields] = useState<ViolationField[]>([
     { id: '1', label: 'Unit Number', type: 'text', required: true, placeholder: 'e.g., B2G', value: '' },
@@ -43,9 +43,9 @@ const ViolationTemplate = ({ blankMode = false }: ViolationTemplateProps) => {
     }
   });
 
-  // Auto-populate date and time for Details-live mode (when blankMode=false)
+  // Auto-populate date and time for Details-live mode (when blankMode=true)
   useEffect(() => {
-    if (!blankMode) {
+    if (blankMode) {
       const currentDate = new Date();
       const month = String(currentDate.getMonth() + 1).padStart(2, '0');
       const day = String(currentDate.getDate()).padStart(2, '0');
@@ -109,7 +109,7 @@ const ViolationTemplate = ({ blankMode = false }: ViolationTemplateProps) => {
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
           </Button>
-          <h1 className="text-xl font-bold">{blankMode ? 'Details' : 'Details-live'}</h1>
+          <h1 className="text-xl font-bold">{blankMode ? 'Details-live' : 'Details'}</h1>
           <Button 
             variant="ghost" 
             size="sm" 
@@ -340,4 +340,4 @@ const ViolationTemplate = ({ blankMode = false }: ViolationTemplateProps) => {
   );
 };
 
-export default ViolationTemplate;
+export default DetailsPrevious;
