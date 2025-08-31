@@ -56,14 +56,7 @@ const Home = () => {
       {/* Overlay for better text readability */}
       <div className="absolute inset-0 bg-black/30" />
       
-      {/* SPR Vice City Logo - positioned behind text but above background */}
-      <div className="absolute inset-0 flex items-center justify-center z-10">
-        <img 
-          src="/lovable-uploads/796bf09e-507b-4780-a7b4-b0ff405ef9ef.png"
-          alt="SPR Vice City Logo"
-          className="w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 lg:w-[28rem] lg:h-[28rem] xl:w-[32rem] xl:h-[32rem] object-contain opacity-90"
-        />
-      </div>
+      {/* Background overlay for better contrast */}
       
       {/* Header with Sign Out */}
       <div className="relative z-10 flex justify-end p-4">
