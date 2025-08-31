@@ -71,7 +71,7 @@ const Index = () => {
       <div className="flex items-center justify-between p-4 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20">
         <div className="flex items-center gap-4">
           <Button 
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/dashboard')}
             variant="outline" 
             size="sm" 
             className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20"

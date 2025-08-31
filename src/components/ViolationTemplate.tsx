@@ -43,19 +43,24 @@ const ViolationTemplate = ({ blankMode = false }: ViolationTemplateProps) => {
     }
   });
 
-  // Auto-populate notice name with Unit Number_MMDD format (only if not in blank mode)
+  // Auto-populate date and time for Details-live mode
   useEffect(() => {
-    if (!blankMode) {
-      const unitNumberField = fields.find(field => field.label === 'Unit Number');
+    if (blankMode) {
       const currentDate = new Date();
       const month = String(currentDate.getMonth() + 1).padStart(2, '0');
       const day = String(currentDate.getDate()).padStart(2, '0');
+      const hours = currentDate.getHours();
+      const minutes = String(currentDate.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours % 12 || 12;
       
-      if (unitNumberField) {
-        setNoticeName(`${unitNumberField.label}_${month}${day}`);
-      }
+      setFormData(prev => ({
+        ...prev,
+        date: `${month}/${day}`,
+        time: `${String(displayHours).padStart(2, '0')}:${minutes} ${ampm}`
+      }));
     }
-  }, [fields, blankMode]);
+  }, [blankMode]);
 
   const addField = () => {
     const newField: ViolationField = {
@@ -96,11 +101,21 @@ const ViolationTemplate = ({ blankMode = false }: ViolationTemplateProps) => {
       <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue text-white">
         {/* Header */}
         <div className="flex items-center justify-between p-4 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20">
-          <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-white hover:bg-white/10"
+            onClick={() => window.history.back()}
+          >
             <ArrowLeft className="w-4 h-4 mr-2" />
           </Button>
-          <h1 className="text-xl font-bold">Details</h1>
-          <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
+          <h1 className="text-xl font-bold">Details-live</h1>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-white hover:bg-white/10"
+            onClick={() => window.location.href = '/dashboard'}
+          >
             <Home className="w-4 h-4" />
           </Button>
         </div>
