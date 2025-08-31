@@ -11,7 +11,7 @@ import {
   MapPin,
   Clock,
   Image as ImageIcon,
-  ArrowLeft,
+  Home,
   Search,
   Filter
 } from "lucide-react";
@@ -114,7 +114,7 @@ const Books = () => {
           size="sm" 
           className="text-white hover:bg-vice-cyan/20"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <Home className="w-5 h-5" />
         </Button>
       </div>
 
