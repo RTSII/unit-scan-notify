@@ -55,7 +55,8 @@ const Index = () => {
       case 'capture':
         return <CameraCapture />;
       case 'template':
-        return <DetailsPrevious blankMode={isBlankMode} />;
+        // Always show blank fields for the Details tab from dashboard
+        return <DetailsPrevious blankMode={true} />;
       case 'export':
         return <ExportCenter />;
       case 'admin':
