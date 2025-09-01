@@ -105,7 +105,7 @@ const Books = () => {
       <div className="flex items-center justify-between p-4 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20">
         <BookOpen 
           className="w-6 h-6 text-vice-pink cursor-pointer hover:text-vice-cyan transition-colors" 
-          onClick={() => navigate('/forms-directory')}
+          onClick={() => navigate('/books-directory')}
         />
         <h1 className="text-2xl font-bold vice-block-letters text-white">Books</h1>
         <Button 
