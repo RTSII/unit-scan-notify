@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   BookOpen, 
   Calendar,
-  ArrowLeft,
+  Home,
   Search,
   Filter,
   Image as ImageIcon
@@ -101,13 +101,12 @@ const FormsDirectory = () => {
           </div>
         </div>
         <Button 
-          onClick={() => navigate('/books')}
+          onClick={() => navigate('/')}
           variant="outline" 
           size="sm" 
           className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Books
+          <Home className="w-4 h-4" />
         </Button>
       </div>
 
