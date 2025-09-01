@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import Books from "./pages/Books";
-import FormsDirectory from "./pages/FormsDirectory";
+import BooksDirectory from "./pages/BooksDirectory";
 import Capture from "./pages/Capture";
 import DetailsPrevious from "./pages/DetailsPrevious";
 import DetailsLive from "./pages/DetailsLive";
@@ -32,7 +32,7 @@ const App = () => (
             <Route path="/export" element={<Export />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/books" element={<Books />} />
-            <Route path="/forms-directory" element={<FormsDirectory />} />
+            <Route path="/books-directory" element={<BooksDirectory />} />
             <Route path="/auth" element={<Auth />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

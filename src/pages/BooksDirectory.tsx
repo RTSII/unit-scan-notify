@@ -28,7 +28,7 @@ interface SavedForm {
   created_at: string;
 }
 
-const FormsDirectory = () => {
+const BooksDirectory = () => {
   const [forms, setForms] = useState<SavedForm[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -97,7 +97,7 @@ const FormsDirectory = () => {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <BookOpen className="w-6 h-6 text-vice-pink" />
-            <h1 className="text-2xl font-bold vice-block-letters text-white">Forms Directory</h1>
+            <h1 className="text-2xl font-bold vice-block-letters text-white">Books Directory</h1>
           </div>
         </div>
         <Button 
@@ -240,4 +240,4 @@ const FormsDirectory = () => {
   );
 };
 
-export default FormsDirectory;
+export default BooksDirectory;
