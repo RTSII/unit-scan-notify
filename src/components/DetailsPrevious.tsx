@@ -204,23 +204,6 @@ const DetailsPrevious = ({ blankMode = false }: DetailsPreviousProps) => {
           </div>
         </div>
 
-        {/* Bottom Navigation */}
-        <div className="fixed bottom-0 left-0 right-0 bg-black/90 border-t border-vice-cyan/20 p-4">
-          <div className="flex justify-around">
-            <Button variant="ghost" className="flex flex-col items-center space-y-1 text-vice-cyan">
-              <Camera className="w-6 h-6" />
-              <span className="text-xs">Capture</span>
-            </Button>
-            <Button variant="ghost" className="flex flex-col items-center space-y-1 text-vice-pink">
-              <FileText className="w-6 h-6" />
-              <span className="text-xs">Details</span>
-            </Button>
-            <Button variant="ghost" className="flex flex-col items-center space-y-1 text-vice-cyan">
-              <Download className="w-6 h-6" />
-              <span className="text-xs">Export</span>
-            </Button>
-          </div>
-        </div>
       </div>
     );
   }
