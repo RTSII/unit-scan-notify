@@ -14,11 +14,10 @@ import {
   Home,
   Search,
   Filter,
-  Download,
+  Printer,
   ChevronDown,
   ChevronUp,
-  List,
-  Grid3X3
+  X
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -44,7 +43,7 @@ const Books = () => {
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [thisWeekExpanded, setThisWeekExpanded] = useState(false);
   const [thisMonthExpanded, setThisMonthExpanded] = useState(false);
-  const [viewMode, setViewMode] = useState<'dashboard' | 'grid'>('dashboard');
+  const [showFullLibrary, setShowFullLibrary] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -144,7 +143,14 @@ const Books = () => {
     <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue">
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20">
-        <div></div>
+        <Button 
+          onClick={() => navigate('/export')}
+          variant="ghost" 
+          size="sm" 
+          className="text-white hover:bg-vice-cyan/20"
+        >
+          <Printer className="w-5 h-5" />
+        </Button>
         <h1 className="text-2xl font-bold vice-block-letters text-white">Books</h1>
         <Button 
           onClick={() => navigate('/')}
@@ -156,7 +162,7 @@ const Books = () => {
         </Button>
       </div>
 
-      {/* Search, Filter, and View Toggle */}
+      {/* Search and Filter */}
       <div className="p-4">
         <div className="flex items-center gap-4">
           <div className="relative flex-1 max-w-md">
@@ -167,28 +173,6 @@ const Books = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 bg-black/30 border-vice-cyan/50 text-white placeholder:text-vice-cyan/70"
             />
-          </div>
-          
-          {/* View Toggle */}
-          <div className="flex border border-vice-cyan/50 rounded-lg bg-black/30 overflow-hidden">
-            <Button
-              variant={viewMode === 'dashboard' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('dashboard')}
-              className="rounded-none border-none text-white hover:bg-vice-cyan/20"
-            >
-              <List className="w-4 h-4 mr-1" />
-              Dashboard
-            </Button>
-            <Button
-              variant={viewMode === 'grid' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('grid')}
-              className="rounded-none border-none text-white hover:bg-vice-cyan/20"
-            >
-              <Grid3X3 className="w-4 h-4 mr-1" />
-              Directory
-            </Button>
           </div>
 
           <Collapsible open={filterOpen} onOpenChange={setFilterOpen}>
@@ -220,8 +204,7 @@ const Books = () => {
         </div>
       </div>
 
-      {/* Dashboard Stats - Only show in dashboard mode */}
-      {viewMode === 'dashboard' && (
+      {/* Dashboard Stats */}
         <div className="p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
             <Collapsible open={thisWeekExpanded} onOpenChange={setThisWeekExpanded}>
@@ -301,30 +284,24 @@ const Books = () => {
             </Collapsible>
           </div>
         </div>
-      )}
+        
+        {/* Full Library Button */}
+        <div className="flex justify-center mt-6">
+          <Button 
+            onClick={() => setShowFullLibrary(true)}
+            variant="outline"
+            size="lg"
+            className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20 px-8 py-3"
+          >
+            <BookOpen className="w-6 h-6 mr-2" />
+            Full Library
+          </Button>
+        </div>
 
       <div className="p-4 space-y-6 max-w-6xl mx-auto">
-        {/* Export Action - Only in dashboard mode */}
-        {viewMode === 'dashboard' && (
-          <div className="flex justify-center gap-4 mb-6">
-            <Button 
-              onClick={() => navigate('/export')}
-              variant="outline"
-              className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
-          </div>
-        )}
-
         {/* Forms Display */}
         {filteredForms.length === 0 ? (
           <div className="text-center py-8">
-            <BookOpen className="w-12 h-12 text-vice-cyan mx-auto mb-4 opacity-50" />
-            <h3 className="text-lg font-medium text-white mb-2">
-              {forms.length === 0 ? 'No Forms Yet' : 'No Forms Match Your Search'}
-            </h3>
             <p className="text-vice-cyan/70">
               {forms.length === 0 
                 ? 'Complete forms and save them from the Details tab to see them here.'
@@ -332,7 +309,7 @@ const Books = () => {
               }
             </p>
           </div>
-        ) : viewMode === 'dashboard' ? (
+        ) : (
           /* Dashboard List View */
           <div className="space-y-4">
             <h3 className="text-lg font-medium text-white">
@@ -390,99 +367,100 @@ const Books = () => {
               </Card>
             ))}
           </div>
-        ) : (
-          /* Grid Directory View */
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium text-white">
-              {searchTerm ? `Search Results (${filteredForms.length})` : `Forms Directory (${filteredForms.length})`}
-            </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredForms.map((form) => (
-                <Card 
-                  key={form.id} 
-                  className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm hover:border-vice-pink/50 transition-all duration-200"
-                >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-base font-semibold text-white flex items-center gap-2">
-                          Unit {form.unit_number}
-                          <Badge className={form.status === 'completed' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-vice-pink/20 text-vice-pink border-vice-pink/30'}>
-                            {form.status}
-                          </Badge>
-                        </CardTitle>
-                        <div className="flex items-center gap-2 text-sm text-vice-cyan/70 mt-1">
-                          <Calendar className="w-4 h-4" />
-                          <span>{formatDate(form.date)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  
-                  <CardContent className="pt-0 space-y-3">
-                    {/* Violation Type */}
-                    <div>
-                      <p className="text-xs font-medium text-vice-cyan mb-1">Violation Type(s)</p>
-                      <p className="text-sm text-white bg-black/30 rounded px-2 py-1">
-                        {form.description}
-                      </p>
-                    </div>
-                    
-                    {/* Photo Thumbnails */}
-                    {form.photos.length > 0 && (
-                      <div>
-                        <p className="text-xs font-medium text-vice-cyan mb-2">
-                          Photos ({form.photos.length})
-                        </p>
-                        <div className="grid grid-cols-3 gap-2">
-                          {form.photos.slice(0, 3).map((photo, index) => (
-                            <div 
-                              key={index}
-                              className="aspect-square bg-black/30 rounded border border-vice-cyan/20 overflow-hidden relative group cursor-pointer"
-                            >
-                              <img 
-                                src={photo} 
-                                alt={`Violation photo ${index + 1}`}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  target.style.display = 'none';
-                                  const parent = target.parentElement;
-                                  if (parent) {
-                                    const iconDiv = document.createElement('div');
-                                    iconDiv.className = 'w-full h-full flex items-center justify-center';
-                                    iconDiv.innerHTML = '<svg class="w-6 h-6 text-vice-cyan/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>';
-                                    parent.appendChild(iconDiv);
-                                  }
-                                }}
-                              />
-                              {form.photos.length > 3 && index === 2 && (
-                                <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
-                                  <span className="text-white font-medium">
-                                    +{form.photos.length - 3}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {form.photos.length === 0 && (
-                      <div className="flex items-center gap-2 text-vice-cyan/50 text-sm">
-                        <ImageIcon className="w-4 h-4" />
-                        <span>No photos attached</span>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
         )}
       </div>
+
+      {/* Full Library Modal */}
+      {showFullLibrary && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-gradient-to-br from-vice-purple/20 via-black/90 to-vice-blue/20 border border-vice-cyan/30 rounded-lg w-full max-w-6xl max-h-[90vh] overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-vice-cyan/30">
+              <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                <BookOpen className="w-8 h-8 text-vice-pink" />
+                Full Library ({forms.length} Forms)
+              </h2>
+              <Button
+                onClick={() => setShowFullLibrary(false)}
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-vice-cyan/20"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+            
+            {/* Modal Content */}
+            <div className="overflow-y-auto max-h-[calc(90vh-120px)] p-6">
+              {forms.length === 0 ? (
+                <div className="text-center py-8">
+                  <BookOpen className="w-12 h-12 text-vice-cyan mx-auto mb-4 opacity-50" />
+                  <p className="text-vice-cyan/70">
+                    Complete forms and save them from the Details tab to see them here.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {forms.map((form) => (
+                    <Card 
+                      key={form.id} 
+                      className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm hover:border-vice-pink/50 transition-all duration-200"
+                    >
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <CardTitle className="text-base font-semibold text-white flex items-center gap-2">
+                              Unit {form.unit_number}
+                              <Badge className={form.status === 'completed' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-vice-pink/20 text-vice-pink border-vice-pink/30'}>
+                                {form.status}
+                              </Badge>
+                            </CardTitle>
+                            <div className="flex items-center gap-2 text-sm text-vice-cyan/70 mt-1">
+                              <Calendar className="w-4 h-4" />
+                              <span>{formatDate(form.date)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      
+                      <CardContent className="pt-0 space-y-3">
+                        <div>
+                          <p className="text-xs font-medium text-vice-cyan mb-1">Description</p>
+                          <p className="text-sm text-white">{form.description}</p>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div className="flex items-center gap-2 text-vice-cyan/70">
+                            <Clock className="w-4 h-4" />
+                            <span>{formatTime(form.time)}</span>
+                          </div>
+                          
+                          <div className="flex items-center gap-2 text-vice-cyan/70">
+                            <ImageIcon className="w-4 h-4" />
+                            <span>{form.photos.length} photo{form.photos.length !== 1 ? 's' : ''}</span>
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <p className="text-xs font-medium text-vice-cyan mb-1">Location</p>
+                          <div className="flex items-center gap-2 text-sm text-white">
+                            <MapPin className="w-4 h-4 text-vice-cyan/70" />
+                            <span>{form.location}</span>
+                          </div>
+                        </div>
+                        
+                        <div className="text-xs text-vice-cyan/60 pt-2 border-t border-vice-cyan/20">
+                          {form.status === 'completed' ? 'Completed' : 'Saved'} {formatDate(form.created_at)}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
