@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, Power, Plus } from "lucide-react";
+import { Loader2, Power, Plus, Home, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,6 +29,20 @@ const DetailsLive = () => {
 
   const saveForm = async () => {
     if (!user) return;
+
+    // Validation: Check if Unit is filled and at least one violation is selected OR description is filled
+    const hasViolations = Object.values(formData.violationTypes).some(violation => violation);
+    const hasDescription = formData.description.trim().length > 0;
+    
+    if (!formData.unit.trim()) {
+      toast.error('Unit number is required');
+      return;
+    }
+    
+    if (!hasViolations && !hasDescription) {
+      toast.error('Please select at least one violation type or add a description');
+      return;
+    }
 
     // Get violation types as an array of selected options
     const selectedViolations = [];
@@ -112,10 +126,26 @@ const DetailsLive = () => {
 
   return (
     <div className="fixed inset-0 bg-[var(--background-color)] text-[var(--text-primary)] flex flex-col overflow-hidden z-20">
-      {/* Details Header */}
-      <header className="bg-black/50 backdrop-blur-sm flex-shrink-0 z-10">
-        <div className="flex justify-center items-center h-20 px-4">
-          <h1 className="text-xl font-semibold">Details</h1>
+      {/* Enhanced Details Header */}
+      <header className="bg-gradient-to-r from-vice-purple/20 via-black/80 to-vice-blue/20 backdrop-blur-md border-b border-vice-pink/30 flex-shrink-0 z-10 shadow-lg">
+        <div className="flex justify-between items-center h-20 px-6">
+          <Button
+            onClick={() => navigate('/dashboard')}
+            variant="ghost"
+            size="sm"
+            className="text-vice-cyan hover:text-vice-pink hover:bg-vice-purple/20 transition-all duration-300 flex items-center gap-2 group"
+          >
+            <Home size={18} className="group-hover:scale-110 transition-transform" />
+            <span className="font-medium">Home</span>
+          </Button>
+          
+          <div className="flex items-center gap-3">
+            <Zap size={20} className="text-vice-pink animate-pulse" />
+            <h1 className="text-xl font-bold vice-neon-glow text-white">Details</h1>
+            <Zap size={20} className="text-vice-cyan animate-pulse" />
+          </div>
+          
+          <div className="w-20" /> {/* Spacer for centered title */}
         </div>
       </header>
 
@@ -278,7 +308,8 @@ const DetailsLive = () => {
           <div className="flex justify-center mt-8">
             <Button 
               onClick={saveForm}
-              className="bg-[var(--primary-color)] hover:bg-[var(--primary-color)]/90 text-white px-8 py-4 text-lg font-semibold rounded-lg flex items-center gap-2 transition-all duration-300 transform hover:scale-105 shadow-lg"
+              disabled={!formData.unit.trim() || (!Object.values(formData.violationTypes).some(v => v) && !formData.description.trim())}
+              className="bg-gradient-to-r from-vice-purple to-vice-blue hover:from-vice-pink hover:to-vice-purple text-white px-8 py-4 text-lg font-semibold rounded-lg flex items-center gap-2 transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none vice-neon-glow"
             >
               <Plus size={20} />
               <span>Book Em</span>
