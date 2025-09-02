@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Home, Camera, Download, FileText, ChevronDown, ChevronUp, Plus } from "lucide-react";
+import { Loader2, Home, Camera, Download, FileText, ChevronDown, ChevronUp, Plus, ArrowLeft } from "lucide-react";
 
 const DetailsPrevious = () => {
   const { user, loading } = useAuth();
