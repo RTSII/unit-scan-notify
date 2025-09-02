@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Home, Camera, Download, FileText, ChevronDown, ChevronUp, Plus, ArrowLeft } from "lucide-react";
+import { Loader2, Home, ChevronDown, ChevronUp, Plus, Camera } from "lucide-react";
 
 const DetailsPrevious = () => {
   const { user, loading } = useAuth();
@@ -78,9 +78,17 @@ const DetailsPrevious = () => {
       return;
     }
 
-    // Basic validation
+    // Updated validation: Date, Unit, and at least one violation type OR description
     if (!formData.unit || !formData.date) {
       toast.error("Please fill in required fields (Unit and Date)");
+      return;
+    }
+
+    const hasViolationType = Object.values(formData.violationTypes).some(checked => checked);
+    const hasDescription = formData.description.trim().length > 0;
+    
+    if (!hasViolationType && !hasDescription) {
+      toast.error("Please select at least one violation type or enter a description");
       return;
     }
 
@@ -245,9 +253,9 @@ const DetailsPrevious = () => {
         </Button>
       </div>
 
-      {/* Scrollable Form Content */}
-      <div className="flex-1 overflow-auto">
-        <div className="p-3 sm:p-4 space-y-4 sm:space-y-6 max-w-md mx-auto pb-20">
+      {/* Form Content */}
+      <div className="flex-1">
+        <div className="p-3 sm:p-4 space-y-4 max-w-md mx-auto">
           {/* Date, Time, Unit Fields */}
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
             <div className="space-y-1.5">
@@ -371,7 +379,7 @@ const DetailsPrevious = () => {
           </div>
 
           {/* Book Em Save Button */}
-          <div className="flex justify-center pt-4">
+          <div className="flex justify-center pt-4 pb-4">
             <Button 
               onClick={handleSaveForm}
               disabled={isSaving}
@@ -387,24 +395,6 @@ const DetailsPrevious = () => {
               )}
             </Button>
           </div>
-        </div>
-      </div>
-
-      {/* Fixed Bottom Navigation */}
-      <div className="bg-black/90 border-t border-vice-cyan/20 p-3 sm:p-4 flex-shrink-0">
-        <div className="flex justify-around max-w-md mx-auto">
-          <Button variant="ghost" className="flex flex-col items-center space-y-1 text-vice-cyan p-2">
-            <Camera className="w-5 h-5 sm:w-6 sm:h-6" />
-            <span className="text-xs">Capture</span>
-          </Button>
-          <Button variant="ghost" className="flex flex-col items-center space-y-1 text-vice-pink p-2">
-            <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
-            <span className="text-xs">Details</span>
-          </Button>
-          <Button variant="ghost" className="flex flex-col items-center space-y-1 text-vice-cyan p-2">
-            <Download className="w-5 h-5 sm:w-6 sm:h-6" />
-            <span className="text-xs">Export</span>
-          </Button>
         </div>
       </div>
     </div>
