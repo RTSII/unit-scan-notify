@@ -9,7 +9,7 @@ import Books from "./pages/Books";
 import BooksDirectory from "./pages/BooksDirectory";
 import Capture from "./pages/Capture";
 import DetailsPrevious from "./pages/DetailsPrevious";
-import DetailsLive from "./pages/DetailsLive";
+
 import Export from "./pages/Export";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
@@ -28,7 +28,7 @@ const App = () => (
             <Route path="/" element={<Dashboard />} />
             <Route path="/capture" element={<Capture />} />
             <Route path="/details-previous" element={<DetailsPrevious />} />
-            <Route path="/details-live" element={<DetailsLive />} />
+            
             <Route path="/export" element={<Export />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/books" element={<Books />} />
