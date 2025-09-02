@@ -16,7 +16,9 @@ import {
   Filter,
   Download,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  List,
+  Grid3X3
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -42,6 +44,7 @@ const Books = () => {
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [thisWeekExpanded, setThisWeekExpanded] = useState(false);
   const [thisMonthExpanded, setThisMonthExpanded] = useState(false);
+  const [viewMode, setViewMode] = useState<'dashboard' | 'grid'>('dashboard');
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -153,7 +156,7 @@ const Books = () => {
         </Button>
       </div>
 
-      {/* Search and Filter */}
+      {/* Search, Filter, and View Toggle */}
       <div className="p-4">
         <div className="flex items-center gap-4">
           <div className="relative flex-1 max-w-md">
@@ -165,6 +168,29 @@ const Books = () => {
               className="pl-10 bg-black/30 border-vice-cyan/50 text-white placeholder:text-vice-cyan/70"
             />
           </div>
+          
+          {/* View Toggle */}
+          <div className="flex border border-vice-cyan/50 rounded-lg bg-black/30 overflow-hidden">
+            <Button
+              variant={viewMode === 'dashboard' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('dashboard')}
+              className="rounded-none border-none text-white hover:bg-vice-cyan/20"
+            >
+              <List className="w-4 h-4 mr-1" />
+              Dashboard
+            </Button>
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('grid')}
+              className="rounded-none border-none text-white hover:bg-vice-cyan/20"
+            >
+              <Grid3X3 className="w-4 h-4 mr-1" />
+              Directory
+            </Button>
+          </div>
+
           <Collapsible open={filterOpen} onOpenChange={setFilterOpen}>
             <CollapsibleTrigger asChild>
               <Button variant="outline" className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20">
@@ -176,7 +202,7 @@ const Books = () => {
             <CollapsibleContent className="absolute right-4 top-full mt-2 z-10">
               <Card className="bg-black/90 border-vice-cyan/50 backdrop-blur-sm">
                 <CardContent className="p-3 space-y-2">
-                  {["all", "saved", "submitted"].map((filter) => (
+                  {["all", "saved", "completed"].map((filter) => (
                     <Button
                       key={filter}
                       variant={selectedFilter === filter ? "default" : "ghost"}
@@ -194,119 +220,120 @@ const Books = () => {
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="p-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
-          <Collapsible open={thisWeekExpanded} onOpenChange={setThisWeekExpanded}>
-            <CollapsibleTrigger asChild>
-              <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm hover:border-vice-pink/50 transition-colors cursor-pointer">
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-medium text-vice-cyan">This Week</p>
-                      <p className="text-lg font-bold text-white">
-                        {getThisWeekForms().length}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-6 h-6 text-vice-pink" />
-                      {thisWeekExpanded ? <ChevronUp className="w-4 h-4 text-vice-cyan" /> : <ChevronDown className="w-4 h-4 text-vice-cyan" />}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2 space-y-2">
-              {getThisWeekForms().map((form) => (
-                <Card key={form.id} className="bg-black/60 border-vice-cyan/20 backdrop-blur-sm">
+      {/* Dashboard Stats - Only show in dashboard mode */}
+      {viewMode === 'dashboard' && (
+        <div className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+            <Collapsible open={thisWeekExpanded} onOpenChange={setThisWeekExpanded}>
+              <CollapsibleTrigger asChild>
+                <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm hover:border-vice-pink/50 transition-colors cursor-pointer">
                   <CardContent className="p-3">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-white">Unit {form.unit_number}</p>
-                        <p className="text-xs text-vice-cyan/70">{form.description}</p>
+                        <p className="text-xs font-medium text-vice-cyan">This Week</p>
+                        <p className="text-lg font-bold text-white">
+                          {getThisWeekForms().length}
+                        </p>
                       </div>
-                      <Badge className="bg-vice-pink/20 text-vice-pink border-vice-pink/30 text-xs">
-                        {form.status}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-6 h-6 text-vice-pink" />
+                        {thisWeekExpanded ? <ChevronUp className="w-4 h-4 text-vice-cyan" /> : <ChevronDown className="w-4 h-4 text-vice-cyan" />}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
-              ))}
-            </CollapsibleContent>
-          </Collapsible>
-          
-          <Collapsible open={thisMonthExpanded} onOpenChange={setThisMonthExpanded}>
-            <CollapsibleTrigger asChild>
-              <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm hover:border-vice-pink/50 transition-colors cursor-pointer">
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-medium text-vice-cyan">This Month</p>
-                      <p className="text-lg font-bold text-white">
-                        {getThisMonthForms().length}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-6 h-6 text-vice-pink" />
-                      {thisMonthExpanded ? <ChevronUp className="w-4 h-4 text-vice-cyan" /> : <ChevronDown className="w-4 h-4 text-vice-cyan" />}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2 space-y-2">
-              {getThisMonthForms().map((form) => (
-                <Card key={form.id} className="bg-black/60 border-vice-cyan/20 backdrop-blur-sm">
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-2 space-y-2">
+                {getThisWeekForms().map((form) => (
+                  <Card key={form.id} className="bg-black/60 border-vice-cyan/20 backdrop-blur-sm">
+                    <CardContent className="p-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-white">Unit {form.unit_number}</p>
+                          <p className="text-xs text-vice-cyan/70">{form.description}</p>
+                        </div>
+                        <Badge className={`text-xs ${form.status === 'completed' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-vice-pink/20 text-vice-pink border-vice-pink/30'}`}>
+                          {form.status}
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </CollapsibleContent>
+            </Collapsible>
+            
+            <Collapsible open={thisMonthExpanded} onOpenChange={setThisMonthExpanded}>
+              <CollapsibleTrigger asChild>
+                <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm hover:border-vice-pink/50 transition-colors cursor-pointer">
                   <CardContent className="p-3">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-white">Unit {form.unit_number}</p>
-                        <p className="text-xs text-vice-cyan/70">{form.description}</p>
+                        <p className="text-xs font-medium text-vice-cyan">This Month</p>
+                        <p className="text-lg font-bold text-white">
+                          {getThisMonthForms().length}
+                        </p>
                       </div>
-                      <Badge className="bg-vice-pink/20 text-vice-pink border-vice-pink/30 text-xs">
-                        {form.status}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-6 h-6 text-vice-pink" />
+                        {thisMonthExpanded ? <ChevronUp className="w-4 h-4 text-vice-cyan" /> : <ChevronDown className="w-4 h-4 text-vice-cyan" />}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
-              ))}
-            </CollapsibleContent>
-          </Collapsible>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-2 space-y-2">
+                {getThisMonthForms().map((form) => (
+                  <Card key={form.id} className="bg-black/60 border-vice-cyan/20 backdrop-blur-sm">
+                    <CardContent className="p-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-white">Unit {form.unit_number}</p>
+                          <p className="text-xs text-vice-cyan/70">{form.description}</p>
+                        </div>
+                        <Badge className={`text-xs ${form.status === 'completed' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-vice-pink/20 text-vice-pink border-vice-pink/30'}`}>
+                          {form.status}
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="p-4 space-y-6 max-w-6xl mx-auto">
-        {/* Directory and Export Actions */}
-        <div className="flex justify-center gap-4 mb-6">
-          <Button 
-            onClick={() => navigate('/books-directory')}
-            variant="outline"
-            className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20"
-          >
-            <BookOpen className="w-4 h-4 mr-2" />
-            Full Directory
-          </Button>
-          <Button 
-            onClick={() => navigate('/export')}
-            variant="outline"
-            className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Export
-          </Button>
-        </div>
+        {/* Export Action - Only in dashboard mode */}
+        {viewMode === 'dashboard' && (
+          <div className="flex justify-center gap-4 mb-6">
+            <Button 
+              onClick={() => navigate('/export')}
+              variant="outline"
+              className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </Button>
+          </div>
+        )}
 
-        {/* Forms List */}
+        {/* Forms Display */}
         {filteredForms.length === 0 ? (
           <div className="text-center py-8">
+            <BookOpen className="w-12 h-12 text-vice-cyan mx-auto mb-4 opacity-50" />
+            <h3 className="text-lg font-medium text-white mb-2">
+              {forms.length === 0 ? 'No Forms Yet' : 'No Forms Match Your Search'}
+            </h3>
             <p className="text-vice-cyan/70">
               {forms.length === 0 
                 ? 'Complete forms and save them from the Details tab to see them here.'
-                : 'No forms match your search terms.'
+                : 'Try adjusting your search terms or filter settings.'
               }
             </p>
           </div>
-        ) : (
+        ) : viewMode === 'dashboard' ? (
+          /* Dashboard List View */
           <div className="space-y-4">
             <h3 className="text-lg font-medium text-white">
               {searchTerm ? `Search Results (${filteredForms.length})` : 'All Forms'}
@@ -315,15 +342,15 @@ const Books = () => {
             {filteredForms.map((form) => (
               <Card 
                 key={form.id} 
-                className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm hover:border-vice-pink/50 transition-all duration-200 cursor-pointer"
+                className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm hover:border-vice-pink/50 transition-all duration-200"
               >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div>
                       <CardTitle className="text-base font-semibold text-white flex items-center gap-2">
                         Unit {form.unit_number}
-                        <Badge className="bg-vice-pink/20 text-vice-pink border-vice-pink/30">
-                          Saved
+                        <Badge className={form.status === 'completed' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-vice-pink/20 text-vice-pink border-vice-pink/30'}>
+                          {form.status}
                         </Badge>
                       </CardTitle>
                       <p className="text-sm text-vice-cyan/80 mt-1">
@@ -332,7 +359,7 @@ const Books = () => {
                     </div>
                     
                     <div className="text-xs text-vice-cyan/60">
-                      Saved {formatDate(form.created_at)}
+                      {form.status === 'completed' ? 'Completed' : 'Saved'} {formatDate(form.created_at)}
                     </div>
                   </div>
                 </CardHeader>
@@ -362,6 +389,97 @@ const Books = () => {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        ) : (
+          /* Grid Directory View */
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-white">
+              {searchTerm ? `Search Results (${filteredForms.length})` : `Forms Directory (${filteredForms.length})`}
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredForms.map((form) => (
+                <Card 
+                  key={form.id} 
+                  className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm hover:border-vice-pink/50 transition-all duration-200"
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <CardTitle className="text-base font-semibold text-white flex items-center gap-2">
+                          Unit {form.unit_number}
+                          <Badge className={form.status === 'completed' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-vice-pink/20 text-vice-pink border-vice-pink/30'}>
+                            {form.status}
+                          </Badge>
+                        </CardTitle>
+                        <div className="flex items-center gap-2 text-sm text-vice-cyan/70 mt-1">
+                          <Calendar className="w-4 h-4" />
+                          <span>{formatDate(form.date)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  
+                  <CardContent className="pt-0 space-y-3">
+                    {/* Violation Type */}
+                    <div>
+                      <p className="text-xs font-medium text-vice-cyan mb-1">Violation Type(s)</p>
+                      <p className="text-sm text-white bg-black/30 rounded px-2 py-1">
+                        {form.description}
+                      </p>
+                    </div>
+                    
+                    {/* Photo Thumbnails */}
+                    {form.photos.length > 0 && (
+                      <div>
+                        <p className="text-xs font-medium text-vice-cyan mb-2">
+                          Photos ({form.photos.length})
+                        </p>
+                        <div className="grid grid-cols-3 gap-2">
+                          {form.photos.slice(0, 3).map((photo, index) => (
+                            <div 
+                              key={index}
+                              className="aspect-square bg-black/30 rounded border border-vice-cyan/20 overflow-hidden relative group cursor-pointer"
+                            >
+                              <img 
+                                src={photo} 
+                                alt={`Violation photo ${index + 1}`}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.display = 'none';
+                                  const parent = target.parentElement;
+                                  if (parent) {
+                                    const iconDiv = document.createElement('div');
+                                    iconDiv.className = 'w-full h-full flex items-center justify-center';
+                                    iconDiv.innerHTML = '<svg class="w-6 h-6 text-vice-cyan/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>';
+                                    parent.appendChild(iconDiv);
+                                  }
+                                }}
+                              />
+                              {form.photos.length > 3 && index === 2 && (
+                                <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                                  <span className="text-white font-medium">
+                                    +{form.photos.length - 3}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {form.photos.length === 0 && (
+                      <div className="flex items-center gap-2 text-vice-cyan/50 text-sm">
+                        <ImageIcon className="w-4 h-4" />
+                        <span>No photos attached</span>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
         )}
       </div>
