@@ -69,6 +69,29 @@ const DetailsPrevious = () => {
   };
 
   const renderImageGrid = () => {
+    // If no images or only one image, show single add button
+    if (selectedImages.length <= 1) {
+      return (
+        <div className="flex justify-center">
+          <div 
+            className="aspect-square w-24 bg-black/40 border border-vice-cyan/30 rounded-lg flex items-center justify-center cursor-pointer hover:bg-black/60 transition-colors"
+            onClick={handleImageSelection}
+          >
+            {selectedImages[0] ? (
+              <img 
+                src={selectedImages[0]} 
+                alt="Evidence" 
+                className="w-full h-full object-cover rounded-lg"
+              />
+            ) : (
+              <Plus className="w-5 h-5 text-white/60" />
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // For multiple images, show 2x2 grid
     const displayImages = selectedImages.slice(0, 3);
     const additionalCount = selectedImages.length - 3;
 
