@@ -130,7 +130,7 @@ const DetailsLive = () => {
       <header className="bg-gradient-to-r from-vice-purple/20 via-black/80 to-vice-blue/20 backdrop-blur-md border-b border-vice-pink/30 flex-shrink-0 z-10 shadow-lg">
         <div className="flex justify-between items-center h-20 px-6">
           <Button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/')}
             variant="ghost"
             size="sm"
             className="text-vice-cyan hover:text-vice-pink hover:bg-vice-purple/20 transition-all duration-300 flex items-center gap-2 group"
