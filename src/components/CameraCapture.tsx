@@ -84,8 +84,8 @@ const CameraCapture = () => {
         console.log('Photo captured successfully');
       }
     }
-    // Navigate to details-live page instead of showing inline details
-    navigate('/details-live');
+    // Navigate to books page
+    navigate('/books');
     setCaptureState('initial');
   };
 
@@ -194,7 +194,7 @@ const CameraCapture = () => {
             </div>
             <button 
               className="flex flex-col items-center gap-1 text-[var(--primary-color)]"
-              onClick={() => navigate('/details-live')}
+              onClick={() => navigate('/books')}
             >
               <span className="material-symbols-outlined">description</span>
               <span className="text-xs font-medium">Details</span>

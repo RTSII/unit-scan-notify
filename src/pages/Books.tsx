@@ -13,10 +13,14 @@ import {
   Image as ImageIcon,
   Home,
   Search,
-  Filter
+  Filter,
+  Download,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface SavedForm {
   id: string;
@@ -34,6 +38,10 @@ const Books = () => {
   const [forms, setForms] = useState<SavedForm[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState("all");
+  const [thisWeekExpanded, setThisWeekExpanded] = useState(false);
+  const [thisMonthExpanded, setThisMonthExpanded] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -66,11 +74,41 @@ const Books = () => {
     }
   };
 
-  const filteredForms = forms.filter(form =>
-    form.unit_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    form.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    form.location.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const applyFilters = (formsToFilter: SavedForm[]) => {
+    let filtered = formsToFilter;
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(form =>
+        form.unit_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        form.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        form.location.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply status filter
+    if (selectedFilter !== "all") {
+      filtered = filtered.filter(form => form.status === selectedFilter);
+    }
+
+    return filtered;
+  };
+
+  const filteredForms = applyFilters(forms);
+
+  const getThisWeekForms = () => {
+    const thisWeekForms = forms.filter(form => 
+      new Date().getTime() - new Date(form.created_at).getTime() < 7 * 24 * 60 * 60 * 1000
+    );
+    return applyFilters(thisWeekForms);
+  };
+
+  const getThisMonthForms = () => {
+    const thisMonthForms = forms.filter(form => 
+      new Date(form.created_at).getMonth() === new Date().getMonth()
+    );
+    return applyFilters(thisMonthForms);
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -103,13 +141,10 @@ const Books = () => {
     <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue">
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20">
-        <BookOpen 
-          className="w-6 h-6 text-vice-pink cursor-pointer hover:text-vice-cyan transition-colors" 
-          onClick={() => navigate('/books-directory')}
-        />
+        <div></div>
         <h1 className="text-2xl font-bold vice-block-letters text-white">Books</h1>
         <Button 
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate('/')}
           variant="ghost" 
           size="sm" 
           className="text-white hover:bg-vice-cyan/20"
@@ -130,57 +165,143 @@ const Books = () => {
               className="pl-10 bg-black/30 border-vice-cyan/50 text-white placeholder:text-vice-cyan/70"
             />
           </div>
-          <Button variant="outline" className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20">
-            <Filter className="w-4 h-4 mr-2" />
-            Filter
-          </Button>
+          <Collapsible open={filterOpen} onOpenChange={setFilterOpen}>
+            <CollapsibleTrigger asChild>
+              <Button variant="outline" className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20">
+                <Filter className="w-4 h-4 mr-2" />
+                Filter
+                {filterOpen ? <ChevronUp className="w-4 h-4 ml-2" /> : <ChevronDown className="w-4 h-4 ml-2" />}
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="absolute right-4 top-full mt-2 z-10">
+              <Card className="bg-black/90 border-vice-cyan/50 backdrop-blur-sm">
+                <CardContent className="p-3 space-y-2">
+                  {["all", "saved", "submitted"].map((filter) => (
+                    <Button
+                      key={filter}
+                      variant={selectedFilter === filter ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setSelectedFilter(filter)}
+                      className="w-full justify-start text-white hover:bg-vice-cyan/20"
+                    >
+                      {filter === "all" ? "All Forms" : filter.charAt(0).toUpperCase() + filter.slice(1)}
+                    </Button>
+                  ))}
+                </CardContent>
+              </Card>
+            </CollapsibleContent>
+          </Collapsible>
         </div>
       </div>
 
       {/* Stats */}
       <div className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
-          <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm">
-            <CardContent className="p-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-vice-cyan">This Week</p>
-                  <p className="text-lg font-bold text-white">
-                    {forms.filter(form => 
-                      new Date().getTime() - new Date(form.created_at).getTime() < 7 * 24 * 60 * 60 * 1000
-                    ).length}
-                  </p>
-                </div>
-                <Clock className="w-6 h-6 text-vice-pink" />
-              </div>
-            </CardContent>
-          </Card>
+          <Collapsible open={thisWeekExpanded} onOpenChange={setThisWeekExpanded}>
+            <CollapsibleTrigger asChild>
+              <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm hover:border-vice-pink/50 transition-colors cursor-pointer">
+                <CardContent className="p-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-medium text-vice-cyan">This Week</p>
+                      <p className="text-lg font-bold text-white">
+                        {getThisWeekForms().length}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-6 h-6 text-vice-pink" />
+                      {thisWeekExpanded ? <ChevronUp className="w-4 h-4 text-vice-cyan" /> : <ChevronDown className="w-4 h-4 text-vice-cyan" />}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2 space-y-2">
+              {getThisWeekForms().map((form) => (
+                <Card key={form.id} className="bg-black/60 border-vice-cyan/20 backdrop-blur-sm">
+                  <CardContent className="p-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-white">Unit {form.unit_number}</p>
+                        <p className="text-xs text-vice-cyan/70">{form.description}</p>
+                      </div>
+                      <Badge className="bg-vice-pink/20 text-vice-pink border-vice-pink/30 text-xs">
+                        {form.status}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </CollapsibleContent>
+          </Collapsible>
           
-          <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm">
-            <CardContent className="p-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-vice-cyan">This Month</p>
-                  <p className="text-lg font-bold text-white">
-                    {forms.filter(form => 
-                      new Date(form.created_at).getMonth() === new Date().getMonth()
-                    ).length}
-                  </p>
-                </div>
-                <Calendar className="w-6 h-6 text-vice-pink" />
-              </div>
-            </CardContent>
-          </Card>
+          <Collapsible open={thisMonthExpanded} onOpenChange={setThisMonthExpanded}>
+            <CollapsibleTrigger asChild>
+              <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm hover:border-vice-pink/50 transition-colors cursor-pointer">
+                <CardContent className="p-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-medium text-vice-cyan">This Month</p>
+                      <p className="text-lg font-bold text-white">
+                        {getThisMonthForms().length}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-6 h-6 text-vice-pink" />
+                      {thisMonthExpanded ? <ChevronUp className="w-4 h-4 text-vice-cyan" /> : <ChevronDown className="w-4 h-4 text-vice-cyan" />}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2 space-y-2">
+              {getThisMonthForms().map((form) => (
+                <Card key={form.id} className="bg-black/60 border-vice-cyan/20 backdrop-blur-sm">
+                  <CardContent className="p-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-white">Unit {form.unit_number}</p>
+                        <p className="text-xs text-vice-cyan/70">{form.description}</p>
+                      </div>
+                      <Badge className="bg-vice-pink/20 text-vice-pink border-vice-pink/30 text-xs">
+                        {form.status}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </CollapsibleContent>
+          </Collapsible>
         </div>
       </div>
 
       <div className="p-4 space-y-6 max-w-6xl mx-auto">
+        {/* Directory and Export Actions */}
+        <div className="flex justify-center gap-4 mb-6">
+          <Button 
+            onClick={() => navigate('/books-directory')}
+            variant="outline"
+            className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20"
+          >
+            <BookOpen className="w-4 h-4 mr-2" />
+            Full Directory
+          </Button>
+          <Button 
+            onClick={() => navigate('/export')}
+            variant="outline"
+            className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export
+          </Button>
+        </div>
+
         {/* Forms List */}
         {filteredForms.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-vice-cyan/70">
               {forms.length === 0 
-                ? 'Complete forms and save them from the Export tab to see them here.'
+                ? 'Complete forms and save them from the Details tab to see them here.'
                 : 'No forms match your search terms.'
               }
             </p>
