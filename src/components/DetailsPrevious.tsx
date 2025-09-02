@@ -1,18 +1,22 @@
 import { useState, useEffect, useRef } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, ArrowLeft, Home, Camera, Download, FileText, ChevronDown, ChevronUp, Plus } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Loader2, Home, Camera, Download, FileText, ChevronDown, ChevronUp, Plus } from "lucide-react";
 
 const DetailsPrevious = () => {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isPhotosExpanded, setIsPhotosExpanded] = useState(false);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
@@ -65,6 +69,61 @@ const DetailsPrevious = () => {
         newImageUrls.push(url);
       });
       setSelectedImages(prev => [...prev, ...newImageUrls]);
+    }
+  };
+
+  const handleSaveForm = async () => {
+    if (!user?.id) {
+      toast.error("Authentication required");
+      return;
+    }
+
+    // Basic validation
+    if (!formData.unit || !formData.date) {
+      toast.error("Please fill in required fields (Unit and Date)");
+      return;
+    }
+
+    setIsSaving(true);
+    
+    try {
+      // Get violation types as array
+      const violationTypesArray = Object.entries(formData.violationTypes)
+        .filter(([_, checked]) => checked)
+        .map(([type, _]) => type);
+
+      // Create form data for database
+      const formToSave = {
+        user_id: user.id,
+        unit_number: formData.unit,
+        date: formData.date,
+        time: formData.time || '',
+        description: formData.description || '',
+        violation_types: violationTypesArray,
+        photos: selectedImages, // For now, storing as blob URLs - in production you'd upload to storage
+        status: 'completed',
+        location: '', // Add if needed
+        created_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('violation_forms')
+        .insert([formToSave]);
+
+      if (error) {
+        console.error('Save error:', error);
+        toast.error("Failed to save form");
+        return;
+      }
+
+      toast.success("Form saved successfully!");
+      navigate('/books');
+      
+    } catch (error) {
+      console.error('Save error:', error);
+      toast.error("Failed to save form");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -174,20 +233,12 @@ const DetailsPrevious = () => {
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-vice-purple via-black to-vice-blue text-white flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-3 sm:p-4 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20 flex-shrink-0">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="text-white hover:bg-white/10 p-2"
-          onClick={() => window.history.back()}
-        >
-          <ArrowLeft className="w-4 h-4" />
-        </Button>
+      <div className="flex items-center justify-center p-3 sm:p-4 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20 flex-shrink-0 relative">
         <h1 className="text-lg sm:text-xl font-bold">Details</h1>
         <Button 
           variant="ghost" 
           size="sm" 
-          className="text-white hover:bg-white/10 p-2"
+          className="text-white hover:bg-white/10 p-2 absolute right-3 sm:right-4"
           onClick={() => window.location.href = '/'}
         >
           <Home className="w-4 h-4" />
@@ -200,7 +251,7 @@ const DetailsPrevious = () => {
           {/* Date, Time, Unit Fields */}
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
             <div className="space-y-1.5">
-              <Label className="text-vice-cyan font-medium text-xs sm:text-sm">Date</Label>
+              <Label className="text-vice-cyan font-medium text-xs sm:text-sm text-center block">Date</Label>
               <Input
                 value={formData.date}
                 onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
@@ -209,7 +260,7 @@ const DetailsPrevious = () => {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-vice-cyan font-medium text-xs sm:text-sm">Time</Label>
+              <Label className="text-vice-cyan font-medium text-xs sm:text-sm text-center block">Time</Label>
               <Input
                 value={formData.time}
                 onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
@@ -218,7 +269,7 @@ const DetailsPrevious = () => {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-vice-cyan font-medium text-xs sm:text-sm">Unit</Label>
+              <Label className="text-vice-cyan font-medium text-xs sm:text-sm text-center block">Unit</Label>
               <Input
                 value={formData.unit}
                 onChange={(e) => setFormData(prev => ({ ...prev, unit: e.target.value }))}
@@ -230,7 +281,7 @@ const DetailsPrevious = () => {
 
           {/* Violation Type Section - Compact */}
           <div className="space-y-3">
-            <h3 className="text-vice-cyan font-medium text-sm sm:text-base">Violation Type (Select applicable)</h3>
+            <h3 className="text-vice-cyan font-medium text-sm sm:text-base text-center">Violation Type (Select applicable)</h3>
             
             <div className="space-y-2">
               <div className="flex items-center space-x-3 p-2.5 sm:p-3 rounded-lg border border-vice-cyan/20 bg-black/20">
@@ -317,6 +368,24 @@ const DetailsPrevious = () => {
                 {renderImageGrid()}
               </>
             )}
+          </div>
+
+          {/* Book Em Save Button */}
+          <div className="flex justify-center pt-4">
+            <Button 
+              onClick={handleSaveForm}
+              disabled={isSaving}
+              className="bg-vice-pink hover:bg-vice-pink/80 text-white px-8 py-3 rounded-lg font-semibold text-sm"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  Saving...
+                </>
+              ) : (
+                "Book Em"
+              )}
+            </Button>
           </div>
         </div>
       </div>
