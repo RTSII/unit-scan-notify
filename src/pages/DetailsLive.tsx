@@ -27,23 +27,6 @@ const DetailsLive = () => {
     description: ''
   });
 
-  // Redirect if not authenticated
-  if (!loading && !user) {
-    return <Navigate to="/auth" replace />;
-  }
-
-  // Show loading while checking auth
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-vice-pink mx-auto mb-4" />
-          <p className="text-white">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
   // Auto-generate current date and time on component mount and get captured image
   useEffect(() => {
     const now = new Date();
@@ -66,6 +49,23 @@ const DetailsLive = () => {
       setCapturedImage(storedImage);
     }
   }, []);
+
+  // Redirect if not authenticated
+  if (!loading && !user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  // Show loading while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-vice-pink mx-auto mb-4" />
+          <p className="text-white">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-[var(--background-color)] text-[var(--text-primary)] flex flex-col overflow-hidden z-20">
