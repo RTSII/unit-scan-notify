@@ -84,8 +84,8 @@ const CameraCapture = () => {
         console.log('Photo captured successfully');
       }
     }
-    // Navigate to books page
-    navigate('/books');
+    // Navigate to details-live page
+    navigate('/details-live');
     setCaptureState('initial');
   };
 
@@ -185,29 +185,6 @@ const CameraCapture = () => {
           </button>
         </div>
 
-        {/* Bottom Navigation */}
-        <nav className="border-t border-[var(--accent-color)]">
-          <div className="flex justify-around items-center h-16">
-            <div className="flex flex-col items-center gap-1 text-[var(--color-green)]">
-              <span className="material-symbols-outlined font-bold">photo_camera</span>
-              <span className="text-xs font-semibold">Capture</span>
-            </div>
-            <button 
-              className="flex flex-col items-center gap-1 text-[var(--primary-color)]"
-              onClick={() => navigate('/books')}
-            >
-              <span className="material-symbols-outlined">description</span>
-              <span className="text-xs font-medium">Details</span>
-            </button>
-            <button 
-              className="flex flex-col items-center gap-1 text-[var(--primary-color)]"
-              onClick={() => navigate('/export')}
-            >
-              <span className="material-symbols-outlined">ios_share</span>
-              <span className="text-xs font-medium">Export</span>
-            </button>
-          </div>
-        </nav>
       </footer>
     </div>
   );
