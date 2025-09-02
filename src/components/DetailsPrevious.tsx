@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -6,12 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, ArrowLeft, Home, Camera, Download, FileText, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, ArrowLeft, Home, Camera, Download, FileText, ChevronDown, ChevronUp, Plus } from "lucide-react";
 
 const DetailsPrevious = () => {
   const { user, loading } = useAuth();
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isPhotosExpanded, setIsPhotosExpanded] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     date: '',
@@ -48,6 +50,85 @@ const DetailsPrevious = () => {
         [type]: checked
       }
     }));
+  };
+
+  const handleImageSelection = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const newImageUrls: string[] = [];
+      Array.from(files).forEach(file => {
+        const url = URL.createObjectURL(file);
+        newImageUrls.push(url);
+      });
+      setSelectedImages(prev => [...prev, ...newImageUrls]);
+    }
+  };
+
+  const renderImageGrid = () => {
+    const displayImages = selectedImages.slice(0, 3);
+    const additionalCount = selectedImages.length - 3;
+
+    return (
+      <div className="grid grid-cols-2 gap-2">
+        {/* First image or add button */}
+        <div 
+          className="aspect-square bg-black/40 border border-vice-cyan/30 rounded-lg flex items-center justify-center cursor-pointer hover:bg-black/60 transition-colors"
+          onClick={handleImageSelection}
+        >
+          {displayImages[0] ? (
+            <img 
+              src={displayImages[0]} 
+              alt="Evidence 1" 
+              className="w-full h-full object-cover rounded-lg"
+            />
+          ) : (
+            <Plus className="w-5 h-5 text-white/60" />
+          )}
+        </div>
+
+        {/* Second image slot */}
+        <div className="aspect-square bg-black/40 border border-vice-cyan/30 rounded-lg flex items-center justify-center">
+          {displayImages[1] ? (
+            <img 
+              src={displayImages[1]} 
+              alt="Evidence 2" 
+              className="w-full h-full object-cover rounded-lg"
+            />
+          ) : (
+            <Camera className="w-5 h-5 text-white/40" />
+          )}
+        </div>
+
+        {/* Third image slot */}
+        <div className="aspect-square bg-black/40 border border-vice-cyan/30 rounded-lg flex items-center justify-center">
+          {displayImages[2] ? (
+            <img 
+              src={displayImages[2]} 
+              alt="Evidence 3" 
+              className="w-full h-full object-cover rounded-lg"
+            />
+          ) : (
+            <Camera className="w-5 h-5 text-white/40" />
+          )}
+        </div>
+
+        {/* Additional count or fourth slot */}
+        <div className="aspect-square bg-black/40 border border-vice-cyan/30 rounded-lg flex items-center justify-center">
+          {additionalCount > 0 ? (
+            <div className="text-center">
+              <span className="text-vice-cyan font-medium text-sm">+{additionalCount}</span>
+              <div className="text-white/60 text-xs">more</div>
+            </div>
+          ) : (
+            <Camera className="w-5 h-5 text-white/40" />
+          )}
+        </div>
+      </div>
+    );
   };
 
   // Redirect if not authenticated
@@ -201,14 +282,17 @@ const DetailsPrevious = () => {
               )}
             </div>
             {isPhotosExpanded && (
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                <div className="aspect-square bg-black/40 border border-vice-cyan/30 rounded-lg flex items-center justify-center">
-                  <Camera className="w-6 h-6 sm:w-8 sm:h-8 text-white/40" />
-                </div>
-                <div className="aspect-square bg-black/40 border border-vice-cyan/30 rounded-lg flex items-center justify-center">
-                  <Camera className="w-6 h-6 sm:w-8 sm:h-8 text-white/40" />
-                </div>
-              </div>
+              <>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  multiple
+                  accept="image/*"
+                  className="hidden"
+                />
+                {renderImageGrid()}
+              </>
             )}
           </div>
         </div>
