@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, Power, Camera, Plus } from "lucide-react";
+import { Loader2, Power, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const DetailsLive = () => {
   const { user, loading } = useAuth();
@@ -23,11 +24,53 @@ const DetailsLive = () => {
       balconyItems: false
     },
     balconyChoice: '', // 'balcony' or 'front'
-    includePhotos: false,
     description: ''
   });
 
-  // Auto-generate current date and time on component mount and get captured image
+  const saveForm = async () => {
+    if (!user) return;
+
+    // Get violation types as an array of selected options
+    const selectedViolations = [];
+    if (formData.violationTypes.itemsOutside) selectedViolations.push('Items left outside Unit');
+    if (formData.violationTypes.trashOutside) selectedViolations.push('Trash left outside Unit');
+    if (formData.violationTypes.balconyItems) {
+      const location = formData.balconyChoice || 'balcony';
+      selectedViolations.push(`Items left on ${location} railing`);
+    }
+
+    // Prepare photos array - include captured image if available
+    const photos = capturedImage ? [capturedImage] : [];
+
+    try {
+      const { error } = await supabase
+        .from('violation_forms')
+        .insert({
+          user_id: user.id,
+          unit_number: formData.unit,
+          date: formData.date,
+          time: formData.time,
+          location: selectedViolations.join(', '),
+          description: formData.description,
+          photos: photos,
+          status: 'saved'
+        });
+
+      if (error) throw error;
+
+      // Clear sessionStorage
+      sessionStorage.removeItem('capturedImage');
+      
+      toast.success('Form saved successfully!');
+      navigate('/books');
+    } catch (error) {
+      console.error('Error saving form:', error);
+      toast.error('Failed to save form');
+    }
+  };
+
+  // Count photos
+  const photoCount = capturedImage ? 1 : 0;
   useEffect(() => {
     const now = new Date();
     const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -71,14 +114,8 @@ const DetailsLive = () => {
     <div className="fixed inset-0 bg-[var(--background-color)] text-[var(--text-primary)] flex flex-col overflow-hidden z-20">
       {/* Details Header */}
       <header className="bg-black/50 backdrop-blur-sm flex-shrink-0 z-10">
-        <div className="flex justify-between items-center h-20 px-4">
-          <button className="p-2" onClick={() => navigate('/capture')}>
-            <span className="material-symbols-outlined text-white">arrow_back_ios_new</span>
-          </button>
+        <div className="flex justify-center items-center h-20 px-4">
           <h1 className="text-xl font-semibold">Details</h1>
-          <button className="p-2" onClick={() => navigate('/')}>
-            <span className="material-symbols-outlined text-white">home</span>
-          </button>
         </div>
       </header>
 
@@ -237,84 +274,23 @@ const DetailsLive = () => {
             )}
           </div>
 
-          {/* Image Attachments */}
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <button
-                type="button"
-                onClick={() => setFormData(prev => ({ ...prev, includePhotos: !prev.includePhotos }))}
-                className="p-1 hover:bg-[var(--accent-color)]/20 rounded-full transition-colors flex items-center justify-center"
-              >
-                <Power 
-                  size={14} 
-                  className={`transition-colors duration-200 ${
-                    formData.includePhotos ? 'text-[var(--color-green)]' : 'text-[var(--color-red)]'
-                  }`} 
-                />
-              </button>
-              <label className="block text-sm font-medium text-[var(--color-neon-fuscia)] ml-1.5">Photo Evidence</label>
-            </div>
-            {formData.includePhotos && (
-              <div className="flex gap-3 items-center justify-center">
-                {/* Captured Photo Display */}
-                <Card className="bg-[var(--surface-color)] border-[var(--accent-color)] w-20 h-20 flex-shrink-0">
-                  <CardContent className="p-1">
-                    <div className="w-full h-full bg-gray-700 rounded flex items-center justify-center relative overflow-hidden">
-                      {capturedImage ? (
-                        <img 
-                          src={capturedImage} 
-                          alt="Captured violation evidence"
-                          className="w-full h-full object-cover rounded"
-                        />
-                      ) : (
-                        <div className="flex flex-col items-center justify-center">
-                          <Camera className="w-5 h-5 text-gray-500 mb-1" />
-                          <span className="text-xs text-gray-500">Photo</span>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                {/* Add Image Button */}
-                <Card className="bg-[var(--surface-color)] border-[var(--accent-color)] border-dashed cursor-pointer hover:bg-[var(--accent-color)]/20 transition-colors w-20 h-20 flex-shrink-0">
-                  <CardContent className="p-1">
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Plus className="w-6 h-6 text-[var(--primary-color)]" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+          {/* Book Em Button */}
+          <div className="flex justify-center mt-8">
+            <Button 
+              onClick={saveForm}
+              className="bg-[var(--primary-color)] hover:bg-[var(--primary-color)]/90 text-white px-8 py-4 text-lg font-semibold rounded-lg flex items-center gap-2 transition-all duration-300 transform hover:scale-105 shadow-lg"
+            >
+              <Plus size={20} />
+              <span>Book Em</span>
+              {photoCount > 0 && (
+                <span className="bg-white/20 rounded-full px-2 py-1 text-sm ml-2">
+                  {photoCount}
+                </span>
+              )}
+            </Button>
           </div>
         </div>
       </main>
-
-      {/* Details Footer */}
-      <footer className="bg-black/50 backdrop-blur-sm flex-shrink-0 pb-safe-bottom">
-        <nav className="border-t border-[var(--accent-color)]">
-          <div className="flex justify-around items-center h-16">
-            <button 
-              className="flex flex-col items-center gap-1 text-[var(--primary-color)]"
-              onClick={() => navigate('/capture')}
-            >
-              <span className="material-symbols-outlined">photo_camera</span>
-              <span className="text-xs font-medium">Capture</span>
-            </button>
-            <div className="flex flex-col items-center gap-1 text-[var(--color-green)]">
-              <span className="material-symbols-outlined font-bold">description</span>
-              <span className="text-xs font-semibold">Details</span>
-            </div>
-            <button 
-              className="flex flex-col items-center gap-1 text-[var(--primary-color)]"
-              onClick={() => navigate('/export')}
-            >
-              <span className="material-symbols-outlined">ios_share</span>
-              <span className="text-xs font-medium">Export</span>
-            </button>
-          </div>
-        </nav>
-      </footer>
     </div>
   );
 };
