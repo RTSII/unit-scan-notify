@@ -55,16 +55,20 @@ const CameraCapture = () => {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { 
           facingMode: 'environment',
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
-        }
+          width: { ideal: 1280, max: 1920 },
+          height: { ideal: 720, max: 1080 },
+          frameRate: { ideal: 30 }
+        },
+        audio: false
       });
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        videoRef.current.play();
       }
     } catch (error) {
       console.error('Error accessing camera:', error);
+      alert('Camera access denied. Please enable camera permissions in your browser settings.');
     }
   }, []);
 
@@ -97,9 +101,27 @@ const CameraCapture = () => {
   };
 
   const handleConfirmCapture = () => {
-    // Handle photo capture logic here - simulate adding captured image
-    console.log('Photo captured');
-    setCapturedImages(prev => [...prev, 'captured_image_' + Date.now()]); // Add captured image
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const context = canvas.getContext('2d');
+      
+      if (context) {
+        // Set canvas dimensions to video dimensions
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        // Draw current video frame to canvas
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Convert to data URL (base64 image)
+        const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        
+        // Add captured image to state
+        setCapturedImages(prev => [...prev, imageDataUrl]);
+        console.log('Photo captured successfully');
+      }
+    }
     setShowDetails(true);
     setCaptureState('initial');
   };
@@ -297,17 +319,16 @@ const CameraCapture = () => {
                 <label className="block text-sm font-medium text-[var(--color-neon-fuscia)] ml-1.5">Photo Evidence</label>
               </div>
               <div className="flex gap-3 items-center justify-center">
-                {/* Captured Photo Placeholder */}
+                {/* Captured Photo Display */}
                 <Card className="bg-[var(--surface-color)] border-[var(--accent-color)] w-20 h-20 flex-shrink-0">
                   <CardContent className="p-1">
-                    <div className="w-full h-full bg-gray-700 rounded flex items-center justify-center relative">
+                    <div className="w-full h-full bg-gray-700 rounded flex items-center justify-center relative overflow-hidden">
                       {capturedImages.length > 0 ? (
-                        <>
-                          <Camera className="w-6 h-6 text-gray-400" />
-                          <div className="absolute inset-0 bg-blue-500/20 rounded flex items-center justify-center">
-                            <span className="text-xs text-white font-semibold">Captured</span>
-                          </div>
-                        </>
+                        <img 
+                          src={capturedImages[capturedImages.length - 1]} 
+                          alt="Captured violation evidence"
+                          className="w-full h-full object-cover rounded"
+                        />
                       ) : (
                         <div className="flex flex-col items-center justify-center">
                           <Camera className="w-5 h-5 text-gray-500 mb-1" />
@@ -389,8 +410,8 @@ const CameraCapture = () => {
               playsInline
               muted
               className="absolute inset-0 w-full h-full object-cover"
+              style={{ transform: 'scaleX(-1)' }}
             />
-            <p className="text-white relative z-10">Live Camera Preview</p>
           </div>
         )}
 
