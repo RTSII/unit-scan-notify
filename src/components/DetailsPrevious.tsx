@@ -107,11 +107,9 @@ const DetailsPrevious = () => {
         date: formData.date,
         time: formData.time || '',
         description: formData.description || '',
-        violation_types: violationTypesArray,
+        location: violationTypesArray.join(', '), // Store violation types in location field
         photos: selectedImages, // For now, storing as blob URLs - in production you'd upload to storage
-        status: 'completed',
-        location: '', // Add if needed
-        created_at: new Date().toISOString()
+        status: 'completed'
       };
 
       const { error } = await supabase
@@ -229,7 +227,7 @@ const DetailsPrevious = () => {
   // Show loading while checking auth
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue flex items-center justify-center">
+      <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-vice-purple via-black to-vice-blue flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-vice-pink mx-auto mb-4" />
           <p className="text-white">Loading...</p>
@@ -247,15 +245,15 @@ const DetailsPrevious = () => {
           variant="ghost" 
           size="sm" 
           className="text-white hover:bg-white/10 p-2 absolute right-3 sm:right-4"
-          onClick={() => window.location.href = '/'}
+          onClick={() => navigate('/')}
         >
           <Home className="w-4 h-4" />
         </Button>
       </div>
 
-      {/* Form Content */}
-      <div className="flex-1">
-        <div className="p-3 sm:p-4 space-y-4 max-w-md mx-auto">
+      {/* Form Content - Scrollable */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-3 sm:p-4 space-y-4 max-w-md mx-auto pb-24">
           {/* Date, Time, Unit Fields */}
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
             <div className="space-y-1.5">
@@ -264,7 +262,7 @@ const DetailsPrevious = () => {
                 value={formData.date}
                 onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
                 placeholder=""
-                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-sm h-9 sm:h-10"
+                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11 sm:h-10"
               />
             </div>
             <div className="space-y-1.5">
@@ -273,7 +271,7 @@ const DetailsPrevious = () => {
                 value={formData.time}
                 onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
                 placeholder=""
-                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-sm h-9 sm:h-10"
+                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11 sm:h-10"
               />
             </div>
             <div className="space-y-1.5">
@@ -282,7 +280,7 @@ const DetailsPrevious = () => {
                 value={formData.unit}
                 onChange={(e) => setFormData(prev => ({ ...prev, unit: e.target.value }))}
                 placeholder=""
-                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-sm h-9 sm:h-10"
+                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11 sm:h-10"
               />
             </div>
           </div>
@@ -292,31 +290,31 @@ const DetailsPrevious = () => {
             <h3 className="text-vice-cyan font-medium text-sm sm:text-base text-center">Violation Type (Select applicable)</h3>
             
             <div className="space-y-2">
-              <div className="flex items-center space-x-3 p-2.5 sm:p-3 rounded-lg border border-vice-cyan/20 bg-black/20">
+              <div className="flex items-center space-x-3 p-3 sm:p-3 rounded-lg border border-vice-cyan/20 bg-black/20 min-h-[44px]">
                 <Checkbox
                   checked={formData.violationTypes.itemsOutside}
                   onCheckedChange={(checked) => handleViolationTypeChange('itemsOutside', checked as boolean)}
-                  className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink"
+                  className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink min-w-[20px] min-h-[20px]"
                 />
-                <Label className="text-white cursor-pointer text-xs sm:text-sm leading-tight">Items left outside Unit</Label>
+                <Label className="text-white cursor-pointer text-sm sm:text-sm leading-tight flex-1">Items left outside Unit</Label>
               </div>
 
-              <div className="flex items-center space-x-3 p-2.5 sm:p-3 rounded-lg border border-vice-cyan/20 bg-black/20">
+              <div className="flex items-center space-x-3 p-3 sm:p-3 rounded-lg border border-vice-cyan/20 bg-black/20 min-h-[44px]">
                 <Checkbox
                   checked={formData.violationTypes.trashOutside}
                   onCheckedChange={(checked) => handleViolationTypeChange('trashOutside', checked as boolean)}
-                  className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink"
+                  className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink min-w-[20px] min-h-[20px]"
                 />
-                <Label className="text-white cursor-pointer text-xs sm:text-sm leading-tight">Trash left outside Unit</Label>
+                <Label className="text-white cursor-pointer text-sm sm:text-sm leading-tight flex-1">Trash left outside Unit</Label>
               </div>
 
-              <div className="flex items-center space-x-3 p-2.5 sm:p-3 rounded-lg border border-vice-cyan/20 bg-black/20">
+              <div className="flex items-center space-x-3 p-3 sm:p-3 rounded-lg border border-vice-cyan/20 bg-black/20 min-h-[44px]">
                 <Checkbox
                   checked={formData.violationTypes.itemsBalcony}
                   onCheckedChange={(checked) => handleViolationTypeChange('itemsBalcony', checked as boolean)}
-                  className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink"
+                  className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink min-w-[20px] min-h-[20px]"
                 />
-                <Label className="text-white cursor-pointer text-xs sm:text-sm leading-tight">Items left on balcony/front railing</Label>
+                <Label className="text-white cursor-pointer text-sm sm:text-sm leading-tight flex-1">Items left on balcony/front railing</Label>
               </div>
             </div>
           </div>
@@ -324,7 +322,7 @@ const DetailsPrevious = () => {
           {/* Description Section - Collapsible */}
           <div className="space-y-2">
             <div 
-              className="flex items-center justify-between cursor-pointer p-1"
+              className="flex items-center justify-between cursor-pointer p-2 min-h-[44px]"
               onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
             >
               <div className="flex items-center space-x-2">
@@ -332,9 +330,9 @@ const DetailsPrevious = () => {
                 <Label className="text-vice-pink font-medium text-sm">Description</Label>
               </div>
               {isDescriptionExpanded ? (
-                <ChevronUp className="w-4 h-4 text-vice-pink" />
+                <ChevronUp className="w-5 h-5 text-vice-pink" />
               ) : (
-                <ChevronDown className="w-4 h-4 text-vice-pink" />
+                <ChevronDown className="w-5 h-5 text-vice-pink" />
               )}
             </div>
             {isDescriptionExpanded && (
@@ -342,7 +340,7 @@ const DetailsPrevious = () => {
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Enter additional details..."
-                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 min-h-[80px] sm:min-h-[100px] resize-none text-sm"
+                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 min-h-[100px] resize-none text-base"
               />
             )}
           </div>
@@ -350,7 +348,7 @@ const DetailsPrevious = () => {
           {/* Photo Evidence Section - Collapsible */}
           <div className="space-y-2">
             <div 
-              className="flex items-center justify-between cursor-pointer p-1"
+              className="flex items-center justify-between cursor-pointer p-2 min-h-[44px]"
               onClick={() => setIsPhotosExpanded(!isPhotosExpanded)}
             >
               <div className="flex items-center space-x-2">
@@ -358,9 +356,9 @@ const DetailsPrevious = () => {
                 <Label className="text-vice-pink font-medium text-sm">Photo Evidence</Label>
               </div>
               {isPhotosExpanded ? (
-                <ChevronUp className="w-4 h-4 text-vice-pink" />
+                <ChevronUp className="w-5 h-5 text-vice-pink" />
               ) : (
-                <ChevronDown className="w-4 h-4 text-vice-pink" />
+                <ChevronDown className="w-5 h-5 text-vice-pink" />
               )}
             </div>
             {isPhotosExpanded && (
@@ -377,24 +375,26 @@ const DetailsPrevious = () => {
               </>
             )}
           </div>
+        </div>
+      </div>
 
-          {/* Book Em Save Button */}
-          <div className="flex justify-center pt-4 pb-4">
-            <Button 
-              onClick={handleSaveForm}
-              disabled={isSaving}
-              className="bg-vice-pink hover:bg-vice-pink/80 text-white px-8 py-3 rounded-lg font-semibold text-sm"
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  Saving...
-                </>
-              ) : (
-                "Book Em"
-              )}
-            </Button>
-          </div>
+      {/* Fixed Bottom Button */}
+      <div className="flex-shrink-0 bg-black/50 backdrop-blur-sm border-t border-vice-cyan/20 p-4 pb-safe-bottom">
+        <div className="flex justify-center">
+          <Button 
+            onClick={handleSaveForm}
+            disabled={isSaving || !formData.unit.trim() || (!Object.values(formData.violationTypes).some(v => v) && !formData.description.trim())}
+            className="bg-vice-pink hover:bg-vice-pink/80 text-white px-8 py-3 rounded-lg font-semibold text-base min-h-[44px] min-w-[120px]"
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                Saving...
+              </>
+            ) : (
+              "Book Em"
+            )}
+          </Button>
         </div>
       </div>
     </div>
