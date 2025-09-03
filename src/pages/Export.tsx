@@ -43,6 +43,7 @@ export default function Export() {
   const [selectedForms, setSelectedForms] = useState<string[]>([]);
   const [isThisWeekExpanded, setIsThisWeekExpanded] = useState(false);
   const [thisWeekCount, setThisWeekCount] = useState(0);
+  const [formsLoading, setFormsLoading] = useState(true);
 
   // Redirect if not authenticated
   if (!loading && !user) {
@@ -64,6 +65,7 @@ export default function Export() {
   }, [forms]);
 
   const fetchForms = async () => {
+    setFormsLoading(true);
     try {
       const { data, error } = await supabase
         .from('violation_forms')
@@ -80,6 +82,8 @@ export default function Export() {
         description: "Failed to load violation forms",
         variant: "destructive",
       });
+    } finally {
+      setFormsLoading(false);
     }
   };
 
@@ -112,6 +116,102 @@ export default function Export() {
     });
 
     setThisWeekCount(thisWeekForms.length);
+  };
+
+  const handleFormSelection = (formId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedForms(prev => [...prev, formId]);
+    } else {
+      setSelectedForms(prev => prev.filter(id => id !== formId));
+    }
+  };
+
+  const removeSelectedForm = (formId: string) => {
+    setSelectedForms(prev => prev.filter(id => id !== formId));
+  };
+
+  const handleEmailExport = () => {
+    if (selectedForms.length === 0) {
+      toast({
+        title: "No notices selected",
+        description: "Please select at least one notice to export",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const selectedNotices = forms.filter(form => selectedForms.includes(form.id));
+    const emailBody = selectedNotices.map(form => 
+      `Unit: ${form.unit_number}\nDate: ${form.date}\nTime: ${form.time}\nLocation: ${form.location}\nDescription: ${form.description}\n\n`
+    ).join('---\n\n');
+
+    const subject = `SPR Violation Notices - ${selectedNotices.length} notice(s)`;
+    const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
+    
+    window.location.href = mailtoLink;
+  };
+
+  const handlePrintExport = () => {
+    if (selectedForms.length === 0) {
+      toast({
+        title: "No notices selected",
+        description: "Please select at least one notice to export",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (selectedForms.length > 4) {
+      toast({
+        title: "Too many notices",
+        description: "Please select up to 4 notices for printing",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const selectedNotices = forms.filter(form => selectedForms.includes(form.id));
+    
+    // Create print window with 2x2 grid layout
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>SPR Violation Notices</title>
+          <style>
+            @page { margin: 0.5in; }
+            body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+            .grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 20px; height: 100vh; }
+            .notice { border: 2px solid #333; padding: 15px; break-inside: avoid; }
+            .notice h3 { margin: 0 0 10px 0; font-size: 16px; font-weight: bold; }
+            .notice p { margin: 5px 0; font-size: 12px; }
+            .notice .label { font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          <div class="grid">
+            ${selectedNotices.map(form => `
+              <div class="notice">
+                <h3>SPR Violation Notice</h3>
+                <p><span class="label">Unit:</span> ${form.unit_number}</p>
+                <p><span class="label">Date:</span> ${form.date}</p>
+                <p><span class="label">Time:</span> ${form.time}</p>
+                <p><span class="label">Location:</span> ${form.location}</p>
+                <p><span class="label">Description:</span> ${form.description}</p>
+                <p><span class="label">Status:</span> ${form.status}</p>
+              </div>
+            `).join('')}
+          </div>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.print();
   };
 
   const handleFormSelection = (formId: string, checked: boolean) => {
@@ -353,9 +453,9 @@ export default function Export() {
           
           {isThisWeekExpanded && (
             <CardContent className="pt-0 pb-8">
-              <div className="space-y-3 pb-12">
+              <div className="space-y-3 pb-16">
                 {filteredForms.map((form) => (
-                  <div key={form.id} className="flex items-start gap-3 p-3 bg-black/20 rounded border border-vice-cyan/20 min-h-[60px]">
+                  <div key={form.id} className="flex items-start gap-3 p-3 bg-black/20 rounded border border-vice-cyan/20 min-h-[60px] touch-manipulation">
                     <Checkbox
                       checked={selectedForms.includes(form.id)}
                       onCheckedChange={(checked) => handleFormSelection(form.id, checked as boolean)}
@@ -380,7 +480,7 @@ export default function Export() {
                 ))}
                 
                 {filteredForms.length === 0 && (
-                  <p className="text-vice-cyan/60 text-center py-12 text-sm">No forms found</p>
+                  <p className="text-vice-cyan/60 text-center py-16 text-sm">No forms found</p>
                 )}
               </div>
             </CardContent>
@@ -388,7 +488,7 @@ export default function Export() {
         </Card>
         
         {/* Large bottom spacer to ensure no cutoff */}
-        <div className="h-40 pb-safe-bottom"></div>
+        <div className="h-48 pb-safe-bottom"></div>
       </div>
     </div>
   );
