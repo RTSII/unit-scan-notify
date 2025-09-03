@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Loader2, Mail, Lock, User, Chrome } from 'lucide-react';
+
 export default function Auth() {
   const {
     user,
@@ -25,6 +26,7 @@ export default function Auth() {
   if (!loading && user) {
     return <Navigate to="/" replace />;
   }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) return;
@@ -39,6 +41,7 @@ export default function Auth() {
       setIsLoading(false);
     }
   };
+
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
@@ -47,15 +50,20 @@ export default function Auth() {
       setIsLoading(false);
     }
   };
+
   if (loading) {
-    return <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue flex items-center justify-center">
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-vice-pink mx-auto mb-4" />
           <p className="text-white">Loading...</p>
         </div>
-      </div>;
+      </div>
+    );
   }
-  return <div className="h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue relative overflow-hidden">
+
+  return (
+    <div className="h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue relative overflow-hidden">
       {/* Background effects */}
       <div className="absolute inset-0 bg-black/20 z-0" />
       
@@ -73,24 +81,27 @@ export default function Auth() {
       <div className="absolute bottom-10 right-10 w-12 h-12 bg-vice-orange rounded-full opacity-25 blur-md animate-lens-flare-4 z-10"></div>
 
       {/* Content */}
-      <div className="relative flex flex-col justify-center items-center p-3 z-30 h-full">
-        <div className="w-full max-w-sm space-y-3">
-          {/* Logo/Title */}
-          <div className="text-center z-40 relative">
-            <div className="mb-2">
+      <div className="relative flex flex-col justify-center items-center h-full p-4 z-30">
+        <div className="w-full max-w-sm space-y-6">
+          {/* Logo */}
+          <div className="text-center">
+            <div className="mb-4">
               <img 
-                src="/lovable-uploads/SPR.png" 
-                alt="SPR Vice City" 
-                className="mx-auto h-16 w-auto drop-shadow-[0_4px_8px_rgba(0,255,255,0.3)] opacity-100"
-                style={{ mixBlendMode: 'normal' }}
+                src="/vicecity.png" 
+                alt="Vice City Logo" 
+                className="mx-auto h-20 w-auto sm:h-24 md:h-28 drop-shadow-[0_4px_12px_rgba(255,20,147,0.4)] opacity-95"
+                style={{ 
+                  filter: 'drop-shadow(0 0 15px rgba(0,255,255,0.3)) drop-shadow(0 0 25px rgba(255,20,147,0.2))',
+                  mixBlendMode: 'normal'
+                }}
               />
             </div>
-            <p className="text-vice-cyan mt-1 text-xs opacity-80">Invitation Required</p>
+            <p className="text-vice-cyan text-sm opacity-80">Invitation Required</p>
           </div>
 
           {/* Auth Card */}
           <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm">
-            <CardHeader className="text-center">
+            <CardHeader className="text-center pb-4">
               <CardTitle className="text-white text-xl">
                 {isSignUp ? 'Create Account' : 'Sign In'}
               </CardTitle>
@@ -100,19 +111,36 @@ export default function Auth() {
             </CardHeader>
             <CardContent className="space-y-4 pb-6">
               <form onSubmit={handleSubmit} className="space-y-4">
-                {isSignUp && <div className="space-y-2">
+                {isSignUp && (
+                  <div className="space-y-2">
                     <Label htmlFor="fullName" className="text-white">Name</Label>
                     <div className="relative">
                       <User className="absolute left-3 top-3 h-4 w-4 text-vice-cyan/60" />
-                      <Input id="fullName" type="text" placeholder="Enter your name" value={fullName} onChange={e => setFullName(e.target.value)} className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink" />
+                      <Input 
+                        id="fullName" 
+                        type="text" 
+                        placeholder="Enter your name" 
+                        value={fullName} 
+                        onChange={e => setFullName(e.target.value)} 
+                        className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-11" 
+                      />
                     </div>
-                  </div>}
+                  </div>
+                )}
                 
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-white">Email</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-3 h-4 w-4 text-vice-cyan/60" />
-                    <Input id="email" type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink" required />
+                    <Input 
+                      id="email" 
+                      type="email" 
+                      placeholder="Enter your email" 
+                      value={email} 
+                      onChange={e => setEmail(e.target.value)} 
+                      className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-11" 
+                      required 
+                    />
                   </div>
                 </div>
                 
@@ -120,11 +148,26 @@ export default function Auth() {
                   <Label htmlFor="password" className="text-white">Password</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-vice-cyan/60" />
-                    <Input id="password" type="password" placeholder="7+ letters, at least 1 number" value={password} onChange={e => setPassword(e.target.value)} className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink" minLength={7} pattern="^(?=.*[0-9]).{7,}$" title="Password must be at least 7 characters and contain at least one number" required />
+                    <Input 
+                      id="password" 
+                      type="password" 
+                      placeholder="7+ letters, at least 1 number" 
+                      value={password} 
+                      onChange={e => setPassword(e.target.value)} 
+                      className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-11" 
+                      minLength={7} 
+                      pattern="^(?=.*[0-9]).{7,}$" 
+                      title="Password must be at least 7 characters and contain at least one number" 
+                      required 
+                    />
                   </div>
                 </div>
                 
-                <Button type="submit" className="w-full bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink text-white font-semibold" disabled={isLoading}>
+                <Button 
+                  type="submit" 
+                  className="w-full bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink text-white font-semibold h-11" 
+                  disabled={isLoading}
+                >
                   {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   {isSignUp ? 'Create Account' : 'Sign In'}
                 </Button>
@@ -132,13 +175,22 @@ export default function Auth() {
 
               <Separator className="bg-vice-cyan/20" />
 
-              <Button onClick={handleGoogleSignIn} variant="outline" className="w-full bg-white/10 border-vice-cyan/30 text-white hover:bg-white/20" disabled={isLoading}>
+              <Button 
+                onClick={handleGoogleSignIn} 
+                variant="outline" 
+                className="w-full bg-white/10 border-vice-cyan/30 text-white hover:bg-white/20 h-11" 
+                disabled={isLoading}
+              >
                 <Chrome className="h-4 w-4 mr-2" />
                 Continue with Google
               </Button>
 
               <div className="text-center pt-2">
-                <button type="button" onClick={() => setIsSignUp(!isSignUp)} className="text-vice-cyan hover:text-vice-pink text-sm transition-colors">
+                <button 
+                  type="button" 
+                  onClick={() => setIsSignUp(!isSignUp)} 
+                  className="text-vice-cyan hover:text-vice-pink text-sm transition-colors"
+                >
                   {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
                 </button>
               </div>
@@ -146,5 +198,6 @@ export default function Auth() {
           </Card>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 }
