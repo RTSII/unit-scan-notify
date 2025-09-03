@@ -103,6 +103,7 @@ export default function Auth() {
             <CardHeader className="text-center pb-2 pt-4">
               <CardTitle className="text-white text-xl">
                 {isSignUp ? 'Create Account' : 'Sign In'}
+              </CardTitle>
               <CardDescription className="text-vice-cyan/80">
                 {isSignUp ? 'Register with your invitation email' : 'Access your SPR account'}
               </CardDescription>
