@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, Mail, Lock, User, Chrome } from 'lucide-react';
+import { Loader2, Mail, Lock, User, Chrome, Download } from 'lucide-react';
 
 export default function Auth() {
   const {
@@ -108,17 +108,22 @@ export default function Auth() {
                 {isSignUp ? 'Register with your invitation email' : 'Access your SPR account'}
               </CardDescription>
             </CardHeader>
-              style={{ 
-                bottom: '120px', 
-                left: '50%', 
-                transform: 'translateX(-50%) translateX(30px)',
-                animationDelay: '200ms' 
-              }}
-            >
-              <Download className="h-5 w-5 text-white" />
-            </Button>
-            <Button
-              className="absolute bottom-32 left-1/2 transform -translate-x-1/2 w-12 h-12 rounded-full bg-vice-purple/80 hover:bg-vice-purple border-2 border-vice-pink/50 backdrop-blur-sm transition-all duration-300 animate-in slide-in-from-bottom-4"
+            <CardContent className="px-4 pb-4">
+              <Button
+                className="absolute bottom-32 left-1/2 transform -translate-x-1/2 w-12 h-12 rounded-full bg-vice-cyan/80 hover:bg-vice-cyan border-2 border-vice-pink/50 backdrop-blur-sm transition-all duration-300 animate-in slide-in-from-bottom-4"
+                style={{ 
+                  bottom: '120px', 
+                  left: '50%', 
+                  transform: 'translateX(-50%) translateX(30px)',
+                  animationDelay: '200ms' 
+                }}
+              >
+                <Download className="h-5 w-5 text-white" />
+              </Button>
+              <Button
+                className="absolute bottom-32 left-1/2 transform -translate-x-1/2 w-12 h-12 rounded-full bg-vice-purple/80 hover:bg-vice-purple border-2 border-vice-pink/50 backdrop-blur-sm transition-all duration-300 animate-in slide-in-from-bottom-4"
+              >
+              </Button>
               <form onSubmit={handleSubmit} className="space-y-1.5">
                 {isSignUp && (
                   <div className="space-y-0.5">
@@ -174,12 +179,12 @@ export default function Auth() {
                 
                 <div className="pt-1">
                   <Button 
-                  type="submit" 
-                  className="w-full bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink text-white font-semibold h-9" 
-                  disabled={isLoading}
-                >
-                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  {isSignUp ? 'Create Account' : 'Sign In'}
+                    type="submit" 
+                    className="w-full bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink text-white font-semibold h-9" 
+                    disabled={isLoading}
+                  >
+                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                    {isSignUp ? 'Create Account' : 'Sign In'}
                   </Button>
                 </div>
               </form>
