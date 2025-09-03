@@ -89,7 +89,7 @@ export default function Auth() {
               <img 
                 src="/vicecity.png" 
                 alt="Vice City Logo" 
-                className="mx-auto h-24 w-auto sm:h-32 md:h-36 lg:h-40 drop-shadow-[0_4px_12px_rgba(255,20,147,0.4)] opacity-95"
+                className="mx-auto h-40 w-auto sm:h-48 md:h-56 lg:h-64 drop-shadow-[0_4px_12px_rgba(255,20,147,0.4)] opacity-95"
                 style={{ 
                   filter: 'drop-shadow(0 0 15px rgba(0,255,255,0.3)) drop-shadow(0 0 25px rgba(255,20,147,0.2))',
                   mixBlendMode: 'normal'
