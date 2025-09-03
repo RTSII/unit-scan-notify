@@ -143,6 +143,17 @@ export default function Export() {
     const emailBody = selectedNotices.map((form, index) => 
       `VIOLATION NOTICE #${index + 1}
 
+Unit: ${form.unit_number}
+Date: ${form.date}
+Time: ${form.time}
+Location: ${form.location}
+Description: ${form.description}
+Status: ${form.status}
+
+---
+
+`).join('');
+
     const subject = `SPR Violation Notices - ${selectedNotices.length} notice(s)`;
     const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
     
@@ -385,7 +396,7 @@ export default function Export() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
                           <h3 className="text-white font-medium">Unit {form.unit_number}</h3>
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          <span className={\`px-2 py-1 rounded text-xs font-medium ${
                             form.status === 'submitted' 
                               ? 'bg-green-500/20 text-green-400' 
                               : 'bg-yellow-500/20 text-yellow-400'
