@@ -110,7 +110,7 @@ export default function Auth() {
             </CardHeader>
               <form onSubmit={handleSubmit} className="space-y-1.5">
                 {isSignUp && (
-                ${isMenuOpen ? 'translate-y-[-160px]' : 'translate-y-0'}
+                  <div className="space-y-0.5">
                     <Label htmlFor="fullName" className="text-white text-sm">Name</Label>
                     <div className="relative">
                       <User className="absolute left-3 top-3 h-4 w-4 text-vice-cyan/60" />
@@ -139,7 +139,7 @@ export default function Auth() {
                       className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-9" 
                       required 
                     />
-                  </div>
+                </div>
                 </div>
                 
                 <div className="space-y-0.5">
@@ -159,16 +159,16 @@ export default function Auth() {
                       required 
                     />
                   </div>
-                ${isMenuOpen ? 'translate-y-[-240px]' : 'translate-y-0'}
+                </div>
                 
                 <div className="pt-1">
                   <Button 
-                  type="submit" 
-                  className="w-full bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink text-white font-semibold h-9" 
-                  disabled={isLoading}
-                >
-                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  {isSignUp ? 'Create Account' : 'Sign In'}
+                    type="submit" 
+                    className="w-full bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink text-white font-semibold h-9" 
+                    disabled={isLoading}
+                  >
+                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                    {isSignUp ? 'Create Account' : 'Sign In'}
                   </Button>
                 </div>
               </form>
@@ -177,7 +177,7 @@ export default function Auth() {
 
               <Button 
                 onClick={handleGoogleSignIn} 
-                ${isMenuOpen ? 'translate-y-[-320px]' : 'translate-y-0'}
+                variant="outline"
                 className="w-full bg-white/10 border-vice-cyan/30 text-white hover:bg-white/20 h-9" 
                 disabled={isLoading}
               >
@@ -194,6 +194,7 @@ export default function Auth() {
                   {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
                 </button>
               </div>
+            </CardContent>
             </CardContent>
           </Card>
         </div>
