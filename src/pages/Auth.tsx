@@ -121,8 +121,8 @@ export default function Auth() {
                         placeholder="Enter your name" 
                         value={fullName} 
                         onChange={e => setFullName(e.target.value)} 
-                        className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-11" 
-                      className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-10" 
+                        className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-10" 
+                      />
                     </div>
                   </div>
                 )}
