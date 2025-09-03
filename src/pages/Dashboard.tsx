@@ -65,8 +65,8 @@ export default function Dashboard() {
       <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
         {/* Menu Buttons - Horizontal row with precise spacing */}
         {menuItems.map((item, index) => {
-          // Position buttons: -90px, -30px, 30px, 90px (60px spacing, gap of 60px in center)
-          const xOffset = -90 + (index * 60);
+          // Position buttons: -105px, -35px, 35px, 105px (70px spacing with centered gap)
+          const xOffset = -105 + (index * 70);
           
           return (
             <Button
