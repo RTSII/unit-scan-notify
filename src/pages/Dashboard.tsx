@@ -45,15 +45,24 @@ export default function Dashboard() {
     }
   ];
 
-  // Vertical layout configuration - buttons positioned directly above hamburger
+  // Semi-circle arc configuration - 180 degrees above hamburger
   const getButtonPosition = (index: number) => {
-    // Vertical spacing between buttons
-    const buttonSpacing = 80; // 80px between each button
-    // Start from the top button and work down
-    // Button 0 (Camera) at top, Button 3 (Export) closest to hamburger
-    const y = (menuItems.length - 1 - index) * buttonSpacing + 20; // +20 for spacing from hamburger
+    const radius = 120; // Distance from hamburger center
+    const totalAngle = 180; // 180 degree semi-circle
+    const angleStep = totalAngle / (menuItems.length - 1); // Divide arc evenly
+    const startAngle = 180; // Start from left (180 degrees)
     
-    return { x: 0, y }; // x: 0 centers buttons horizontally over hamburger
+    // Calculate angle for this button (0 = Camera, 3 = Export)
+    const angle = startAngle - (index * angleStep); // Subtract to go clockwise
+    
+    // Convert to radians
+    const radians = (angle * Math.PI) / 180;
+    
+    // Calculate x, y position
+    const x = Math.cos(radians) * radius;
+    const y = Math.sin(radians) * radius;
+    
+    return { x, y };
   };
 
   return (
