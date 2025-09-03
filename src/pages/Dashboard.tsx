@@ -47,7 +47,7 @@ export default function Dashboard() {
 
   // Semi-circle arc configuration - 180 degrees above hamburger
   const getButtonPosition = (index: number) => {
-    const radius = 120; // Distance from hamburger center
+    const radius = 80; // Closer distance from hamburger center
     const totalAngle = 180; // 180 degree semi-circle
     const angleStep = totalAngle / (menuItems.length - 1); // Divide arc evenly
     const startAngle = 180; // Start from left (180 degrees)
