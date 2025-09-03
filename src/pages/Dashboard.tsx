@@ -66,21 +66,6 @@ export default function Dashboard() {
       {/* Content */}
       <div className="relative flex flex-col justify-center items-center min-h-screen py-6 px-4 z-30">
         <div className="w-full max-w-sm space-y-6">
-          {/* Logo */}
-          <div className="text-center">
-            <div className="mb-6">
-              <img 
-                src="/vicecity.png" 
-                alt="Vice City Logo" 
-                className="mx-auto h-32 w-auto sm:h-36 md:h-40 lg:h-44 drop-shadow-[0_4px_12px_rgba(255,20,147,0.4)] opacity-95"
-                style={{ 
-                  filter: 'drop-shadow(0 0 15px rgba(0,255,255,0.3)) drop-shadow(0 0 25px rgba(255,20,147,0.2))',
-                  mixBlendMode: 'normal'
-                }}
-              />
-            </div>
-          </div>
-
           {/* Welcome Message */}
           <div className="text-center space-y-4">
             <h1 className="text-3xl font-bold vice-city-font text-white">
@@ -91,9 +76,6 @@ export default function Dashboard() {
                 {profile.full_name}
               </p>
             )}
-            <p className="text-vice-cyan/80 text-sm">
-              Ready to capture violations
-            </p>
           </div>
         </div>
       </div>
