@@ -31,45 +31,37 @@ export default function Dashboard() {
       icon: <Camera className="w-6 h-6" />,
       label: 'Capture',
       onClick: () => navigate('/capture'),
-      position: { left: '-60px', bottom: '100px' } // Left position
+      position: { left: '-80px', bottom: '120px' } // Left position
     },
     {
       icon: <FileText className="w-6 h-6" />,
       label: 'Details',
       onClick: () => navigate('/details-previous'),
-      position: { left: '-30px', bottom: '120px' } // Left-center position
+      position: { left: '-40px', bottom: '160px' } // Left-center position
     },
     {
       icon: <BookOpen className="w-6 h-6" />,
       label: 'Books',
       onClick: () => navigate('/books'),
-      position: { left: '30px', bottom: '120px' } // Right-center position
+      position: { left: '40px', bottom: '160px' } // Right-center position
     },
     {
       icon: <Settings className="w-6 h-6" />,
       label: 'Export',
       onClick: () => navigate('/export'),
-      position: { left: '60px', bottom: '100px' } // Right position
+      position: { left: '80px', bottom: '120px' } // Right position
     }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue relative overflow-hidden">
-      {/* Background effects */}
-      <div className="absolute inset-0 bg-black/20 z-0" />
-      
-      {/* Animated waves */}
-      <div className="absolute bottom-0 left-0 w-full overflow-hidden opacity-30 z-10">
-        <div className="wave-bg h-16 bg-gradient-to-r from-vice-cyan to-vice-pink animate-wave-1"></div>
-        <div className="wave-bg h-12 bg-gradient-to-r from-vice-pink to-vice-purple animate-wave-2 -mt-6"></div>
-        <div className="wave-bg h-8 bg-gradient-to-r from-vice-blue to-vice-cyan animate-wave-3 -mt-4"></div>
-      </div>
-
-      {/* Lens flares */}
-      <div className="absolute top-10 left-10 w-20 h-20 bg-vice-cyan rounded-full opacity-20 blur-xl animate-lens-flare-1 z-10"></div>
-      <div className="absolute top-20 right-16 w-16 h-16 bg-vice-pink rounded-full opacity-30 blur-lg animate-lens-flare-2 z-10"></div>
-      <div className="absolute bottom-20 left-16 w-24 h-24 bg-vice-purple rounded-full opacity-15 blur-2xl animate-lens-flare-3 z-10"></div>
-      <div className="absolute bottom-10 right-10 w-12 h-12 bg-vice-orange rounded-full opacity-25 blur-md animate-lens-flare-4 z-10"></div>
+    <div 
+      className="min-h-screen relative overflow-hidden bg-cover bg-center"
+      style={{
+        backgroundImage: 'url(/2.jpeg)'
+      }}
+    >
+      {/* Dark overlay for better text readability */}
+      <div className="absolute inset-0 bg-black/40 z-0" />
 
       {/* Content */}
       <div className="relative flex flex-col justify-center items-center min-h-screen py-6 px-4 z-30">
@@ -114,7 +106,7 @@ export default function Dashboard() {
             key={index}
             onClick={item.onClick}
             className={`
-              absolute w-14 h-14 rounded-full bg-vice-cyan/80 hover:bg-vice-cyan border-2 border-vice-pink/50 backdrop-blur-sm
+              absolute w-16 h-16 rounded-full bg-vice-cyan/80 hover:bg-vice-cyan border-2 border-vice-pink/50 backdrop-blur-sm
               transition-all duration-300 transform
               ${isMenuOpen 
                 ? 'opacity-100 scale-100 translate-y-0' 
