@@ -81,15 +81,15 @@ export default function Auth() {
       <div className="absolute bottom-10 right-10 w-12 h-12 bg-vice-orange rounded-full opacity-25 blur-md animate-lens-flare-4 z-10"></div>
 
       {/* Content */}
-      <div className="relative flex flex-col justify-center items-center min-h-screen py-8 px-4 z-30">
+      <div className="relative flex flex-col justify-center items-center min-h-screen py-4 px-4 z-30">
         <div className="w-full max-w-sm space-y-4">
           {/* Logo */}
-          <div className="text-center pt-4">
-            <div className="mb-6">
+          <div className="text-center pt-2">
+            <div className="mb-4">
               <img 
                 src="/vicecity.png" 
                 alt="Vice City Logo" 
-                className="mx-auto h-40 w-auto sm:h-48 md:h-56 lg:h-64 drop-shadow-[0_4px_12px_rgba(255,20,147,0.4)] opacity-95"
+                className="mx-auto h-32 w-auto sm:h-40 md:h-44 lg:h-48 drop-shadow-[0_4px_12px_rgba(255,20,147,0.4)] opacity-95"
                 style={{ 
                   filter: 'drop-shadow(0 0 15px rgba(0,255,255,0.3)) drop-shadow(0 0 25px rgba(255,20,147,0.2))',
                   mixBlendMode: 'normal'
@@ -100,7 +100,7 @@ export default function Auth() {
 
           {/* Auth Card */}
           <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm">
-            <CardHeader className="text-center pb-3 pt-4">
+            <CardHeader className="text-center pb-2 pt-3">
               <CardTitle className="text-white text-xl">
                 {isSignUp ? 'Create Account' : 'Sign In'}
               </CardTitle>
@@ -108,10 +108,10 @@ export default function Auth() {
                 {isSignUp ? 'Register with your invitation email' : 'Access your SPR account'}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3 pb-4 px-6">
-              <form onSubmit={handleSubmit} className="space-y-3">
+            <CardContent className="space-y-2 pb-3 px-6">
+              <form onSubmit={handleSubmit} className="space-y-2">
                 {isSignUp && (
-                  <div className="space-y-2">
+                  <div className="space-y-1">
                     <Label htmlFor="fullName" className="text-white">Name</Label>
                     <div className="relative">
                       <User className="absolute left-3 top-3 h-4 w-4 text-vice-cyan/60" />
@@ -127,7 +127,7 @@ export default function Auth() {
                   </div>
                 )}
                 
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Label htmlFor="email" className="text-white">Email</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-3 h-4 w-4 text-vice-cyan/60" />
@@ -143,7 +143,7 @@ export default function Auth() {
                   </div>
                 </div>
                 
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Label htmlFor="password" className="text-white">Password</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-vice-cyan/60" />
@@ -162,14 +162,16 @@ export default function Auth() {
                   </div>
                 </div>
                 
-                <Button 
+                <div className="pt-2">
+                  <Button 
                   type="submit" 
                   className="w-full bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink text-white font-semibold h-10" 
                   disabled={isLoading}
                 >
                   {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   {isSignUp ? 'Create Account' : 'Sign In'}
-                </Button>
+                  </Button>
+                </div>
               </form>
 
               <Separator className="bg-vice-cyan/20" />
@@ -184,7 +186,7 @@ export default function Auth() {
                 Continue with Google
               </Button>
 
-              <div className="text-center pt-1">
+              <div className="text-center">
                 <button 
                   type="button" 
                   onClick={() => setIsSignUp(!isSignUp)} 
