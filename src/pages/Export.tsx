@@ -237,8 +237,8 @@ export default function Export() {
         </Button>
       </div>
 
-      {/* Content with proper mobile spacing */}
-      <div className="p-4 space-y-4 overflow-auto pb-32" style={{ height: 'calc(100dvh - 80px)', paddingBottom: 'max(env(safe-area-inset-bottom), 80px)' }}>
+      {/* Content */}
+      <div className="p-4 space-y-4 overflow-auto" style={{ height: 'calc(100dvh - 80px)', paddingBottom: 'max(env(safe-area-inset-bottom), 120px)' }}>
         {/* Search and Filter */}
         <div className="flex gap-3">
           <div className="relative flex-1">
@@ -269,7 +269,7 @@ export default function Export() {
           <CardHeader className="pb-3">
             <CardTitle className="text-white text-lg">Select Notice(s) to Export</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pb-6">
             {/* Selected Notices Display */}
             <div className="min-h-[100px] space-y-2">
               {selectedForms.length === 0 ? (
@@ -352,8 +352,8 @@ export default function Export() {
           </CardHeader>
           
           {isThisWeekExpanded && (
-            <CardContent className="pt-0">
-              <div className="space-y-3 pb-8">
+            <CardContent className="pt-0 pb-8">
+              <div className="space-y-3 pb-12">
                 {filteredForms.map((form) => (
                   <div key={form.id} className="flex items-start gap-3 p-3 bg-black/20 rounded border border-vice-cyan/20 min-h-[60px]">
                     <Checkbox
@@ -380,15 +380,15 @@ export default function Export() {
                 ))}
                 
                 {filteredForms.length === 0 && (
-                  <p className="text-vice-cyan/60 text-center py-8 text-sm">No forms found</p>
+                  <p className="text-vice-cyan/60 text-center py-12 text-sm">No forms found</p>
                 )}
               </div>
             </CardContent>
           )}
         </Card>
         
-        {/* Extra bottom spacing to ensure no cutoff */}
-        <div className="h-32 pb-safe-bottom"></div>
+        {/* Large bottom spacer to ensure no cutoff */}
+        <div className="h-40 pb-safe-bottom"></div>
       </div>
     </div>
   );
