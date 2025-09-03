@@ -2,13 +2,12 @@ import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Loader2, Camera, BookOpen, FileText, Settings, Menu, X, User, LogOut } from 'lucide-react';
+import { Loader2, Camera, BookOpen, FileText, Settings, Menu, X } from 'lucide-react';
 
 export default function Dashboard() {
-  const { user, loading, profile, signOut } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showUserMenu, setShowUserMenu] = useState(false);
 
   // Redirect if not authenticated
   if (!loading && !user) {
@@ -46,9 +45,21 @@ export default function Dashboard() {
     }
   ];
 
-  const handleSignOut = async () => {
-    await signOut();
-    setShowUserMenu(false);
+  // Semi-circle dock configuration
+  const radius = 100; // Distance from hamburger center
+  const totalAngle = 120; // Total arc span in degrees
+  const startAngle = 30; // Start angle (30 degrees from vertical)
+  
+  // Calculate positions for each button in the arc
+  const getButtonPosition = (index: number) => {
+    const angleStep = totalAngle / (menuItems.length - 1);
+    const angle = startAngle + (index * angleStep);
+    const radians = (angle * Math.PI) / 180;
+    
+    const x = Math.sin(radians) * radius;
+    const y = Math.cos(radians) * radius;
+    
+    return { x, y };
   };
 
   return (
@@ -58,15 +69,14 @@ export default function Dashboard() {
         backgroundImage: 'url(/2.jpeg)'
       }}
     >
-      {/* Enhanced overlay with gradient */}
+      {/* Background overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-vice-purple/20 to-black/60 z-10" />
 
-      {/* Navigation Menu */}
+      {/* Navigation Dock */}
       <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
-        {/* Menu Buttons - Horizontal row with precise spacing */}
+        {/* Arc Menu Buttons */}
         {menuItems.map((item, index) => {
-          // Position buttons: -105px, -35px, 35px, 105px (70px spacing with centered gap)
-          const xOffset = -35 + (index * 70);
+          const position = getButtonPosition(index);
           
           return (
             <Button
@@ -77,17 +87,18 @@ export default function Dashboard() {
               }}
               className={`
                 absolute w-14 h-14 rounded-full bg-vice-cyan/90 hover:bg-vice-cyan border-2 border-vice-pink/50 backdrop-blur-sm
-                transition-all duration-300 transform shadow-lg group hover:scale-105
+                transition-all duration-500 ease-out shadow-lg group hover:scale-105
                 ${isMenuOpen 
-                  ? 'opacity-100 scale-100 translate-y-0' 
-                  : 'opacity-0 scale-75 translate-y-4'
+                  ? 'opacity-100 scale-100' 
+                  : 'opacity-0 scale-75'
                 }
               `}
               style={{
-                left: `${xOffset}px`,
-                bottom: '70px',
-                transform: `translateX(-50%) ${isMenuOpen ? 'translateY(0)' : 'translateY(16px)'}`,
-                transitionDelay: `${index * 75}ms`
+                left: isMenuOpen ? `${position.x}px` : '0px',
+                bottom: isMenuOpen ? `${position.y}px` : '0px',
+                transform: 'translate(-50%, -50%)',
+                transitionDelay: `${index * 100}ms`,
+                transitionProperty: 'all, left, bottom'
               }}
             >
               <div className="group-hover:scale-110 transition-transform duration-200">
@@ -100,7 +111,7 @@ export default function Dashboard() {
         {/* Hamburger Button */}
         <Button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="w-16 h-16 rounded-full bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink border-2 border-vice-cyan/50 backdrop-blur-sm transition-all duration-300 shadow-xl group"
+          className="w-16 h-16 rounded-full bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink border-2 border-vice-cyan/50 backdrop-blur-sm transition-all duration-300 shadow-xl group relative z-10"
         >
           <div className="group-hover:scale-110 transition-transform duration-200">
             {isMenuOpen ? (
