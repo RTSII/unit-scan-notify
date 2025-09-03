@@ -66,7 +66,7 @@ export default function Dashboard() {
         {/* Menu Buttons - Horizontal row with precise spacing */}
         {menuItems.map((item, index) => {
           // Position buttons: -105px, -35px, 35px, 105px (70px spacing with centered gap)
-          const xOffset = -105 + (index * 70);
+          const xOffset = -35 + (index * 70);
           
           return (
             <Button
