@@ -1,73 +1,197 @@
-# Welcome to your Lovable project
+# SPR Vice City - Mobile Violation Management App
 
-## Project info
+## Project Overview
 
-**URL**: https://lovable.dev/projects/22649cbf-4588-41b8-adc2-962a2e3dd1da
+**SPR Vice City** is a mobile-first violation notice management application designed for field operations. Built with a retro-futuristic Vice City aesthetic, this app enables property management teams to capture, document, and manage violation notices efficiently on mobile devices.
 
-## How can I edit this code?
+**Live URL**: https://lovable.dev/projects/22649cbf-4588-41b8-adc2-962a2e3dd1da
 
-There are several ways of editing your application.
+## Features
 
-**Use Lovable**
+### 🎯 Core Functionality
+- **Mobile Camera Integration**: Real-time photo capture with confirmation workflow
+- **Violation Form Management**: Comprehensive form system for documenting violations
+- **User Authentication**: Secure invite-only registration system with role-based access
+- **Data Export**: Email and print export capabilities for violation notices
+- **Books Library**: Searchable archive of all saved violation forms
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/22649cbf-4588-41b8-adc2-962a2e3dd1da) and start prompting.
+### 📱 Mobile-Optimized Design
+- **Responsive Layout**: Fully optimized for iOS and Android devices
+- **Touch-Friendly Interface**: Minimum 44px touch targets for accessibility
+- **Safe Area Support**: Proper handling of device notches and home indicators
+- **Viewport Optimization**: Uses `dvh` units for consistent full-screen experience
 
-Changes made via Lovable will be committed automatically to this repo.
+### 🎨 Vice City Theme
+- **Retro-Futuristic Design**: Neon colors, gradients, and cyberpunk aesthetics
+- **Custom Typography**: Orbitron and Righteous fonts with neon glow effects
+- **Animated Elements**: Subtle animations and hover states
+- **Color Palette**: Vice purple, pink, cyan, blue, and orange theme
 
-**Use your preferred IDE**
+## Technology Stack
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- **Frontend**: React 18 + TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS + shadcn/ui components
+- **Database**: Supabase (PostgreSQL)
+- **Authentication**: Supabase Auth with invite system
+- **State Management**: React Query + Context API
+- **Routing**: React Router DOM
+- **Icons**: Lucide React + Material Symbols
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Project Structure
 
-Follow these steps:
+```
+src/
+├── components/          # Reusable UI components
+│   ├── ui/             # shadcn/ui components
+│   ├── AdminInvites.tsx # Admin invite management
+│   ├── CameraCapture.tsx # Camera functionality
+│   └── DetailsPrevious.tsx # Form details component
+├── pages/              # Route components
+│   ├── Dashboard.tsx   # Main dashboard with hamburger menu
+│   ├── Auth.tsx        # Authentication page
+│   ├── Capture.tsx     # Camera capture page
+│   ├── Books.tsx       # Violation forms library
+│   ├── Export.tsx      # Export functionality
+│   ├── Admin.tsx       # Admin panel
+│   ├── DetailsLive.tsx # Live form details
+│   └── DetailsPrevious.tsx # Previous form details
+├── hooks/              # Custom React hooks
+│   ├── useAuth.tsx     # Authentication context
+│   └── use-toast.ts    # Toast notifications
+└── integrations/       # External service integrations
+    └── supabase/       # Supabase client and types
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+## Database Schema
+
+### Tables
+- **profiles**: User profiles with role-based access (admin/user)
+- **invites**: Invitation system for user registration
+- **violation_forms**: Violation notice records with photos and metadata
+
+### Security
+- **Row Level Security (RLS)**: Enabled on all tables
+- **Role-Based Access**: Admin and user roles with appropriate permissions
+- **Invite-Only Registration**: Users must have valid invites to register
+
+## Getting Started
+
+### Prerequisites
+- Node.js 18+ and npm
+- Modern web browser with camera access
+
+### Installation
+
+```bash
+# Clone the repository
 git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
 cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Install dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Environment Setup
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+The project uses Supabase for backend services. Environment variables are automatically configured:
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
 
-**Use GitHub Codespaces**
+## Usage Guide
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### For Administrators
+1. **Initial Setup**: Set your admin email in the database function
+2. **Create Invites**: Use the Admin panel to generate invitation links
+3. **Manage Users**: View and manage user registrations
 
-## What technologies are used for this project?
+### For Field Users
+1. **Authentication**: Register using an invitation link
+2. **Capture Violations**: Use the camera to document violations
+3. **Fill Details**: Complete violation forms with required information
+4. **Save to Books**: Store completed forms in the searchable library
+5. **Export Data**: Email or print violation notices as needed
 
-This project is built with:
+## Key Features Detail
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Camera System
+- **Environment Camera**: Uses rear-facing camera for better photo quality
+- **Confirmation Workflow**: Two-step capture process (capture → confirm)
+- **Session Storage**: Temporarily stores captured images during form completion
 
-## How can I deploy this project?
+### Form Management
+- **Auto-Population**: Live details auto-fill current date/time
+- **Validation**: Ensures required fields and violation types are selected
+- **Status Tracking**: Forms can be saved as drafts or marked complete
 
-Simply open [Lovable](https://lovable.dev/projects/22649cbf-4588-41b8-adc2-962a2e3dd1da) and click on Share -> Publish.
+### Export System
+- **Email Export**: Generates formatted email with violation details
+- **Print Layout**: 2x2 grid layout optimized for printing (max 4 forms)
+- **Batch Operations**: Select multiple forms for bulk export
 
-## Can I connect a custom domain to my Lovable project?
+## Mobile Optimization
 
-Yes, you can!
+### iOS Compatibility
+- Prevents zoom on input focus (16px font size)
+- Handles safe areas for notched devices
+- Optimized touch targets and gestures
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Android Compatibility
+- Chrome address bar handling
+- Touch action optimization
+- Proper viewport configuration
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## Development
+
+### Available Scripts
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+
+### Code Organization
+- **Modular Architecture**: Each component focuses on single responsibility
+- **TypeScript**: Full type safety throughout the application
+- **Clean Imports**: Proper import/export structure
+- **Responsive Design**: Mobile-first approach with desktop enhancements
+
+## Deployment
+
+### Bolt Hosting
+Simply open the [Lovable Project](https://lovable.dev/projects/22649cbf-4588-41b8-adc2-962a2e3dd1da) and click Share → Publish.
+
+### Custom Domain
+Navigate to Project > Settings > Domains to connect a custom domain.
+[Domain Setup Guide](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+## Security Features
+
+- **Invite-Only Registration**: Prevents unauthorized access
+- **Row Level Security**: Database-level access control
+- **Role-Based Permissions**: Admin and user role separation
+- **Session Management**: Secure authentication state handling
+
+## Browser Support
+
+- **Modern Browsers**: Chrome 90+, Safari 14+, Firefox 88+
+- **Mobile Browsers**: iOS Safari, Chrome Mobile, Samsung Internet
+- **Camera API**: Requires HTTPS for camera access in production
+
+## Contributing
+
+This project follows mobile-first development principles. When making changes:
+1. Test on actual mobile devices
+2. Ensure touch targets meet accessibility standards
+3. Verify camera functionality across different devices
+4. Maintain the Vice City aesthetic theme
+
+## Support
+
+For technical issues or feature requests, refer to the Lovable platform documentation or contact the development team.
+
+---
+
+*Built with ❤️ using Lovable and optimized for mobile field operations*
