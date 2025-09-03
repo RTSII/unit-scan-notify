@@ -212,7 +212,7 @@ export default function Export() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue flex items-center justify-center">
+      <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-vice-purple via-black to-vice-blue flex items-center justify-center">
         <div className="text-center">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-vice-pink border-t-transparent mx-auto mb-4" />
           <p className="text-white">Loading...</p>
@@ -225,10 +225,8 @@ export default function Export() {
     <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-vice-purple via-black to-vice-blue">
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-black/30 backdrop-blur-sm border-b border-vice-cyan/20">
-        <div className="w-10" /> {/* Spacer for centering */}
-        
+        <div className="w-10" />
         <h1 className="text-xl font-bold text-white">Export</h1>
-        
         <Button
           variant="ghost"
           size="icon"
@@ -239,7 +237,8 @@ export default function Export() {
         </Button>
       </div>
 
-      <div className="p-4 space-y-4 pb-32 mb-safe-bottom overflow-auto max-h-[calc(100dvh-80px)]">
+      {/* Content with proper mobile spacing */}
+      <div className="p-4 space-y-4 overflow-auto" style={{ height: 'calc(100dvh - 80px)', paddingBottom: 'max(env(safe-area-inset-bottom), 40px)' }}>
         {/* Search and Filter */}
         <div className="flex gap-3">
           <div className="relative flex-1">
@@ -388,8 +387,8 @@ export default function Export() {
           )}
         </Card>
         
-        {/* Bottom spacer to ensure content doesn't get cut off */}
-        <div className="h-24"></div>
+        {/* Extra bottom spacing to ensure no cutoff */}
+        <div className="h-20"></div>
       </div>
     </div>
   );
