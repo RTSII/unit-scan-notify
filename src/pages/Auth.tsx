@@ -63,7 +63,7 @@ export default function Auth() {
   }
 
   return (
-    <div className="h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue relative overflow-hidden">
       {/* Background effects */}
       <div className="absolute inset-0 bg-black/20 z-0" />
       
@@ -81,15 +81,15 @@ export default function Auth() {
       <div className="absolute bottom-10 right-10 w-12 h-12 bg-vice-orange rounded-full opacity-25 blur-md animate-lens-flare-4 z-10"></div>
 
       {/* Content */}
-      <div className="relative flex flex-col justify-center items-center h-full p-4 z-30">
-        <div className="w-full max-w-sm space-y-6">
+      <div className="relative flex flex-col justify-center items-center min-h-screen py-8 px-4 z-30">
+        <div className="w-full max-w-sm space-y-4">
           {/* Logo */}
-          <div className="text-center">
-            <div className="mb-4">
+          <div className="text-center pt-4">
+            <div className="mb-6">
               <img 
                 src="/vicecity.png" 
                 alt="Vice City Logo" 
-                className="mx-auto h-32 w-auto sm:h-40 md:h-48 lg:h-56 drop-shadow-[0_4px_12px_rgba(255,20,147,0.4)] opacity-95"
+                className="mx-auto h-24 w-auto sm:h-32 md:h-36 lg:h-40 drop-shadow-[0_4px_12px_rgba(255,20,147,0.4)] opacity-95"
                 style={{ 
                   filter: 'drop-shadow(0 0 15px rgba(0,255,255,0.3)) drop-shadow(0 0 25px rgba(255,20,147,0.2))',
                   mixBlendMode: 'normal'
@@ -100,7 +100,7 @@ export default function Auth() {
 
           {/* Auth Card */}
           <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm">
-            <CardHeader className="text-center pb-4">
+            <CardHeader className="text-center pb-3 pt-4">
               <CardTitle className="text-white text-xl">
                 {isSignUp ? 'Create Account' : 'Sign In'}
               </CardTitle>
@@ -108,8 +108,8 @@ export default function Auth() {
                 {isSignUp ? 'Register with your invitation email' : 'Access your SPR account'}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 pb-6">
-              <form onSubmit={handleSubmit} className="space-y-4">
+            <CardContent className="space-y-3 pb-4 px-6">
+              <form onSubmit={handleSubmit} className="space-y-3">
                 {isSignUp && (
                   <div className="space-y-2">
                     <Label htmlFor="fullName" className="text-white">Name</Label>
@@ -122,7 +122,7 @@ export default function Auth() {
                         value={fullName} 
                         onChange={e => setFullName(e.target.value)} 
                         className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-11" 
-                      />
+                      className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-10" 
                     </div>
                   </div>
                 )}
@@ -137,7 +137,7 @@ export default function Auth() {
                       placeholder="Enter your email" 
                       value={email} 
                       onChange={e => setEmail(e.target.value)} 
-                      className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-11" 
+                      className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-10" 
                       required 
                     />
                   </div>
@@ -153,7 +153,7 @@ export default function Auth() {
                       placeholder="7+ letters, at least 1 number" 
                       value={password} 
                       onChange={e => setPassword(e.target.value)} 
-                      className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-11" 
+                      className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-10" 
                       minLength={7} 
                       pattern="^(?=.*[0-9]).{7,}$" 
                       title="Password must be at least 7 characters and contain at least one number" 
@@ -164,7 +164,7 @@ export default function Auth() {
                 
                 <Button 
                   type="submit" 
-                  className="w-full bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink text-white font-semibold h-11" 
+                  className="w-full bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink text-white font-semibold h-10" 
                   disabled={isLoading}
                 >
                   {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
@@ -177,18 +177,18 @@ export default function Auth() {
               <Button 
                 onClick={handleGoogleSignIn} 
                 variant="outline" 
-                className="w-full bg-white/10 border-vice-cyan/30 text-white hover:bg-white/20 h-11" 
+                className="w-full bg-white/10 border-vice-cyan/30 text-white hover:bg-white/20 h-10" 
                 disabled={isLoading}
               >
                 <Chrome className="h-4 w-4 mr-2" />
                 Continue with Google
               </Button>
 
-              <div className="text-center pt-2">
+              <div className="text-center pt-1">
                 <button 
                   type="button" 
                   onClick={() => setIsSignUp(!isSignUp)} 
-                  className="text-vice-cyan hover:text-vice-pink text-sm transition-colors"
+                  className="text-vice-cyan hover:text-vice-pink text-xs transition-colors"
                 >
                   {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
                 </button>
