@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Camera, FileText, BookOpen } from "lucide-react";
+import { Camera, FileText, BookOpen, Printer, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,23 +7,23 @@ import { useAuth } from "@/hooks/useAuth";
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [showIcons, setShowIcons] = useState(false);
+  const [showButtons, setShowButtons] = useState(false);
 
-  const handleMainButtonClick = () => {
-    setShowIcons(!showIcons);
+  const handleHamburgerClick = () => {
+    setShowButtons(!showButtons);
   };
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Ocean Background Image */}
+      {/* Background Image */}
       <div 
         className="absolute inset-0 bg-cover bg-center"
         style={{
-          backgroundImage: `url('/lovable-uploads/b6712007-fdbb-47bc-9609-07aeba8618e2.png')`
+          backgroundImage: `url('/2.jpeg')`
         }}
       >
         {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/30"></div>
       </div>
 
       {/* Content */}
@@ -40,63 +40,79 @@ const Dashboard = () => {
         {/* Main Navigation Area */}
         <div className="pb-20 px-8">
           <div className="flex justify-center items-end relative">
-            {/* Transparent Main Button */}
+            {/* Translucent Hamburger Button */}
             <Button
-              onClick={handleMainButtonClick}
-              className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-110"
+              onClick={handleHamburgerClick}
+              className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 transition-all duration-300 transform hover:scale-110"
               size="lg"
             >
-              <div className="w-6 h-6 bg-white/60 rounded-full"></div>
+              <Menu className="w-6 h-6 text-white" />
             </Button>
 
-            {/* Semi-Circle Navigation Icons */}
-            {showIcons && (
+            {/* Semi-Circle Navigation Buttons */}
+            {showButtons && (
               <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2">
-                {/* Capture Button - Left */}
+                {/* Books Button - Far Left */}
                 <Button
-                  onClick={() => navigate('/capture')}
-                  className="absolute w-20 h-20 rounded-full bg-vice-pink hover:bg-vice-pink/80 text-white shadow-2xl shadow-vice-pink/30 transition-all duration-500 transform hover:scale-110 animate-in slide-in-from-bottom-4"
+                  onClick={() => navigate('/books')}
+                  className="absolute w-16 h-16 rounded-full bg-vice-blue hover:bg-vice-blue/80 text-white shadow-2xl shadow-vice-blue/30 transition-all duration-500 transform hover:scale-110 animate-in slide-in-from-bottom-4"
                   style={{
-                    left: '-120px',
-                    bottom: '20px',
+                    left: '-140px',
+                    bottom: '40px',
                     animationDelay: '0.1s'
                   }}
                 >
                   <div className="flex flex-col items-center">
-                    <Camera className="w-8 h-8 mb-1" />
-                    <span className="text-xs font-semibold">Capture</span>
+                    <BookOpen className="w-6 h-6 mb-1" />
+                    <span className="text-xs font-semibold">Books</span>
                   </div>
                 </Button>
 
-                {/* Details Button - Center */}
+                {/* Capture Button - Left */}
                 <Button
-                  onClick={() => navigate('/details-previous')}
-                  className="absolute w-20 h-20 rounded-full bg-vice-cyan hover:bg-vice-cyan/80 text-white shadow-2xl shadow-vice-cyan/30 transition-all duration-500 transform hover:scale-110 animate-in slide-in-from-bottom-4"
+                  onClick={() => navigate('/capture')}
+                  className="absolute w-16 h-16 rounded-full bg-vice-pink hover:bg-vice-pink/80 text-white shadow-2xl shadow-vice-pink/30 transition-all duration-500 transform hover:scale-110 animate-in slide-in-from-bottom-4"
                   style={{
-                    left: '-40px',
-                    bottom: '60px',
+                    left: '-80px',
+                    bottom: '80px',
                     animationDelay: '0.2s'
                   }}
                 >
                   <div className="flex flex-col items-center">
-                    <FileText className="w-8 h-8 mb-1" />
-                    <span className="text-xs font-semibold">Details</span>
+                    <Camera className="w-6 h-6 mb-1" />
+                    <span className="text-xs font-semibold">Capture</span>
                   </div>
                 </Button>
 
-                {/* Books Button - Right */}
+                {/* Details Button - Right */}
                 <Button
-                  onClick={() => navigate('/books')}
-                  className="absolute w-20 h-20 rounded-full bg-vice-blue hover:bg-vice-blue/80 text-white shadow-2xl shadow-vice-blue/30 transition-all duration-500 transform hover:scale-110 animate-in slide-in-from-bottom-4"
+                  onClick={() => navigate('/details-previous')}
+                  className="absolute w-16 h-16 rounded-full bg-vice-cyan hover:bg-vice-cyan/80 text-white shadow-2xl shadow-vice-cyan/30 transition-all duration-500 transform hover:scale-110 animate-in slide-in-from-bottom-4"
                   style={{
-                    left: '40px',
-                    bottom: '20px',
+                    left: '20px',
+                    bottom: '80px',
                     animationDelay: '0.3s'
                   }}
                 >
                   <div className="flex flex-col items-center">
-                    <BookOpen className="w-8 h-8 mb-1" />
-                    <span className="text-xs font-semibold">Books</span>
+                    <FileText className="w-6 h-6 mb-1" />
+                    <span className="text-xs font-semibold">Details</span>
+                  </div>
+                </Button>
+
+                {/* Export Button - Far Right */}
+                <Button
+                  onClick={() => navigate('/export')}
+                  className="absolute w-16 h-16 rounded-full bg-vice-purple hover:bg-vice-purple/80 text-white shadow-2xl shadow-vice-purple/30 transition-all duration-500 transform hover:scale-110 animate-in slide-in-from-bottom-4"
+                  style={{
+                    left: '80px',
+                    bottom: '40px',
+                    animationDelay: '0.4s'
+                  }}
+                >
+                  <div className="flex flex-col items-center">
+                    <Printer className="w-6 h-6 mb-1" />
+                    <span className="text-xs font-semibold">Export</span>
                   </div>
                 </Button>
               </div>
