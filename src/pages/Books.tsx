@@ -140,7 +140,7 @@ const Books = () => {
   }
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-vice-purple via-black to-vice-blue pb-safe-bottom overflow-auto">
+    <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue">
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20">
         <Button 
@@ -286,7 +286,7 @@ const Books = () => {
         </div>
         
         {/* Full Library Button */}
-        <div className="flex justify-center mt-6 mb-8 pb-safe-bottom">
+        <div className="flex justify-center mt-6">
           <Button 
             onClick={() => setShowFullLibrary(true)}
             variant="outline"
@@ -298,7 +298,7 @@ const Books = () => {
           </Button>
         </div>
 
-      <div className="p-4 space-y-6 max-w-6xl mx-auto pb-8 mb-safe-bottom">
+      <div className="p-4 space-y-6 max-w-6xl mx-auto">
         {/* Forms Display */}
         {filteredForms.length === 0 ? (
           <div className="text-center py-8">
@@ -372,7 +372,7 @@ const Books = () => {
 
       {/* Full Library Modal */}
       {showFullLibrary && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 pb-safe-bottom">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-gradient-to-br from-vice-purple/20 via-black/90 to-vice-blue/20 border border-vice-cyan/30 rounded-lg w-full max-w-6xl max-h-[90vh] overflow-hidden">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-vice-cyan/30">
@@ -391,7 +391,7 @@ const Books = () => {
             </div>
             
             {/* Modal Content */}
-            <div className="overflow-y-auto max-h-[calc(90dvh-120px)] p-6">
+            <div className="overflow-y-auto max-h-[calc(90vh-120px)] p-6">
               {forms.length === 0 ? (
                 <div className="text-center py-8">
                   <BookOpen className="w-12 h-12 text-vice-cyan mx-auto mb-4 opacity-50" />

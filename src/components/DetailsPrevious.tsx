@@ -229,7 +229,7 @@ const DetailsPrevious = () => {
   // Show loading while checking auth
   if (loading) {
     return (
-      <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-vice-purple via-black to-vice-blue flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-vice-pink mx-auto mb-4" />
           <p className="text-white">Loading...</p>
@@ -239,7 +239,7 @@ const DetailsPrevious = () => {
   }
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-vice-purple via-black to-vice-blue text-white flex flex-col h-[100dvh]">
+    <div className="fixed inset-0 bg-gradient-to-br from-vice-purple via-black to-vice-blue text-white flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-center p-3 sm:p-4 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20 flex-shrink-0 relative">
         <h1 className="text-lg sm:text-xl font-bold">Details</h1>
@@ -254,7 +254,7 @@ const DetailsPrevious = () => {
       </div>
 
       {/* Form Content */}
-      <div className="flex-1 overflow-auto pb-safe-bottom">
+      <div className="flex-1">
         <div className="p-3 sm:p-4 space-y-4 max-w-md mx-auto">
           {/* Date, Time, Unit Fields */}
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
@@ -379,11 +379,11 @@ const DetailsPrevious = () => {
           </div>
 
           {/* Book Em Save Button */}
-          <div className="flex justify-center pt-4 pb-12 mb-safe-bottom">
+          <div className="flex justify-center pt-4 pb-4">
             <Button 
               onClick={handleSaveForm}
               disabled={isSaving}
-              className="bg-vice-pink hover:bg-vice-pink/80 text-white px-8 py-4 rounded-lg font-semibold text-base min-h-[48px]"
+              className="bg-vice-pink hover:bg-vice-pink/80 text-white px-8 py-3 rounded-lg font-semibold text-sm"
             >
               {isSaving ? (
                 <>
