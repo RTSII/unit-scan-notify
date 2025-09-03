@@ -48,8 +48,8 @@ export default function Dashboard() {
   // Semi-circle dock configuration
   const radius = 120;
   const arcAngles = [135, 105, 75, 45]; // Degrees for upward arc (90° = straight up)
-  const startAngle = 135; // Start angle (135 degrees from vertical)
-  const totalAngle = -90; // Total arc span (-90 degrees for upward arc)
+  const startAngle = 210; // Start angle (210 degrees from vertical)
+  const totalAngle = -60; // Total arc span (-60 degrees for tighter upward arc)
   
   // Calculate positions for each button in the arc
   const getButtonPosition = (index: number) => {
