@@ -222,7 +222,7 @@ export default function Export() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue relative overflow-hidden">
+    <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-vice-purple via-black to-vice-blue relative overflow-hidden">
       {/* Background effects */}
       <div className="absolute inset-0 bg-black/20 z-0" />
       
@@ -240,7 +240,7 @@ export default function Export() {
       <div className="absolute bottom-10 right-10 w-12 h-12 bg-vice-orange rounded-full opacity-25 blur-md animate-lens-flare-4 z-10"></div>
 
       {/* Content */}
-      <div className="relative z-30 min-h-screen pb-safe-bottom">
+      <div className="relative z-30 min-h-screen min-h-[100dvh] pb-safe-bottom">
         {/* Header */}
         <div className="flex items-center justify-between p-4 bg-black/30 backdrop-blur-sm border-b border-vice-cyan/20">
           <Button
@@ -257,7 +257,7 @@ export default function Export() {
           <div className="w-10" /> {/* Spacer for centering */}
         </div>
 
-        <div className="p-4 space-y-4 pb-12 mb-safe-bottom">
+        <div className="p-4 space-y-4 pb-20 mb-safe-bottom overflow-auto max-h-[calc(100dvh-80px)]">
           {/* Search and Filter */}
           <div className="flex gap-3">
             <div className="relative flex-1">
@@ -351,7 +351,7 @@ export default function Export() {
           {/* This Week Card */}
           <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm">
             <CardHeader 
-              className="cursor-pointer"
+              className="cursor-pointer pb-3"
               onClick={() => setIsThisWeekExpanded(!isThisWeekExpanded)}
             >
               <div className="flex items-center justify-between">
@@ -372,17 +372,17 @@ export default function Export() {
             
             {isThisWeekExpanded && (
               <CardContent className="pt-0">
-                <div className="space-y-3">
+                <div className="space-y-3 pb-4">
                   {filteredForms.map((form) => (
-                    <div key={form.id} className="flex items-start gap-3 p-3 bg-black/20 rounded border border-vice-cyan/20">
+                    <div key={form.id} className="flex items-start gap-3 p-3 bg-black/20 rounded border border-vice-cyan/20 min-h-[60px]">
                       <Checkbox
                         checked={selectedForms.includes(form.id)}
                         onCheckedChange={(checked) => handleFormSelection(form.id, checked as boolean)}
-                        className="mt-1 border-vice-cyan/40 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink"
+                        className="mt-1 border-vice-cyan/40 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink min-w-[20px] min-h-[20px]"
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
-                          <h3 className="text-white font-medium">Unit {form.unit_number}</h3>
+                          <h3 className="text-white font-medium text-sm">Unit {form.unit_number}</h3>
                           <span className={`px-2 py-1 rounded text-xs font-medium ${
                             form.status === 'submitted' 
                               ? 'bg-green-500/20 text-green-400' 
@@ -391,20 +391,23 @@ export default function Export() {
                             {form.status}
                           </span>
                         </div>
-                        <p className="text-vice-cyan/80 text-sm mb-1">{form.date} at {form.time}</p>
-                        <p className="text-vice-cyan/80 text-sm mb-1">{form.location}</p>
-                        <p className="text-white/90 text-sm">{form.description}</p>
+                        <p className="text-vice-cyan/80 text-xs mb-1">{form.date} at {form.time}</p>
+                        <p className="text-vice-cyan/80 text-xs mb-1 truncate">{form.location}</p>
+                        <p className="text-white/90 text-xs line-clamp-2">{form.description}</p>
                       </div>
                     </div>
                   ))}
                   
                   {filteredForms.length === 0 && (
-                    <p className="text-vice-cyan/60 text-center py-4">No forms found</p>
+                    <p className="text-vice-cyan/60 text-center py-6 text-sm">No forms found</p>
                   )}
                 </div>
               </CardContent>
             )}
           </Card>
+          
+          {/* Bottom spacer to ensure content doesn't get cut off */}
+          <div className="h-16"></div>
         </div>
       </div>
     </div>
