@@ -115,7 +115,7 @@ const DetailsLive = () => {
   // Show loading while checking auth
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue flex items-center justify-center">
+      <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-vice-purple via-black to-vice-blue flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-vice-pink mx-auto mb-4" />
           <p className="text-white">Loading...</p>
@@ -125,7 +125,7 @@ const DetailsLive = () => {
   }
 
   return (
-    <div className="fixed inset-0 bg-[var(--background-color)] text-[var(--text-primary)] flex flex-col overflow-hidden z-20">
+    <div className="fixed inset-0 bg-[var(--background-color)] text-[var(--text-primary)] flex flex-col overflow-hidden z-20 h-[100dvh]">
       {/* Enhanced Details Header */}
       <header className="bg-gradient-to-r from-vice-purple/20 via-black/80 to-vice-blue/20 backdrop-blur-md border-b border-vice-pink/30 flex-shrink-0 z-10 shadow-lg">
         <div className="flex justify-between items-center h-20 px-6">
@@ -150,7 +150,7 @@ const DetailsLive = () => {
       </header>
 
       {/* Details Content */}
-      <main className="flex-1 p-4 overflow-auto">
+      <main className="flex-1 p-4 overflow-auto pb-safe-bottom mb-4">
         <div className="max-w-md mx-auto space-y-4">
           
           {/* Date, Time & Unit Combined Row */}
@@ -305,7 +305,7 @@ const DetailsLive = () => {
           </div>
 
           {/* Book Em Button */}
-          <div className="flex justify-center mt-8">
+          <div className="flex justify-center mt-8 pb-12 mb-safe-bottom">
             <Button 
               onClick={saveForm}
               disabled={!formData.unit.trim() || (!Object.values(formData.violationTypes).some(v => v) && !formData.description.trim())}
@@ -313,9 +313,9 @@ const DetailsLive = () => {
             >
               <Plus size={20} />
               <span>Book Em</span>
-              {photoCount > 0 && (
+              {capturedImage && (
                 <span className="bg-white/20 rounded-full px-2 py-1 text-sm ml-2">
-                  {photoCount}
+                  1
                 </span>
               )}
             </Button>

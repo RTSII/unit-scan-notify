@@ -240,7 +240,7 @@ export default function Export() {
       <div className="absolute bottom-10 right-10 w-12 h-12 bg-vice-orange rounded-full opacity-25 blur-md animate-lens-flare-4 z-10"></div>
 
       {/* Content */}
-      <div className="relative z-30 min-h-screen">
+      <div className="relative z-30 min-h-screen pb-safe-bottom">
         {/* Header */}
         <div className="flex items-center justify-between p-4 bg-black/30 backdrop-blur-sm border-b border-vice-cyan/20">
           <Button
@@ -257,7 +257,7 @@ export default function Export() {
           <div className="w-10" /> {/* Spacer for centering */}
         </div>
 
-        <div className="p-4 space-y-4">
+        <div className="p-4 space-y-4 pb-12 mb-safe-bottom">
           {/* Search and Filter */}
           <div className="flex gap-3">
             <div className="relative flex-1">

@@ -63,7 +63,7 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue relative overflow-hidden">
+    <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-vice-purple via-black to-vice-blue relative overflow-hidden">
       {/* Background effects */}
       <div className="absolute inset-0 bg-black/20 z-0" />
       
@@ -81,15 +81,15 @@ export default function Auth() {
       <div className="absolute bottom-10 right-10 w-12 h-12 bg-vice-orange rounded-full opacity-25 blur-md animate-lens-flare-4 z-10"></div>
 
       {/* Content */}
-      <div className="relative flex flex-col justify-center items-center min-h-screen py-6 px-4 z-30">
+      <div className="relative flex flex-col justify-center items-center min-h-screen min-h-[100dvh] py-4 px-4 z-30 pb-safe-bottom">
         <div className="w-full max-w-sm space-y-3">
           {/* Logo */}
-          <div className="text-center pt-1">
+          <div className="text-center">
             <div className="mb-3">
               <img 
                 src="/vicecity.png" 
                 alt="Vice City Logo" 
-                className="mx-auto h-28 w-auto sm:h-32 md:h-36 lg:h-40 drop-shadow-[0_4px_12px_rgba(255,20,147,0.4)] opacity-95"
+                className="mx-auto h-24 w-auto sm:h-28 md:h-32 lg:h-36 drop-shadow-[0_4px_12px_rgba(255,20,147,0.4)] opacity-95"
                 style={{ 
                   filter: 'drop-shadow(0 0 15px rgba(0,255,255,0.3)) drop-shadow(0 0 25px rgba(255,20,147,0.2))',
                   mixBlendMode: 'normal'

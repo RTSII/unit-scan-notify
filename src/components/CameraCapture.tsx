@@ -91,7 +91,7 @@ const CameraCapture = () => {
 
 
   return (
-    <div className="fixed inset-0 bg-[var(--background-color)] text-[var(--text-primary)] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-[var(--background-color)] text-[var(--text-primary)] flex flex-col overflow-hidden h-[100dvh]">
       {/* Header */}
       <header className="bg-black/50 backdrop-blur-sm flex-shrink-0 z-10">
         <div className="flex justify-between items-center h-20 px-4">
@@ -132,10 +132,10 @@ const CameraCapture = () => {
       </main>
 
       {/* Footer */}
-      <footer className="bg-black/50 backdrop-blur-sm flex-shrink-0 pb-safe-bottom">
+      <footer className="bg-black/50 backdrop-blur-sm flex-shrink-0 pb-safe-bottom min-h-[112px]">
         {/* Capture Confirm State */}
         {captureState === 'confirm' && (
-          <div className="flex justify-center py-4">
+          <div className="flex justify-center py-4 px-4">
             <div className="flex gap-16">
               <button 
                 className="w-16 h-16 bg-[var(--color-red)] rounded-full flex items-center justify-center shadow-lg transform active:scale-95 transition-transform"
@@ -154,7 +154,7 @@ const CameraCapture = () => {
         )}
 
         {/* Main Controls */}
-        <div className="flex justify-between items-center h-28 px-4">
+        <div className="flex justify-between items-center min-h-[112px] px-4 py-4">
           {/* Power Button */}
           <button className="p-2" onClick={handlePowerClick}>
             <span 
@@ -168,7 +168,7 @@ const CameraCapture = () => {
 
           {/* Capture Button - Only show in initial state */}
           {captureState === 'initial' && (
-            <div className="flex-grow flex justify-center">
+            <div className="flex-grow flex justify-center px-4">
               <button 
                 className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg transform active:scale-95 transition-transform"
                 onClick={handleCaptureClick}

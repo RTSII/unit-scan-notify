@@ -124,7 +124,7 @@ export default function AdminInvites() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-2xl mx-auto">
       <Card className="bg-black/40 border-vice-cyan/30">
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">
@@ -145,14 +145,14 @@ export default function AdminInvites() {
                 placeholder="Enter email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40"
+                className="bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 min-h-[44px]"
                 required
               />
             </div>
             <Button 
               type="submit" 
               disabled={creating}
-              className="bg-vice-pink hover:bg-vice-purple"
+              className="bg-vice-pink hover:bg-vice-purple min-h-[44px] min-w-[44px]"
             >
               {creating ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
