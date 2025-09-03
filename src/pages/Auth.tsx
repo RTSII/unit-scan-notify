@@ -81,15 +81,15 @@ export default function Auth() {
       <div className="absolute bottom-10 right-10 w-12 h-12 bg-vice-orange rounded-full opacity-25 blur-md animate-lens-flare-4 z-10"></div>
 
       {/* Content */}
-      <div className="relative flex flex-col justify-center items-center min-h-screen py-4 px-4 z-30">
-        <div className="w-full max-w-sm space-y-4">
+      <div className="relative flex flex-col justify-center items-center min-h-screen py-6 px-4 z-30">
+        <div className="w-full max-w-sm space-y-3">
           {/* Logo */}
-          <div className="text-center pt-2">
-            <div className="mb-4">
+          <div className="text-center pt-1">
+            <div className="mb-3">
               <img 
                 src="/vicecity.png" 
                 alt="Vice City Logo" 
-                className="mx-auto h-32 w-auto sm:h-40 md:h-44 lg:h-48 drop-shadow-[0_4px_12px_rgba(255,20,147,0.4)] opacity-95"
+                className="mx-auto h-28 w-auto sm:h-32 md:h-36 lg:h-40 drop-shadow-[0_4px_12px_rgba(255,20,147,0.4)] opacity-95"
                 style={{ 
                   filter: 'drop-shadow(0 0 15px rgba(0,255,255,0.3)) drop-shadow(0 0 25px rgba(255,20,147,0.2))',
                   mixBlendMode: 'normal'
@@ -100,19 +100,18 @@ export default function Auth() {
 
           {/* Auth Card */}
           <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm">
-            <CardHeader className="text-center pb-2 pt-3">
+            <CardHeader className="text-center pb-2 pt-4">
               <CardTitle className="text-white text-xl">
                 {isSignUp ? 'Create Account' : 'Sign In'}
-              </CardTitle>
               <CardDescription className="text-vice-cyan/80">
                 {isSignUp ? 'Register with your invitation email' : 'Access your SPR account'}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2 pb-3 px-6">
-              <form onSubmit={handleSubmit} className="space-y-2">
+            <CardContent className="space-y-2 pb-3 px-4">
+              <form onSubmit={handleSubmit} className="space-y-1.5">
                 {isSignUp && (
-                  <div className="space-y-1">
-                    <Label htmlFor="fullName" className="text-white">Name</Label>
+                  <div className="space-y-0.5">
+                    <Label htmlFor="fullName" className="text-white text-sm">Name</Label>
                     <div className="relative">
                       <User className="absolute left-3 top-3 h-4 w-4 text-vice-cyan/60" />
                       <Input 
@@ -121,14 +120,14 @@ export default function Auth() {
                         placeholder="Enter your name" 
                         value={fullName} 
                         onChange={e => setFullName(e.target.value)} 
-                        className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-10" 
+                        className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-9" 
                       />
                     </div>
                   </div>
                 )}
                 
-                <div className="space-y-1">
-                  <Label htmlFor="email" className="text-white">Email</Label>
+                <div className="space-y-0.5">
+                  <Label htmlFor="email" className="text-white text-sm">Email</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-3 h-4 w-4 text-vice-cyan/60" />
                     <Input 
@@ -137,14 +136,14 @@ export default function Auth() {
                       placeholder="Enter your email" 
                       value={email} 
                       onChange={e => setEmail(e.target.value)} 
-                      className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-10" 
+                      className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-9" 
                       required 
                     />
                   </div>
                 </div>
                 
-                <div className="space-y-1">
-                  <Label htmlFor="password" className="text-white">Password</Label>
+                <div className="space-y-0.5">
+                  <Label htmlFor="password" className="text-white text-sm">Password</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-vice-cyan/60" />
                     <Input 
@@ -153,7 +152,7 @@ export default function Auth() {
                       placeholder="7+ letters, at least 1 number" 
                       value={password} 
                       onChange={e => setPassword(e.target.value)} 
-                      className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-10" 
+                      className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-9" 
                       minLength={7} 
                       pattern="^(?=.*[0-9]).{7,}$" 
                       title="Password must be at least 7 characters and contain at least one number" 
@@ -162,10 +161,10 @@ export default function Auth() {
                   </div>
                 </div>
                 
-                <div className="pt-2">
+                <div className="pt-1">
                   <Button 
                   type="submit" 
-                  className="w-full bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink text-white font-semibold h-10" 
+                  className="w-full bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink text-white font-semibold h-9" 
                   disabled={isLoading}
                 >
                   {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
@@ -174,23 +173,23 @@ export default function Auth() {
                 </div>
               </form>
 
-              <Separator className="bg-vice-cyan/20" />
+              <Separator className="bg-vice-cyan/20 my-2" />
 
               <Button 
                 onClick={handleGoogleSignIn} 
                 variant="outline" 
-                className="w-full bg-white/10 border-vice-cyan/30 text-white hover:bg-white/20 h-10" 
+                className="w-full bg-white/10 border-vice-cyan/30 text-white hover:bg-white/20 h-9" 
                 disabled={isLoading}
               >
                 <Chrome className="h-4 w-4 mr-2" />
                 Continue with Google
               </Button>
 
-              <div className="text-center">
+              <div className="text-center pt-1">
                 <button 
                   type="button" 
                   onClick={() => setIsSignUp(!isSignUp)} 
-                  className="text-vice-cyan hover:text-vice-pink text-xs transition-colors"
+                  className="text-vice-cyan hover:text-vice-pink text-xs transition-colors pb-1"
                 >
                   {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
                 </button>
