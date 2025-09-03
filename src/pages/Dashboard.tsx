@@ -45,21 +45,15 @@ export default function Dashboard() {
     }
   ];
 
-  // Semi-circle dock configuration
-  const radius = 100; // Distance from hamburger center
-  const totalAngle = 120; // Total arc span in degrees
-  const startAngle = 225; // Start angle rotated 45 degrees to the right (180 + 45)
-  
-  // Calculate positions for each button in the arc
+  // Vertical layout configuration - buttons positioned directly above hamburger
   const getButtonPosition = (index: number) => {
-    const angleStep = totalAngle / (menuItems.length - 1);
-    const angle = startAngle + (index * angleStep); // Calculate angle for each button
-    const radians = (angle * Math.PI) / 180;
+    // Vertical spacing between buttons
+    const buttonSpacing = 80; // 80px between each button
+    // Start from the top button and work down
+    // Button 0 (Camera) at top, Button 3 (Export) closest to hamburger
+    const y = (menuItems.length - 1 - index) * buttonSpacing + 20; // +20 for spacing from hamburger
     
-    const x = Math.cos(radians) * radius;
-    const y = -Math.sin(radians) * radius; // Negative Y to position above hamburger
-    
-    return { x, y };
+    return { x: 0, y }; // x: 0 centers buttons horizontally over hamburger
   };
 
   return (
