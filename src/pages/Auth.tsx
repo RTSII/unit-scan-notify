@@ -89,14 +89,13 @@ export default function Auth() {
               <img 
                 src="/vicecity.png" 
                 alt="Vice City Logo" 
-                className="mx-auto h-20 w-auto sm:h-24 md:h-28 drop-shadow-[0_4px_12px_rgba(255,20,147,0.4)] opacity-95"
+                className="mx-auto h-32 w-auto sm:h-40 md:h-48 lg:h-56 drop-shadow-[0_4px_12px_rgba(255,20,147,0.4)] opacity-95"
                 style={{ 
                   filter: 'drop-shadow(0 0 15px rgba(0,255,255,0.3)) drop-shadow(0 0 25px rgba(255,20,147,0.2))',
                   mixBlendMode: 'normal'
                 }}
               />
             </div>
-            <p className="text-vice-cyan text-sm opacity-80">Invitation Required</p>
           </div>
 
           {/* Auth Card */}
