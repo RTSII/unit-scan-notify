@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Camera, FileText, BookOpen, Printer, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -6,11 +6,31 @@ import { useAuth } from "@/hooks/useAuth";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [showButtons, setShowButtons] = useState(false);
+  const [showGreeting, setShowGreeting] = useState(false);
+
+  // Trigger greeting animation on component mount
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowGreeting(true);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleHamburgerClick = () => {
     setShowButtons(!showButtons);
+  };
+
+  // Get user's first name from profile or email
+  const getFirstName = () => {
+    if (profile?.full_name) {
+      return profile.full_name.split(' ')[0];
+    }
+    if (user?.email) {
+      return user.email.split('@')[0];
+    }
+    return 'User';
   };
 
   return (
@@ -28,11 +48,21 @@ const Dashboard = () => {
 
       {/* Content */}
       <div className="relative z-10 min-h-screen flex flex-col">
-        {/* Header with Hello, rob */}
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-6xl font-bold text-white drop-shadow-2xl mb-8">
-              Hello, rob
+        {/* Header Section for Animated Greeting */}
+        <div className="flex-1 flex items-center justify-center relative">
+          {/* Static Comma positioned in center */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <span className="text-8xl font-bold text-white/80 vice-city-font drop-shadow-2xl">,</span>
+          </div>
+
+          {/* Animated Greeting */}
+          <div className={`absolute top-1/4 left-1/2 transform -translate-x-1/2 transition-all duration-1000 ease-out ${
+            showGreeting 
+              ? 'translate-y-0 opacity-100' 
+              : 'translate-y-32 opacity-0'
+          }`}>
+            <h1 className="text-5xl sm:text-6xl font-bold text-white drop-shadow-2xl vice-city-font vice-neon-glow text-center">
+              Hello, {getFirstName()}
             </h1>
           </div>
         </div>
