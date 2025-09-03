@@ -126,81 +126,61 @@ const DetailsLive = () => {
   }
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-cover bg-center bg-no-repeat flex flex-col overflow-hidden" style={{ backgroundImage: 'url(/2.jpeg)' }}>
-      {/* Background overlay for better readability */}
-      <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-vice-purple/30 to-black/70 z-0" />
-      
-      {/* Enhanced Details Header */}
-      <header className="relative z-10 bg-gradient-to-r from-vice-purple/20 via-black/80 to-vice-blue/20 backdrop-blur-md border-b border-vice-pink/30 flex-shrink-0 shadow-lg">
-        <div className="flex justify-between items-center h-16 px-4 safe-area-top">
-          <Button
-            onClick={() => navigate('/')}
-            variant="ghost"
-            size="sm"
-            className="text-vice-cyan hover:text-vice-pink hover:bg-vice-purple/20 transition-all duration-300 flex items-center gap-2 group min-h-[44px] min-w-[44px]"
-          >
-            <Home size={18} className="group-hover:scale-110 transition-transform" />
-            <span className="font-medium text-sm">Home</span>
-          </Button>
-          
-          <div className="flex items-center gap-2">
-            <Zap size={16} className="text-vice-pink animate-pulse" />
-            <h1 className="text-lg font-bold text-white">Details</h1>
-            <Zap size={16} className="text-vice-cyan animate-pulse" />
-          </div>
-          
-          <div className="w-20" /> {/* Spacer for centered title */}
-        </div>
-      </header>
+    <div className="fixed inset-0 bg-gradient-to-br from-vice-purple via-black to-vice-blue text-white flex flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-center p-3 sm:p-4 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20 flex-shrink-0 relative">
+        <h1 className="text-lg sm:text-xl font-bold">Details</h1>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="text-white hover:bg-white/10 p-2 absolute right-3 sm:right-4"
+          onClick={() => navigate('/')}
+        >
+          <Home className="w-4 h-4" />
+        </Button>
+      </div>
 
-      {/* Scrollable Content Area */}
-      <main className="relative z-10 flex-1 overflow-y-auto">
-        <div className="p-4 pb-24 max-w-sm mx-auto space-y-4">
-          
-          {/* Date, Time & Unit Combined Row */}
-          <div className="flex gap-2 items-end justify-center">
-            <div className="flex-1 max-w-[70px]">
-              <label className="block text-xs font-medium text-vice-cyan mb-1 text-center">Date</label>
+      {/* Form Content */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-3 sm:p-4 space-y-4 max-w-md mx-auto pb-24">
+          {/* Date, Time, Unit Fields */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <div className="space-y-1.5">
+              <label className="text-vice-cyan font-medium text-xs sm:text-sm text-center block">Date</label>
               <Input
                 value={formData.date}
                 onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                placeholder="MM/DD"
-                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-sm h-10 text-center font-medium"
+                placeholder=""
+                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-sm h-9 sm:h-10"
               />
             </div>
-            <div className="flex-1 max-w-[80px]">
-              <label className="block text-xs font-medium text-vice-cyan mb-1 text-center">Time</label>
+            <div className="space-y-1.5">
+              <label className="text-vice-cyan font-medium text-xs sm:text-sm text-center block">Time</label>
               <Input
                 value={formData.time}
                 onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
-                placeholder="00:00 AM"
-                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-xs h-10 text-center font-medium"
+                placeholder=""
+                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-sm h-9 sm:h-10"
               />
             </div>
-            <div className="flex-1 max-w-[70px]">
-              <label className="block text-xs font-medium text-vice-cyan mb-1 text-center">Unit</label>
+            <div className="space-y-1.5">
+              <label className="text-vice-cyan font-medium text-xs sm:text-sm text-center block">Unit</label>
               <Input
                 value={formData.unit}
-                onChange={(e) => {
-                  let value = e.target.value.toUpperCase();
-                  // Force 1st and 3rd characters to be uppercase letters if they exist
-                  if (value.length >= 1) value = value.charAt(0).toUpperCase() + value.slice(1);
-                  if (value.length >= 3) value = value.slice(0, 2) + value.charAt(2).toUpperCase() + value.slice(3);
-                  setFormData(prev => ({ ...prev, unit: value }));
-                }}
-                maxLength={3}
-                className="bg-black/40 border-vice-cyan/30 text-white h-10 text-sm uppercase text-center font-bold tracking-wider"
+                onChange={(e) => setFormData(prev => ({ ...prev, unit: e.target.value }))}
+                placeholder=""
+                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-sm h-9 sm:h-10"
               />
             </div>
           </div>
 
-          {/* Violation Types */}
+          {/* Violation Type Section - Compact */}
           <div className="space-y-3">
-            <label className="block text-sm font-medium text-vice-cyan text-center">Violation Type (Select applicable)</label>
+            <h3 className="text-vice-cyan font-medium text-sm sm:text-base text-center">Violation Type (Select applicable)</h3>
+            
             <div className="space-y-2">
-              <div className="flex items-center space-x-3 p-3 rounded-lg border border-vice-cyan/20 bg-black/30 min-h-[44px]">
+              <div className="flex items-center space-x-3 p-2.5 sm:p-3 rounded-lg border border-vice-cyan/20 bg-black/20">
                 <Checkbox
-                  id="items-outside"
                   checked={formData.violationTypes.itemsOutside}
                   onCheckedChange={(checked) => 
                     setFormData(prev => ({
@@ -208,16 +188,13 @@ const DetailsLive = () => {
                       violationTypes: { ...prev.violationTypes, itemsOutside: !!checked }
                     }))
                   }
-                  className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink min-h-[20px] min-w-[20px]"
+                  className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink"
                 />
-                <label htmlFor="items-outside" className="text-white text-sm cursor-pointer flex-1 leading-tight">
-                  Items left outside Unit
-                </label>
+                <label className="text-white cursor-pointer text-xs sm:text-sm leading-tight">Items left outside Unit</label>
               </div>
-              
-              <div className="flex items-center space-x-3 p-3 rounded-lg border border-vice-cyan/20 bg-black/30 min-h-[44px]">
+
+              <div className="flex items-center space-x-3 p-2.5 sm:p-3 rounded-lg border border-vice-cyan/20 bg-black/20">
                 <Checkbox
-                  id="trash-outside"
                   checked={formData.violationTypes.trashOutside}
                   onCheckedChange={(checked) => 
                     setFormData(prev => ({
@@ -225,111 +202,97 @@ const DetailsLive = () => {
                       violationTypes: { ...prev.violationTypes, trashOutside: !!checked }
                     }))
                   }
-                  className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink min-h-[20px] min-w-[20px]"
+                  className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink"
                 />
-                <label htmlFor="trash-outside" className="text-white text-sm cursor-pointer flex-1 leading-tight">
-                  Trash left outside Unit
-                </label>
+                <label className="text-white cursor-pointer text-xs sm:text-sm leading-tight">Trash left outside Unit</label>
               </div>
-              
-              <div className="flex items-center space-x-3 p-3 rounded-lg border border-vice-cyan/20 bg-black/30 min-h-[44px]">
-                <Checkbox
-                  id="balcony-items"
-                  checked={formData.violationTypes.balconyItems}
-                  onCheckedChange={(checked) => 
-                    setFormData(prev => ({
-                      ...prev,
-                      violationTypes: { ...prev.violationTypes, balconyItems: !!checked },
-                      balconyChoice: checked ? '' : ''
-                    }))
-                  }
-                  className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink min-h-[20px] min-w-[20px]"
-                />
-                <label htmlFor="balcony-items" className="text-white text-sm cursor-pointer flex-1 leading-tight">
-                  Items left on{' '}
-                  {formData.violationTypes.balconyItems ? (
-                    <span className="inline-flex gap-2 mt-1">
-                      <button
-                        type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, balconyChoice: 'balcony' }))}
-                        className={`px-3 py-1 rounded transition-all duration-300 min-h-[32px] text-xs font-medium ${
-                          formData.balconyChoice === 'balcony' 
-                            ? 'bg-vice-pink text-white scale-105 shadow-lg' 
-                            : 'bg-transparent border border-vice-pink text-vice-pink hover:bg-vice-pink/20'
-                        }`}
-                      >
-                        balcony
-                      </button>
-                      <span className="text-vice-cyan/60 self-center">/</span>
-                      <button
-                        type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, balconyChoice: 'front' }))}
-                        className={`px-3 py-1 rounded transition-all duration-300 min-h-[32px] text-xs font-medium ${
-                          formData.balconyChoice === 'front' 
-                            ? 'bg-vice-pink text-white scale-105 shadow-lg' 
-                            : 'bg-transparent border border-vice-pink text-vice-pink hover:bg-vice-pink/20'
-                        }`}
-                      >
-                        front
-                      </button>
-                    </span>
-                  ) : (
-                    'balcony/front'
-                  )}{' '}
-                  railing
-                </label>
+
+              <div className="space-y-2">
+                <div className="flex items-center space-x-3 p-2.5 sm:p-3 rounded-lg border border-vice-cyan/20 bg-black/20">
+                  <Checkbox
+                    checked={formData.violationTypes.balconyItems}
+                    onCheckedChange={(checked) => 
+                      setFormData(prev => ({
+                        ...prev,
+                        violationTypes: { ...prev.violationTypes, balconyItems: !!checked },
+                        balconyChoice: checked ? '' : ''
+                      }))
+                    }
+                    className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink"
+                  />
+                  <label className="text-white cursor-pointer text-xs sm:text-sm leading-tight">Items left on balcony/front railing</label>
+                </div>
+                
+                {formData.violationTypes.balconyItems && (
+                  <div className="flex gap-2 justify-center">
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, balconyChoice: 'balcony' }))}
+                      className={`px-3 py-1.5 rounded text-xs font-medium transition-all ${
+                        formData.balconyChoice === 'balcony' 
+                          ? 'bg-vice-pink text-white' 
+                          : 'bg-transparent border border-vice-pink text-vice-pink hover:bg-vice-pink/20'
+                      }`}
+                    >
+                      balcony
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, balconyChoice: 'front' }))}
+                      className={`px-3 py-1.5 rounded text-xs font-medium transition-all ${
+                        formData.balconyChoice === 'front' 
+                          ? 'bg-vice-pink text-white' 
+                          : 'bg-transparent border border-vice-pink text-vice-pink hover:bg-vice-pink/20'
+                      }`}
+                    >
+                      front
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Description */}
+          {/* Description Section - Collapsible */}
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                className="p-2 hover:bg-black/20 rounded-full transition-colors flex items-center justify-center min-h-[44px] min-w-[44px]"
-              >
-                <Power 
-                  size={16} 
-                  className={`transition-colors duration-200 ${
-                    isDescriptionExpanded ? 'text-vice-cyan' : 'text-vice-pink'
-                  }`} 
-                />
-              </button>
-              <label className="block text-sm font-medium text-vice-pink">Description</label>
+            <div 
+              className="flex items-center justify-between cursor-pointer p-1"
+              onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+            >
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 rounded-full bg-vice-pink"></div>
+                <label className="text-vice-pink font-medium text-sm">Description</label>
+              </div>
+              <Power className={`w-4 h-4 transition-colors ${isDescriptionExpanded ? 'text-vice-cyan' : 'text-vice-pink'}`} />
             </div>
             {isDescriptionExpanded && (
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Enter additional details..."
-                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-sm resize-none transition-all duration-300 min-h-[80px]"
-                rows={4}
+                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 min-h-[80px] sm:min-h-[100px] resize-none text-sm"
               />
             )}
           </div>
         </div>
-      </main>
+      </div>
 
       {/* Fixed Bottom Button */}
-      <div className="relative z-10 bg-gradient-to-t from-black/90 via-black/70 to-transparent backdrop-blur-sm border-t border-vice-cyan/20 flex-shrink-0">
-        <div className="p-4 pb-6 safe-area-bottom">
-          <div className="flex justify-center">
-            <Button 
-              onClick={saveForm}
-              disabled={!formData.unit.trim() || (!Object.values(formData.violationTypes).some(v => v) && !formData.description.trim())}
-              className="bg-gradient-to-r from-vice-purple to-vice-blue hover:from-vice-pink hover:to-vice-purple text-white px-8 py-4 text-base font-bold rounded-lg flex items-center gap-3 transition-all duration-300 transform hover:scale-105 shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none min-h-[56px] min-w-[140px]"
-            >
-              <Plus size={20} />
-              <span>Book Em</span>
-              {photoCount > 0 && (
-                <span className="bg-white/20 rounded-full px-2 py-1 text-sm ml-1">
-                  {photoCount}
-                </span>
-              )}
-            </Button>
-          </div>
+      <div className="flex-shrink-0 bg-black/50 backdrop-blur-sm border-t border-vice-cyan/20 p-4">
+        <div className="flex justify-center">
+          <Button 
+            onClick={saveForm}
+            disabled={!formData.unit.trim() || (!Object.values(formData.violationTypes).some(v => v) && !formData.description.trim())}
+            className="bg-vice-pink hover:bg-vice-pink/80 text-white px-8 py-3 rounded-lg font-semibold text-sm flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Book Em
+            {photoCount > 0 && (
+              <span className="bg-white/20 rounded-full px-2 py-1 text-xs ml-1">
+                {photoCount}
+              </span>
+            )}
+          </Button>
         </div>
       </div>
     </div>
