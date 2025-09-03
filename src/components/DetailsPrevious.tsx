@@ -64,12 +64,15 @@ const DetailsPrevious = () => {
     const files = event.target.files;
     if (files) {
       const newImageUrls: string[] = [];
+      let processedCount = 0;
+      
       Array.from(files).forEach(file => {
         const reader = new FileReader();
         reader.onload = (e) => {
           if (e.target?.result) {
             newImageUrls.push(e.target.result as string);
-            if (newImageUrls.length === files.length) {
+            processedCount++;
+            if (processedCount === files.length) {
               setSelectedImages(prev => [...prev, ...newImageUrls]);
             }
           }
@@ -80,6 +83,8 @@ const DetailsPrevious = () => {
   };
 
   const handleSaveForm = async () => {
+    console.log('Save form clicked');
+    
     if (!user?.id) {
       toast.error("Authentication required");
       return;
@@ -102,6 +107,8 @@ const DetailsPrevious = () => {
     setIsSaving(true);
     
     try {
+      console.log('Starting save process...');
+      
       // Get violation types as array
       const violationTypesArray = [];
       if (formData.violationTypes.itemsOutside) violationTypesArray.push('Items left outside Unit');
@@ -120,16 +127,20 @@ const DetailsPrevious = () => {
         status: 'completed'
       };
 
-      const { error } = await supabase
+      console.log('Saving form data:', formToSave);
+
+      const { data, error } = await supabase
         .from('violation_forms')
-        .insert([formToSave]);
+        .insert([formToSave])
+        .select();
 
       if (error) {
         console.error('Save error:', error);
-        toast.error("Failed to save form");
+        toast.error(`Failed to save form: ${error.message}`);
         return;
       }
 
+      console.log('Form saved successfully:', data);
       toast.success("Violation saved successfully!");
       
       // Clear form data
@@ -147,7 +158,9 @@ const DetailsPrevious = () => {
       setSelectedImages([]);
       
       // Navigate to books page
-      navigate('/books');
+      setTimeout(() => {
+        navigate('/books');
+      }, 1000);
       
     } catch (error) {
       console.error('Save error:', error);
@@ -248,9 +261,9 @@ const DetailsPrevious = () => {
     (Object.values(formData.violationTypes).some(v => v) || formData.description.trim());
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-vice-purple via-black to-vice-blue text-white overflow-y-auto">
-      {/* Header */}
-      <div className="sticky top-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm border-b border-vice-cyan/20">
+    <div className="h-screen h-[100dvh] bg-gradient-to-br from-vice-purple via-black to-vice-blue text-white flex flex-col overflow-hidden">
+      {/* Header - Fixed */}
+      <div className="flex-shrink-0 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm border-b border-vice-cyan/20 relative">
         <h1 className="text-xl font-bold">Details</h1>
         <Button 
           variant="ghost" 
@@ -262,133 +275,135 @@ const DetailsPrevious = () => {
         </Button>
       </div>
 
-      {/* Form Content */}
-      <div className="p-4 space-y-6 max-w-md mx-auto pb-32">
-        {/* Date, Time, Unit Fields */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="space-y-2">
-            <Label className="text-vice-cyan font-medium text-sm text-center block">Date</Label>
-            <Input
-              value={formData.date}
-              onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-              placeholder="MM/DD"
-              className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11"
-            />
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-4 space-y-6 max-w-md mx-auto pb-24">
+          {/* Date, Time, Unit Fields */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-2">
+              <Label className="text-vice-cyan font-medium text-sm text-center block">Date</Label>
+              <Input
+                value={formData.date}
+                onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                placeholder="MM/DD"
+                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-vice-cyan font-medium text-sm text-center block">Time</Label>
+              <Input
+                value={formData.time}
+                onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
+                placeholder="HH:MM"
+                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-vice-cyan font-medium text-sm text-center block">Unit</Label>
+              <Input
+                value={formData.unit}
+                onChange={(e) => setFormData(prev => ({ ...prev, unit: e.target.value }))}
+                placeholder="Unit #"
+                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11"
+              />
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label className="text-vice-cyan font-medium text-sm text-center block">Time</Label>
-            <Input
-              value={formData.time}
-              onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
-              placeholder="HH:MM"
-              className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-vice-cyan font-medium text-sm text-center block">Unit</Label>
-            <Input
-              value={formData.unit}
-              onChange={(e) => setFormData(prev => ({ ...prev, unit: e.target.value }))}
-              placeholder="Unit #"
-              className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11"
-            />
-          </div>
-        </div>
 
-        {/* Violation Type Section */}
-        <div className="space-y-4">
-          <h3 className="text-vice-cyan font-medium text-base text-center">Violation Type (Select applicable)</h3>
-          
+          {/* Violation Type Section */}
+          <div className="space-y-4">
+            <h3 className="text-vice-cyan font-medium text-base text-center">Violation Type (Select applicable)</h3>
+            
+            <div className="space-y-3">
+              <div className="flex items-center space-x-3 p-3 rounded-lg border border-vice-cyan/20 bg-black/20 min-h-[44px]">
+                <Checkbox
+                  checked={formData.violationTypes.itemsOutside}
+                  onCheckedChange={(checked) => handleViolationTypeChange('itemsOutside', checked as boolean)}
+                  className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink min-w-[20px] min-h-[20px]"
+                />
+                <Label className="text-white cursor-pointer text-sm leading-tight flex-1">Items left outside Unit</Label>
+              </div>
+
+              <div className="flex items-center space-x-3 p-3 rounded-lg border border-vice-cyan/20 bg-black/20 min-h-[44px]">
+                <Checkbox
+                  checked={formData.violationTypes.trashOutside}
+                  onCheckedChange={(checked) => handleViolationTypeChange('trashOutside', checked as boolean)}
+                  className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink min-w-[20px] min-h-[20px]"
+                />
+                <Label className="text-white cursor-pointer text-sm leading-tight flex-1">Trash left outside Unit</Label>
+              </div>
+
+              <div className="flex items-center space-x-3 p-3 rounded-lg border border-vice-cyan/20 bg-black/20 min-h-[44px]">
+                <Checkbox
+                  checked={formData.violationTypes.itemsBalcony}
+                  onCheckedChange={(checked) => handleViolationTypeChange('itemsBalcony', checked as boolean)}
+                  className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink min-w-[20px] min-h-[20px]"
+                />
+                <Label className="text-white cursor-pointer text-sm leading-tight flex-1">Items left on balcony/front railing</Label>
+              </div>
+            </div>
+          </div>
+
+          {/* Description Section - Collapsible */}
           <div className="space-y-3">
-            <div className="flex items-center space-x-3 p-3 rounded-lg border border-vice-cyan/20 bg-black/20 min-h-[44px]">
-              <Checkbox
-                checked={formData.violationTypes.itemsOutside}
-                onCheckedChange={(checked) => handleViolationTypeChange('itemsOutside', checked as boolean)}
-                className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink min-w-[20px] min-h-[20px]"
+            <div 
+              className="flex items-center justify-between cursor-pointer p-2 min-h-[44px]"
+              onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+            >
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 rounded-full bg-vice-pink"></div>
+                <Label className="text-vice-pink font-medium text-sm">Description</Label>
+              </div>
+              {isDescriptionExpanded ? (
+                <ChevronUp className="w-5 h-5 text-vice-pink" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-vice-pink" />
+              )}
+            </div>
+            {isDescriptionExpanded && (
+              <Textarea
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Enter additional details..."
+                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 min-h-[100px] resize-none text-base"
               />
-              <Label className="text-white cursor-pointer text-sm leading-tight flex-1">Items left outside Unit</Label>
-            </div>
-
-            <div className="flex items-center space-x-3 p-3 rounded-lg border border-vice-cyan/20 bg-black/20 min-h-[44px]">
-              <Checkbox
-                checked={formData.violationTypes.trashOutside}
-                onCheckedChange={(checked) => handleViolationTypeChange('trashOutside', checked as boolean)}
-                className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink min-w-[20px] min-h-[20px]"
-              />
-              <Label className="text-white cursor-pointer text-sm leading-tight flex-1">Trash left outside Unit</Label>
-            </div>
-
-            <div className="flex items-center space-x-3 p-3 rounded-lg border border-vice-cyan/20 bg-black/20 min-h-[44px]">
-              <Checkbox
-                checked={formData.violationTypes.itemsBalcony}
-                onCheckedChange={(checked) => handleViolationTypeChange('itemsBalcony', checked as boolean)}
-                className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink min-w-[20px] min-h-[20px]"
-              />
-              <Label className="text-white cursor-pointer text-sm leading-tight flex-1">Items left on balcony/front railing</Label>
-            </div>
-          </div>
-        </div>
-
-        {/* Description Section - Collapsible */}
-        <div className="space-y-3">
-          <div 
-            className="flex items-center justify-between cursor-pointer p-2 min-h-[44px]"
-            onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-          >
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 rounded-full bg-vice-pink"></div>
-              <Label className="text-vice-pink font-medium text-sm">Description</Label>
-            </div>
-            {isDescriptionExpanded ? (
-              <ChevronUp className="w-5 h-5 text-vice-pink" />
-            ) : (
-              <ChevronDown className="w-5 h-5 text-vice-pink" />
             )}
           </div>
-          {isDescriptionExpanded && (
-            <Textarea
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Enter additional details..."
-              className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 min-h-[100px] resize-none text-base"
-            />
-          )}
-        </div>
 
-        {/* Photo Evidence Section - Collapsible */}
-        <div className="space-y-3">
-          <div 
-            className="flex items-center justify-between cursor-pointer p-2 min-h-[44px]"
-            onClick={() => setIsPhotosExpanded(!isPhotosExpanded)}
-          >
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 rounded-full bg-vice-pink"></div>
-              <Label className="text-vice-pink font-medium text-sm">Photo Evidence</Label>
+          {/* Photo Evidence Section - Collapsible */}
+          <div className="space-y-3">
+            <div 
+              className="flex items-center justify-between cursor-pointer p-2 min-h-[44px]"
+              onClick={() => setIsPhotosExpanded(!isPhotosExpanded)}
+            >
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 rounded-full bg-vice-pink"></div>
+                <Label className="text-vice-pink font-medium text-sm">Photo Evidence</Label>
+              </div>
+              {isPhotosExpanded ? (
+                <ChevronUp className="w-5 h-5 text-vice-pink" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-vice-pink" />
+              )}
             </div>
-            {isPhotosExpanded ? (
-              <ChevronUp className="w-5 h-5 text-vice-pink" />
-            ) : (
-              <ChevronDown className="w-5 h-5 text-vice-pink" />
+            {isPhotosExpanded && (
+              <>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  multiple
+                  accept="image/*"
+                  className="hidden"
+                />
+                {renderImageGrid()}
+              </>
             )}
           </div>
-          {isPhotosExpanded && (
-            <>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                multiple
-                accept="image/*"
-                className="hidden"
-              />
-              {renderImageGrid()}
-            </>
-          )}
         </div>
       </div>
 
       {/* Fixed Bottom Button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-black/50 backdrop-blur-sm border-t border-vice-cyan/20 p-4 pb-safe-bottom">
+      <div className="flex-shrink-0 bg-black/50 backdrop-blur-sm border-t border-vice-cyan/20 p-4 pb-safe-bottom">
         <div className="flex justify-center max-w-md mx-auto">
           <Button 
             onClick={handleSaveForm}

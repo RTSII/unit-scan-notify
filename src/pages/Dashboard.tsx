@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Loader2, Camera, BookOpen, FileText, Settings, Menu, X } from 'lucide-react';
+import { Loader2, Camera, BookOpen, FileText, Download, Menu, X } from 'lucide-react';
 
 export default function Dashboard() {
   const { user, loading } = useAuth();
@@ -40,7 +40,7 @@ export default function Dashboard() {
       onClick: () => navigate('/books'),
     },
     {
-      icon: <Settings className="w-6 h-6" />,
+      icon: <Download className="w-6 h-6" />,
       onClick: () => navigate('/export'),
     }
   ];
