@@ -93,8 +93,8 @@ export default function Auth() {
                 style={{ 
                   filter: 'drop-shadow(0 0 15px rgba(0,255,255,0.3)) drop-shadow(0 0 25px rgba(255,20,147,0.2))',
                   mixBlendMode: 'normal'
-                <Menu className={`h-6 w-6 text-vice-cyan transition-transform duration-300 ${isMenuExpanded ? 'rotate-45' : ''}`} />
-              />
+                }}
+                />
             </div>
           </div>
 
@@ -147,78 +147,54 @@ export default function Auth() {
                   <Label htmlFor="password" className="text-white text-sm">Password</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-vice-cyan/60" />
-              {/* Navigation buttons - appear vertically above hamburger when expanded */}
-              {isMenuExpanded && (
-                <>
-                  {/* Export - highest */}
-                  <Button
-                    onClick={() => navigate('/export')}
-                    className={`absolute w-16 h-16 rounded-full bg-vice-purple/80 hover:bg-vice-purple border-2 border-vice-cyan/30 hover:border-vice-cyan transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-vice-purple/50 ${
-                      isMenuExpanded ? 'animate-in slide-in-from-bottom-4 fade-in-0' : ''
-                    }`}
-                    style={{ 
-                      left: '50%', 
-                      transform: 'translateX(-50%)',
-                      bottom: '240px',
-                      animationDelay: '0.1s'
-                    }}
-                  >
-                    <Download className="h-6 w-6 text-white" />
-                  </Button>
-
-                  {/* Details - second highest */}
-                  <Button
-                    onClick={() => navigate('/details-previous')}
-                    className={`absolute w-16 h-16 rounded-full bg-vice-cyan/80 hover:bg-vice-cyan border-2 border-vice-cyan/30 hover:border-vice-cyan transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-vice-cyan/50 ${
-                      isMenuExpanded ? 'animate-in slide-in-from-bottom-4 fade-in-0' : ''
-                    }`}
-                    style={{ 
-                      left: '50%', 
-                      transform: 'translateX(-50%)',
-                      bottom: '180px',
-                      animationDelay: '0.2s'
-                    }}
-                  >
-                    <FileText className="h-6 w-6 text-white" />
-                  </Button>
-
-                  {/* Capture - third highest */}
-                  <Button
-                    onClick={() => navigate('/capture')}
-                    className={`absolute w-16 h-16 rounded-full bg-vice-pink/80 hover:bg-vice-pink border-2 border-vice-cyan/30 hover:border-vice-cyan transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-vice-pink/50 ${
-                      isMenuExpanded ? 'animate-in slide-in-from-bottom-4 fade-in-0' : ''
-                    }`}
-                    style={{ 
-                      left: '50%', 
-                      transform: 'translateX(-50%)',
-                      bottom: '120px',
-                      animationDelay: '0.3s'
-                    }}
-                  >
-                    <Camera className="h-6 w-6 text-white" />
-                  </Button>
-
-                  {/* Books - closest to hamburger */}
-                  <Button
-                    onClick={() => navigate('/books')}
-                    className={`absolute w-16 h-16 rounded-full bg-vice-blue/80 hover:bg-vice-blue border-2 border-vice-cyan/30 hover:border-vice-cyan transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-vice-blue/50 ${
-                      isMenuExpanded ? 'animate-in slide-in-from-bottom-4 fade-in-0' : ''
-                    }`}
-                    style={{ 
-                      left: '50%', 
-                      transform: 'translateX(-50%)',
-                      bottom: '80px',
-                      animationDelay: '0.4s'
-                    }}
-                  >
-                    <BookOpen className="h-6 w-6 text-white" />
-                  </Button>
-                </>
-              )}
-
+                    <Input 
+                      id="password" 
+                      type="password" 
+                      placeholder="Enter your password" 
+                      value={password} 
+                      onChange={e => setPassword(e.target.value)} 
+                      className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-9" 
+                      required 
+                    />
+                  </div>
+                </div>
+                
+                <Button 
+                  type="submit" 
+                  disabled={isLoading} 
+                  className="w-full bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink text-white border-0 h-9 mt-2"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {isSignUp ? 'Creating Account...' : 'Signing In...'}
+                    </>
+                  ) : (
+                    isSignUp ? 'Create Account' : 'Sign In'
+                  )}
+                </Button>
+              </form>
+              
+              <div className="relative py-1">
+                <Separator className="bg-vice-cyan/20" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="bg-black/40 px-2 text-xs text-vice-cyan/60">or</span>
+                </div>
+              </div>
+              
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={handleGoogleSignIn} 
+                disabled={isLoading} 
+                className="w-full bg-black/30 border-vice-cyan/30 text-white hover:bg-vice-cyan/10 hover:border-vice-cyan h-9"
+              >
+                <Chrome className="mr-2 h-4 w-4" />
+                Continue with Google
+              </Button>
+              
               <div className="text-center pt-1">
                 <button 
-                onClick={() => setIsMenuExpanded(!isMenuExpanded)}
                   type="button" 
                   onClick={() => setIsSignUp(!isSignUp)} 
                   className="text-vice-cyan hover:text-vice-pink text-xs transition-colors pb-1"
