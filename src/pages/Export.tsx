@@ -222,193 +222,174 @@ export default function Export() {
   }
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-vice-purple via-black to-vice-blue relative overflow-hidden">
-      {/* Background effects */}
-      <div className="absolute inset-0 bg-black/20 z-0" />
-      
-      {/* Animated waves */}
-      <div className="absolute bottom-0 left-0 w-full overflow-hidden opacity-30 z-10">
-        <div className="wave-bg h-16 bg-gradient-to-r from-vice-cyan to-vice-pink animate-wave-1"></div>
-        <div className="wave-bg h-12 bg-gradient-to-r from-vice-pink to-vice-purple animate-wave-2 -mt-6"></div>
-        <div className="wave-bg h-8 bg-gradient-to-r from-vice-blue to-vice-cyan animate-wave-3 -mt-4"></div>
+    <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-vice-purple via-black to-vice-blue">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 bg-black/30 backdrop-blur-sm border-b border-vice-cyan/20">
+        <div className="w-10" /> {/* Spacer for centering */}
+        
+        <h1 className="text-xl font-bold text-white">Export</h1>
+        
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate('/')}
+          className="text-white hover:bg-white/10"
+        >
+          <Home className="h-5 w-5" />
+        </Button>
       </div>
 
-      {/* Lens flares */}
-      <div className="absolute top-10 left-10 w-20 h-20 bg-vice-cyan rounded-full opacity-20 blur-xl animate-lens-flare-1 z-10"></div>
-      <div className="absolute top-20 right-16 w-16 h-16 bg-vice-pink rounded-full opacity-30 blur-lg animate-lens-flare-2 z-10"></div>
-      <div className="absolute bottom-20 left-16 w-24 h-24 bg-vice-purple rounded-full opacity-15 blur-2xl animate-lens-flare-3 z-10"></div>
-      <div className="absolute bottom-10 right-10 w-12 h-12 bg-vice-orange rounded-full opacity-25 blur-md animate-lens-flare-4 z-10"></div>
-
-      {/* Content */}
-      <div className="relative z-30 min-h-screen min-h-[100dvh] pb-safe-bottom">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 bg-black/30 backdrop-blur-sm border-b border-vice-cyan/20">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/')}
-            className="text-white hover:bg-white/10"
-          >
-            <Home className="h-5 w-5" />
-          </Button>
+      <div className="p-4 space-y-4 pb-32 mb-safe-bottom overflow-auto max-h-[calc(100dvh-80px)]">
+        {/* Search and Filter */}
+        <div className="flex gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-vice-cyan/60" />
+            <Input
+              placeholder="Search for notices..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink"
+            />
+          </div>
           
-          <h1 className="text-xl font-bold text-white">Export</h1>
-          
-          <div className="w-10" /> {/* Spacer for centering */}
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-32 bg-black/30 border-vice-cyan/30 text-white">
+              <Filter className="h-4 w-4 mr-2 text-vice-cyan/60" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-black/90 border-vice-cyan/30">
+              <SelectItem value="all" className="text-white hover:bg-vice-cyan/20">All</SelectItem>
+              <SelectItem value="saved" className="text-white hover:bg-vice-cyan/20">Saved</SelectItem>
+              <SelectItem value="submitted" className="text-white hover:bg-vice-cyan/20">Submitted</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        <div className="p-4 space-y-4 pb-20 mb-safe-bottom overflow-auto max-h-[calc(100dvh-80px)]">
-          {/* Search and Filter */}
-          <div className="flex gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-vice-cyan/60" />
-              <Input
-                placeholder="Search for notices..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink"
-              />
+        {/* Export Selection Card */}
+        <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-white text-lg">Select Notice(s) to Export</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Selected Notices Display */}
+            <div className="min-h-[100px] space-y-2">
+              {selectedForms.length === 0 ? (
+                <p className="text-vice-cyan/60 text-center py-8">No notices selected</p>
+              ) : (
+                selectedForms.map(formId => {
+                  const form = forms.find(f => f.id === formId);
+                  if (!form) return null;
+                  return (
+                    <div key={formId} className="flex items-center justify-between bg-black/20 p-3 rounded border border-vice-cyan/20">
+                      <div>
+                        <p className="text-white font-medium">Unit {form.unit_number}</p>
+                        <p className="text-vice-cyan/80 text-sm">{form.date} - {form.location}</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeSelectedForm(formId)}
+                        className="text-vice-pink hover:bg-vice-pink/20"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            <Separator className="bg-vice-cyan/20" />
+
+            {/* Export Actions */}
+            <div className="flex gap-4 justify-center">
+              <Button
+                onClick={handleEmailExport}
+                className="flex-1 bg-gradient-to-r from-vice-cyan to-vice-blue hover:from-vice-blue hover:to-vice-cyan text-white"
+                disabled={selectedForms.length === 0}
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                Email
+              </Button>
+              
+              <Button
+                onClick={handlePrintExport}
+                className="flex-1 bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink text-white"
+                disabled={selectedForms.length === 0}
+              >
+                <Printer className="h-4 w-4 mr-2" />
+                Print
+              </Button>
             </div>
             
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-32 bg-black/30 border-vice-cyan/30 text-white">
-                <Filter className="h-4 w-4 mr-2 text-vice-cyan/60" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-black/90 border-vice-cyan/30">
-                <SelectItem value="all" className="text-white hover:bg-vice-cyan/20">All</SelectItem>
-                <SelectItem value="saved" className="text-white hover:bg-vice-cyan/20">Saved</SelectItem>
-                <SelectItem value="submitted" className="text-white hover:bg-vice-cyan/20">Submitted</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Export Selection Card */}
-          <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-white text-lg">Select Notice(s) to Export</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Selected Notices Display */}
-              <div className="min-h-[100px] space-y-2">
-                {selectedForms.length === 0 ? (
-                  <p className="text-vice-cyan/60 text-center py-8">No notices selected</p>
-                ) : (
-                  selectedForms.map(formId => {
-                    const form = forms.find(f => f.id === formId);
-                    if (!form) return null;
-                    return (
-                      <div key={formId} className="flex items-center justify-between bg-black/20 p-3 rounded border border-vice-cyan/20">
-                        <div>
-                          <p className="text-white font-medium">Unit {form.unit_number}</p>
-                          <p className="text-vice-cyan/80 text-sm">{form.date} - {form.location}</p>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeSelectedForm(formId)}
-                          className="text-vice-pink hover:bg-vice-pink/20"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-
-              <Separator className="bg-vice-cyan/20" />
-
-              {/* Export Actions */}
-              <div className="flex gap-4 justify-center">
-                <Button
-                  onClick={handleEmailExport}
-                  className="flex-1 bg-gradient-to-r from-vice-cyan to-vice-blue hover:from-vice-blue hover:to-vice-cyan text-white"
-                  disabled={selectedForms.length === 0}
-                >
-                  <Mail className="h-4 w-4 mr-2" />
-                  Email
-                </Button>
-                
-                <Button
-                  onClick={handlePrintExport}
-                  className="flex-1 bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink text-white"
-                  disabled={selectedForms.length === 0}
-                >
-                  <Printer className="h-4 w-4 mr-2" />
-                  Print
-                </Button>
-              </div>
-              
-              {selectedForms.length > 0 && (
-                <p className="text-vice-cyan/60 text-xs text-center">
-                  {selectedForms.length} notice(s) selected {selectedForms.length > 4 && '(max 4 for print)'}
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* This Week Card */}
-          <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm">
-            <CardHeader 
-              className="cursor-pointer pb-3"
-              onClick={() => setIsThisWeekExpanded(!isThisWeekExpanded)}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Clock className="h-5 w-5 text-vice-pink" />
-                  <div>
-                    <CardTitle className="text-white text-lg">This Week</CardTitle>
-                    <p className="text-vice-cyan/80 text-sm">{thisWeekCount} forms</p>
-                  </div>
-                </div>
-                {isThisWeekExpanded ? (
-                  <ChevronUp className="h-5 w-5 text-vice-cyan" />
-                ) : (
-                  <ChevronDown className="h-5 w-5 text-vice-cyan" />
-                )}
-              </div>
-            </CardHeader>
-            
-            {isThisWeekExpanded && (
-              <CardContent className="pt-0">
-                <div className="space-y-3 pb-4">
-                  {filteredForms.map((form) => (
-                    <div key={form.id} className="flex items-start gap-3 p-3 bg-black/20 rounded border border-vice-cyan/20 min-h-[60px]">
-                      <Checkbox
-                        checked={selectedForms.includes(form.id)}
-                        onCheckedChange={(checked) => handleFormSelection(form.id, checked as boolean)}
-                        className="mt-1 border-vice-cyan/40 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink min-w-[20px] min-h-[20px]"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <h3 className="text-white font-medium text-sm">Unit {form.unit_number}</h3>
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            form.status === 'submitted' 
-                              ? 'bg-green-500/20 text-green-400' 
-                              : 'bg-yellow-500/20 text-yellow-400'
-                          }`}>
-                            {form.status}
-                          </span>
-                        </div>
-                        <p className="text-vice-cyan/80 text-xs mb-1">{form.date} at {form.time}</p>
-                        <p className="text-vice-cyan/80 text-xs mb-1 truncate">{form.location}</p>
-                        <p className="text-white/90 text-xs line-clamp-2">{form.description}</p>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {filteredForms.length === 0 && (
-                    <p className="text-vice-cyan/60 text-center py-6 text-sm">No forms found</p>
-                  )}
-                </div>
-              </CardContent>
+            {selectedForms.length > 0 && (
+              <p className="text-vice-cyan/60 text-xs text-center">
+                {selectedForms.length} notice(s) selected {selectedForms.length > 4 && '(max 4 for print)'}
+              </p>
             )}
-          </Card>
+          </CardContent>
+        </Card>
+
+        {/* This Week Card */}
+        <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm">
+          <CardHeader 
+            className="cursor-pointer pb-3"
+            onClick={() => setIsThisWeekExpanded(!isThisWeekExpanded)}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Clock className="h-5 w-5 text-vice-pink" />
+                <div>
+                  <CardTitle className="text-white text-lg">This Week</CardTitle>
+                  <p className="text-vice-cyan/80 text-sm">{thisWeekCount} forms</p>
+                </div>
+              </div>
+              {isThisWeekExpanded ? (
+                <ChevronUp className="h-5 w-5 text-vice-cyan" />
+              ) : (
+                <ChevronDown className="h-5 w-5 text-vice-cyan" />
+              )}
+            </div>
+          </CardHeader>
           
-          {/* Bottom spacer to ensure content doesn't get cut off */}
-          <div className="h-16"></div>
-        </div>
+          {isThisWeekExpanded && (
+            <CardContent className="pt-0">
+              <div className="space-y-3 pb-4">
+                {filteredForms.map((form) => (
+                  <div key={form.id} className="flex items-start gap-3 p-3 bg-black/20 rounded border border-vice-cyan/20 min-h-[60px]">
+                    <Checkbox
+                      checked={selectedForms.includes(form.id)}
+                      onCheckedChange={(checked) => handleFormSelection(form.id, checked as boolean)}
+                      className="mt-1 border-vice-cyan/40 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink min-w-[20px] min-h-[20px]"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="text-white font-medium text-sm">Unit {form.unit_number}</h3>
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          form.status === 'submitted' 
+                            ? 'bg-green-500/20 text-green-400' 
+                            : 'bg-yellow-500/20 text-yellow-400'
+                        }`}>
+                          {form.status}
+                        </span>
+                      </div>
+                      <p className="text-vice-cyan/80 text-xs mb-1">{form.date} at {form.time}</p>
+                      <p className="text-vice-cyan/80 text-xs mb-1 truncate">{form.location}</p>
+                      <p className="text-white/90 text-xs line-clamp-2">{form.description}</p>
+                    </div>
+                  </div>
+                ))}
+                
+                {filteredForms.length === 0 && (
+                  <p className="text-vice-cyan/60 text-center py-6 text-sm">No forms found</p>
+                )}
+              </div>
+            </CardContent>
+          )}
+        </Card>
+        
+        {/* Bottom spacer to ensure content doesn't get cut off */}
+        <div className="h-24"></div>
       </div>
     </div>
   );
