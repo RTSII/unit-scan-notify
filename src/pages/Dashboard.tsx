@@ -1,56 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { Navigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { Loader2, Mail, Lock, User, Chrome, Download } from 'lucide-react';
+import { Loader2, Camera, BookOpen, FileText, Settings, Menu, X } from 'lucide-react';
 
-export default function Auth() {
-  const {
-    user,
-    loading,
-    signUp,
-    signIn,
-    signInWithGoogle
-  } = useAuth();
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+export default function Dashboard() {
+  const { user, loading, profile } = useAuth();
+  const navigate = useNavigate();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Redirect if already authenticated
-  if (!loading && user) {
-    return <Navigate to="/" replace />;
+  // Redirect if not authenticated
+  if (!loading && !user) {
+    return <Navigate to="/auth" replace />;
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !password) return;
-    setIsLoading(true);
-    try {
-      if (isSignUp) {
-        await signUp(email, password, fullName);
-      } else {
-        await signIn(email, password);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    try {
-      await signInWithGoogle();
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // Show loading while checking auth
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue flex items-center justify-center">
@@ -61,6 +25,33 @@ export default function Auth() {
       </div>
     );
   }
+
+  const menuItems = [
+    {
+      icon: <Camera className="w-6 h-6" />,
+      label: 'Capture',
+      onClick: () => navigate('/capture'),
+      position: { left: '-60px', bottom: '100px' } // Left position
+    },
+    {
+      icon: <FileText className="w-6 h-6" />,
+      label: 'Details',
+      onClick: () => navigate('/details-previous'),
+      position: { left: '-30px', bottom: '120px' } // Left-center position
+    },
+    {
+      icon: <BookOpen className="w-6 h-6" />,
+      label: 'Books',
+      onClick: () => navigate('/books'),
+      position: { left: '30px', bottom: '120px' } // Right-center position
+    },
+    {
+      icon: <Settings className="w-6 h-6" />,
+      label: 'Export',
+      onClick: () => navigate('/export'),
+      position: { left: '60px', bottom: '100px' } // Right position
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue relative overflow-hidden">
@@ -82,14 +73,14 @@ export default function Auth() {
 
       {/* Content */}
       <div className="relative flex flex-col justify-center items-center min-h-screen py-6 px-4 z-30">
-        <div className="w-full max-w-sm space-y-3">
+        <div className="w-full max-w-sm space-y-6">
           {/* Logo */}
-          <div className="text-center pt-1">
-            <div className="mb-3">
+          <div className="text-center">
+            <div className="mb-6">
               <img 
                 src="/vicecity.png" 
                 alt="Vice City Logo" 
-                className="mx-auto h-28 w-auto sm:h-32 md:h-36 lg:h-40 drop-shadow-[0_4px_12px_rgba(255,20,147,0.4)] opacity-95"
+                className="mx-auto h-32 w-auto sm:h-36 md:h-40 lg:h-44 drop-shadow-[0_4px_12px_rgba(255,20,147,0.4)] opacity-95"
                 style={{ 
                   filter: 'drop-shadow(0 0 15px rgba(0,255,255,0.3)) drop-shadow(0 0 25px rgba(255,20,147,0.2))',
                   mixBlendMode: 'normal'
@@ -98,121 +89,60 @@ export default function Auth() {
             </div>
           </div>
 
-          {/* Auth Card */}
-          <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm">
-            <CardHeader className="text-center pb-2 pt-4">
-              <CardTitle className="text-white text-xl">
-                {isSignUp ? 'Create Account' : 'Sign In'}
-              </CardTitle>
-              <CardDescription className="text-vice-cyan/80">
-                {isSignUp ? 'Register with your invitation email' : 'Access your SPR account'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="px-4 pb-4">
-              <Button
-                className="absolute bottom-32 left-1/2 transform -translate-x-1/2 w-12 h-12 rounded-full bg-vice-cyan/80 hover:bg-vice-cyan border-2 border-vice-pink/50 backdrop-blur-sm transition-all duration-300 animate-in slide-in-from-bottom-4"
-                style={{ 
-                  bottom: '120px', 
-                  left: '50%', 
-                  transform: 'translateX(-50%) translateX(30px)',
-                  animationDelay: '200ms' 
-                }}
-              >
-                <Download className="h-5 w-5 text-white" />
-              </Button>
-              <Button
-                className="absolute bottom-32 left-1/2 transform -translate-x-1/2 w-12 h-12 rounded-full bg-vice-purple/80 hover:bg-vice-purple border-2 border-vice-pink/50 backdrop-blur-sm transition-all duration-300 animate-in slide-in-from-bottom-4"
-              >
-              </Button>
-              <form onSubmit={handleSubmit} className="space-y-1.5">
-                {isSignUp && (
-                  <div className="space-y-0.5">
-                    <Label htmlFor="fullName" className="text-white text-sm">Name</Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-vice-cyan/60" />
-                      <Input 
-                        id="fullName" 
-                        type="text" 
-                        placeholder="Enter your name" 
-                        value={fullName} 
-                        onChange={e => setFullName(e.target.value)} 
-                        className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-9" 
-                      />
-                    </div>
-                  </div>
-                )}
-                
-                <div className="space-y-0.5">
-                  <Label htmlFor="email" className="text-white text-sm">Email</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-vice-cyan/60" />
-                    <Input 
-                      id="email" 
-                      type="email" 
-                      placeholder="Enter your email" 
-                      value={email} 
-                      onChange={e => setEmail(e.target.value)} 
-                      className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-9" 
-                      required 
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-0.5">
-                  <Label htmlFor="password" className="text-white text-sm">Password</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-vice-cyan/60" />
-                    <Input 
-                      id="password" 
-                      type="password" 
-                      placeholder="7+ letters, at least 1 number" 
-                      value={password} 
-                      onChange={e => setPassword(e.target.value)} 
-                      className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-9" 
-                      minLength={7} 
-                      pattern="^(?=.*[0-9]).{7,}$" 
-                      title="Password must be at least 7 characters and contain at least one number" 
-                      required 
-                    />
-                  </div>
-                </div>
-                
-                <div className="pt-1">
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink text-white font-semibold h-9" 
-                    disabled={isLoading}
-                  >
-                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                    {isSignUp ? 'Create Account' : 'Sign In'}
-                  </Button>
-                </div>
-              </form>
-
-              <Separator className="bg-vice-cyan/20 my-2" />
-
-              <Button 
-                onClick={handleGoogleSignIn} 
-                variant="outline" 
-                className="w-full bg-white/10 border-vice-cyan/30 text-white hover:bg-white/20 h-9" 
-                disabled={isLoading}
-              >
-                <Chrome className="h-4 w-4 mr-2" />
-                Continue with Google
-              </Button>
-
-              <div className="text-center pt-1">
-                <button 
-                  type="button" 
-                  onClick={() => setIsSignUp(!isSignUp)} 
-                  className="text-vice-cyan hover:text-vice-pink text-xs transition-colors pb-1"
-                >
-                  {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
-                </button>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Welcome Message */}
+          <div className="text-center space-y-4">
+            <h1 className="text-3xl font-bold vice-city-font text-white">
+              Welcome Back
+            </h1>
+            {profile?.full_name && (
+              <p className="text-vice-cyan text-lg">
+                {profile.full_name}
+              </p>
+            )}
+            <p className="text-vice-cyan/80 text-sm">
+              Ready to capture violations
+            </p>
+          </div>
         </div>
+      </div>
+
+      {/* Navigation Menu */}
+      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
+        {/* Menu Buttons - Semi-circle layout */}
+        {menuItems.map((item, index) => (
+          <Button
+            key={index}
+            onClick={item.onClick}
+            className={`
+              absolute w-14 h-14 rounded-full bg-vice-cyan/80 hover:bg-vice-cyan border-2 border-vice-pink/50 backdrop-blur-sm
+              transition-all duration-300 transform
+              ${isMenuOpen 
+                ? 'opacity-100 scale-100 translate-y-0' 
+                : 'opacity-0 scale-75 translate-y-4'
+              }
+            `}
+            style={{
+              left: item.position.left,
+              bottom: item.position.bottom,
+              transform: `translateX(-50%) ${isMenuOpen ? 'translateY(0)' : 'translateY(16px)'}`,
+              transitionDelay: `${index * 100}ms`
+            }}
+          >
+            {item.icon}
+          </Button>
+        ))}
+
+        {/* Hamburger Button */}
+        <Button
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className="w-16 h-16 rounded-full bg-vice-pink/80 hover:bg-vice-pink border-2 border-vice-cyan/50 backdrop-blur-sm transition-all duration-300"
+        >
+          {isMenuOpen ? (
+            <X className="w-6 h-6 text-white" />
+          ) : (
+            <Menu className="w-6 h-6 text-white" />
+          )}
+        </Button>
       </div>
     </div>
   );
