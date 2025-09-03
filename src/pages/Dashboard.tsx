@@ -65,8 +65,7 @@ export default function Dashboard() {
 
       {/* Content */}
       <div className="relative flex flex-col justify-center items-center min-h-screen py-6 px-4 z-30">
-        <div className="w-full max-w-sm space-y-6">
-        </div>
+        {/* Content area - now empty since we removed the welcome greeting */}
       </div>
 
       {/* Navigation Menu */}
@@ -85,8 +84,8 @@ export default function Dashboard() {
               }
             `}
             style={{
-              left: item.position.left,
-              bottom: item.position.bottom,
+              left: `${-120 + (index * 80)}px`,
+              bottom: '80px',
               transform: `translateX(-50%) ${isMenuOpen ? 'translateY(0)' : 'translateY(16px)'}`,
               transitionDelay: `${index * 100}ms`
             }}
