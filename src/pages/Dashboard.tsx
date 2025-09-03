@@ -48,7 +48,7 @@ export default function Dashboard() {
   // Semi-circle dock configuration
   const radius = 100; // Distance from hamburger center
   const totalAngle = 120; // Total arc span in degrees
-  const startAngle = -60; // Start angle (-60 degrees from vertical - rotated 90 degrees counter-clockwise from 30)
+  const startAngle = 30; // Start angle (30 degrees from vertical - rotated 90 degrees counter-clockwise from -60)
   
   // Calculate positions for each button in the arc
   const getButtonPosition = (index: number) => {
