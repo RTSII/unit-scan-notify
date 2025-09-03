@@ -142,13 +142,29 @@ export default function Export() {
 
     const selectedNotices = forms.filter(form => selectedForms.includes(form.id));
     const emailBody = selectedNotices.map(form => 
-      `Unit: ${form.unit_number}\nDate: ${form.date}\nTime: ${form.time}\nLocation: ${form.location}\nDescription: ${form.description}\n\n`
+      `Unit: ${form.unit_number}\nDate: ${form.date}\nTime: ${form.time}\nLocation: ${form.location}\nDescription: ${form.description}\nStatus: ${form.status}\n\n`
     ).join('---\n\n');
 
     const subject = `SPR Violation Notices - ${selectedNotices.length} notice(s)`;
     const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
     
-    window.location.href = mailtoLink;
+    try {
+      window.open(mailtoLink, '_self');
+    } catch (error) {
+      // Fallback for browsers that block mailto
+      navigator.clipboard.writeText(`${subject}\n\n${emailBody}`).then(() => {
+        toast({
+          title: "Email content copied",
+          description: "Email content has been copied to clipboard",
+        });
+      }).catch(() => {
+        toast({
+          title: "Email failed",
+          description: "Unable to open email client",
+          variant: "destructive",
+        });
+      });
+    }
   };
 
   const handlePrintExport = () => {
@@ -174,7 +190,14 @@ export default function Export() {
     
     // Create print window with 2x2 grid layout
     const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
+    if (!printWindow) {
+      toast({
+        title: "Print blocked",
+        description: "Please allow popups to use the print feature",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const printContent = `
       <!DOCTYPE html>
@@ -184,7 +207,14 @@ export default function Export() {
           <style>
             @page { margin: 0.5in; }
             body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
-            .grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 20px; height: 100vh; }
+            .grid { 
+              display: grid; 
+              grid-template-columns: ${selectedNotices.length === 1 ? '1fr' : '1fr 1fr'}; 
+              grid-template-rows: ${selectedNotices.length <= 2 ? '1fr' : '1fr 1fr'}; 
+              gap: 20px; 
+              min-height: 100vh; 
+              padding: 20px;
+            }
             .notice { border: 2px solid #333; padding: 15px; break-inside: avoid; }
             .notice h3 { margin: 0 0 10px 0; font-size: 16px; font-weight: bold; }
             .notice p { margin: 5px 0; font-size: 12px; }
@@ -202,6 +232,7 @@ export default function Export() {
                 <p><span class="label">Location:</span> ${form.location}</p>
                 <p><span class="label">Description:</span> ${form.description}</p>
                 <p><span class="label">Status:</span> ${form.status}</p>
+                <p><span class="label">Created:</span> ${new Date(form.created_at).toLocaleDateString()}</p>
               </div>
             `).join('')}
           </div>
@@ -211,7 +242,22 @@ export default function Export() {
 
     printWindow.document.write(printContent);
     printWindow.document.close();
-    printWindow.print();
+    
+    // Wait for content to load before printing
+    printWindow.onload = () => {
+      printWindow.print();
+      // Close print window after printing (optional)
+      printWindow.onafterprint = () => {
+        printWindow.close();
+      };
+    };
+    
+    // Fallback if onload doesn't fire
+    setTimeout(() => {
+      if (printWindow && !printWindow.closed) {
+        printWindow.print();
+      }
+    }, 500);
   };
 
   if (loading) {
