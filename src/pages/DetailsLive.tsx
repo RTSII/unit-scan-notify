@@ -85,6 +85,7 @@ const DetailsLive = () => {
 
   // Count photos
   const photoCount = capturedImage ? 1 : 0;
+  
   useEffect(() => {
     const now = new Date();
     const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -125,56 +126,59 @@ const DetailsLive = () => {
   }
 
   return (
-    <div className="fixed inset-0 bg-[var(--background-color)] text-[var(--text-primary)] flex flex-col overflow-hidden z-20">
+    <div className="min-h-screen min-h-[100dvh] bg-cover bg-center bg-no-repeat flex flex-col overflow-hidden" style={{ backgroundImage: 'url(/2.jpeg)' }}>
+      {/* Background overlay for better readability */}
+      <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-vice-purple/30 to-black/70 z-0" />
+      
       {/* Enhanced Details Header */}
-      <header className="bg-gradient-to-r from-vice-purple/20 via-black/80 to-vice-blue/20 backdrop-blur-md border-b border-vice-pink/30 flex-shrink-0 z-10 shadow-lg">
-        <div className="flex justify-between items-center h-20 px-6">
+      <header className="relative z-10 bg-gradient-to-r from-vice-purple/20 via-black/80 to-vice-blue/20 backdrop-blur-md border-b border-vice-pink/30 flex-shrink-0 shadow-lg">
+        <div className="flex justify-between items-center h-16 px-4 safe-area-top">
           <Button
             onClick={() => navigate('/')}
             variant="ghost"
             size="sm"
-            className="text-vice-cyan hover:text-vice-pink hover:bg-vice-purple/20 transition-all duration-300 flex items-center gap-2 group"
+            className="text-vice-cyan hover:text-vice-pink hover:bg-vice-purple/20 transition-all duration-300 flex items-center gap-2 group min-h-[44px] min-w-[44px]"
           >
             <Home size={18} className="group-hover:scale-110 transition-transform" />
-            <span className="font-medium">Home</span>
+            <span className="font-medium text-sm">Home</span>
           </Button>
           
-          <div className="flex items-center gap-3">
-            <Zap size={20} className="text-vice-pink animate-pulse" />
-            <h1 className="text-xl font-bold vice-neon-glow text-white">Details</h1>
-            <Zap size={20} className="text-vice-cyan animate-pulse" />
+          <div className="flex items-center gap-2">
+            <Zap size={16} className="text-vice-pink animate-pulse" />
+            <h1 className="text-lg font-bold text-white">Details</h1>
+            <Zap size={16} className="text-vice-cyan animate-pulse" />
           </div>
           
           <div className="w-20" /> {/* Spacer for centered title */}
         </div>
       </header>
 
-      {/* Details Content */}
-      <main className="flex-1 p-4 overflow-auto">
-        <div className="max-w-md mx-auto space-y-4">
+      {/* Scrollable Content Area */}
+      <main className="relative z-10 flex-1 overflow-y-auto">
+        <div className="p-4 pb-24 max-w-sm mx-auto space-y-4">
           
           {/* Date, Time & Unit Combined Row */}
-          <div className="flex gap-3 items-end justify-center">
-            <div className="w-20">
-              <label className="block text-sm font-medium text-[var(--primary-color)] mb-1 text-center">Date</label>
+          <div className="flex gap-2 items-end justify-center">
+            <div className="flex-1 max-w-[70px]">
+              <label className="block text-xs font-medium text-vice-cyan mb-1 text-center">Date</label>
               <Input
                 value={formData.date}
                 onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
                 placeholder="MM/DD"
-                className="bg-[var(--surface-color)] border-[var(--accent-color)] text-white h-12 text-base text-center"
+                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-sm h-10 text-center font-medium"
               />
             </div>
-            <div className="w-24">
-              <label className="block text-sm font-medium text-[var(--primary-color)] mb-1 text-center">Time</label>
+            <div className="flex-1 max-w-[80px]">
+              <label className="block text-xs font-medium text-vice-cyan mb-1 text-center">Time</label>
               <Input
                 value={formData.time}
                 onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
                 placeholder="00:00 AM"
-                className="bg-[var(--surface-color)] border-[var(--accent-color)] text-white h-12 text-sm text-center"
+                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-xs h-10 text-center font-medium"
               />
             </div>
-            <div className="w-20">
-              <label className="block text-sm font-medium text-[var(--primary-color)] mb-1 text-center">Unit</label>
+            <div className="flex-1 max-w-[70px]">
+              <label className="block text-xs font-medium text-vice-cyan mb-1 text-center">Unit</label>
               <Input
                 value={formData.unit}
                 onChange={(e) => {
@@ -185,16 +189,16 @@ const DetailsLive = () => {
                   setFormData(prev => ({ ...prev, unit: value }));
                 }}
                 maxLength={3}
-                className="bg-[var(--surface-color)] border-[var(--accent-color)] text-white h-12 text-base uppercase text-center font-semibold tracking-wider"
+                className="bg-black/40 border-vice-cyan/30 text-white h-10 text-sm uppercase text-center font-bold tracking-wider"
               />
             </div>
           </div>
 
           {/* Violation Types */}
-          <div>
-            <label className="block text-sm font-medium text-[var(--primary-color)] mb-3 text-center">Violation Type (Select applicable)</label>
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3">
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-vice-cyan text-center">Violation Type (Select applicable)</label>
+            <div className="space-y-2">
+              <div className="flex items-center space-x-3 p-3 rounded-lg border border-vice-cyan/20 bg-black/30 min-h-[44px]">
                 <Checkbox
                   id="items-outside"
                   checked={formData.violationTypes.itemsOutside}
@@ -204,13 +208,14 @@ const DetailsLive = () => {
                       violationTypes: { ...prev.violationTypes, itemsOutside: !!checked }
                     }))
                   }
-                  className="border-[var(--accent-color)] data-[state=checked]:bg-[var(--primary-color)]"
+                  className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink min-h-[20px] min-w-[20px]"
                 />
-                <label htmlFor="items-outside" className="text-white text-base cursor-pointer">
+                <label htmlFor="items-outside" className="text-white text-sm cursor-pointer flex-1 leading-tight">
                   Items left outside Unit
                 </label>
               </div>
-              <div className="flex items-center space-x-3">
+              
+              <div className="flex items-center space-x-3 p-3 rounded-lg border border-vice-cyan/20 bg-black/30 min-h-[44px]">
                 <Checkbox
                   id="trash-outside"
                   checked={formData.violationTypes.trashOutside}
@@ -220,13 +225,14 @@ const DetailsLive = () => {
                       violationTypes: { ...prev.violationTypes, trashOutside: !!checked }
                     }))
                   }
-                  className="border-[var(--accent-color)] data-[state=checked]:bg-[var(--primary-color)]"
+                  className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink min-h-[20px] min-w-[20px]"
                 />
-                <label htmlFor="trash-outside" className="text-white text-base cursor-pointer">
+                <label htmlFor="trash-outside" className="text-white text-sm cursor-pointer flex-1 leading-tight">
                   Trash left outside Unit
                 </label>
               </div>
-              <div className="flex items-center space-x-3">
+              
+              <div className="flex items-center space-x-3 p-3 rounded-lg border border-vice-cyan/20 bg-black/30 min-h-[44px]">
                 <Checkbox
                   id="balcony-items"
                   checked={formData.violationTypes.balconyItems}
@@ -237,31 +243,31 @@ const DetailsLive = () => {
                       balconyChoice: checked ? '' : ''
                     }))
                   }
-                  className="border-[var(--accent-color)] data-[state=checked]:bg-[var(--primary-color)]"
+                  className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink min-h-[20px] min-w-[20px]"
                 />
-                <label htmlFor="balcony-items" className="text-white text-base cursor-pointer">
+                <label htmlFor="balcony-items" className="text-white text-sm cursor-pointer flex-1 leading-tight">
                   Items left on{' '}
                   {formData.violationTypes.balconyItems ? (
-                    <span className="inline-flex gap-2 animate-pulse">
+                    <span className="inline-flex gap-2 mt-1">
                       <button
                         type="button"
                         onClick={() => setFormData(prev => ({ ...prev, balconyChoice: 'balcony' }))}
-                        className={`px-2 py-1 rounded transition-all duration-300 ${
+                        className={`px-3 py-1 rounded transition-all duration-300 min-h-[32px] text-xs font-medium ${
                           formData.balconyChoice === 'balcony' 
-                            ? 'bg-[var(--primary-color)] text-white scale-105 shadow-lg' 
-                            : 'bg-transparent border border-[var(--primary-color)] text-[var(--primary-color)] hover:bg-[var(--primary-color)]/20'
+                            ? 'bg-vice-pink text-white scale-105 shadow-lg' 
+                            : 'bg-transparent border border-vice-pink text-vice-pink hover:bg-vice-pink/20'
                         }`}
                       >
                         balcony
                       </button>
-                      <span className="text-[var(--text-secondary)]">/</span>
+                      <span className="text-vice-cyan/60 self-center">/</span>
                       <button
                         type="button"
                         onClick={() => setFormData(prev => ({ ...prev, balconyChoice: 'front' }))}
-                        className={`px-2 py-1 rounded transition-all duration-300 ${
+                        className={`px-3 py-1 rounded transition-all duration-300 min-h-[32px] text-xs font-medium ${
                           formData.balconyChoice === 'front' 
-                            ? 'bg-[var(--primary-color)] text-white scale-105 shadow-lg' 
-                            : 'bg-transparent border border-[var(--primary-color)] text-[var(--primary-color)] hover:bg-[var(--primary-color)]/20'
+                            ? 'bg-vice-pink text-white scale-105 shadow-lg' 
+                            : 'bg-transparent border border-vice-pink text-vice-pink hover:bg-vice-pink/20'
                         }`}
                       >
                         front
@@ -277,51 +283,55 @@ const DetailsLive = () => {
           </div>
 
           {/* Description */}
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-                <button
-                  type="button"
-                  onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                  className="p-1 hover:bg-[var(--accent-color)]/20 rounded-full transition-colors flex items-center justify-center"
-                >
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                className="p-2 hover:bg-black/20 rounded-full transition-colors flex items-center justify-center min-h-[44px] min-w-[44px]"
+              >
                 <Power 
-                  size={14} 
+                  size={16} 
                   className={`transition-colors duration-200 ${
-                    isDescriptionExpanded ? 'text-[var(--color-green)]' : 'text-[var(--color-red)]'
+                    isDescriptionExpanded ? 'text-vice-cyan' : 'text-vice-pink'
                   }`} 
                 />
               </button>
-              <label className="block text-sm font-medium text-[var(--color-neon-fuscia)] ml-1.5">Description</label>
+              <label className="block text-sm font-medium text-vice-pink">Description</label>
             </div>
             {isDescriptionExpanded && (
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Enter additional details..."
-                className="bg-[var(--surface-color)] border-[var(--accent-color)] text-white text-base resize-none transition-all duration-300"
-                rows={6}
+                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-sm resize-none transition-all duration-300 min-h-[80px]"
+                rows={4}
               />
             )}
           </div>
+        </div>
+      </main>
 
-          {/* Book Em Button */}
-          <div className="flex justify-center mt-8">
+      {/* Fixed Bottom Button */}
+      <div className="relative z-10 bg-gradient-to-t from-black/90 via-black/70 to-transparent backdrop-blur-sm border-t border-vice-cyan/20 flex-shrink-0">
+        <div className="p-4 pb-6 safe-area-bottom">
+          <div className="flex justify-center">
             <Button 
               onClick={saveForm}
               disabled={!formData.unit.trim() || (!Object.values(formData.violationTypes).some(v => v) && !formData.description.trim())}
-              className="bg-gradient-to-r from-vice-purple to-vice-blue hover:from-vice-pink hover:to-vice-purple text-white px-8 py-4 text-lg font-semibold rounded-lg flex items-center gap-2 transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none vice-neon-glow"
+              className="bg-gradient-to-r from-vice-purple to-vice-blue hover:from-vice-pink hover:to-vice-purple text-white px-8 py-4 text-base font-bold rounded-lg flex items-center gap-3 transition-all duration-300 transform hover:scale-105 shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none min-h-[56px] min-w-[140px]"
             >
               <Plus size={20} />
               <span>Book Em</span>
               {photoCount > 0 && (
-                <span className="bg-white/20 rounded-full px-2 py-1 text-sm ml-2">
+                <span className="bg-white/20 rounded-full px-2 py-1 text-sm ml-1">
                   {photoCount}
                 </span>
               )}
             </Button>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 };
