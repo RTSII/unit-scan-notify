@@ -1,203 +1,167 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { Loader2, Mail, Lock, User, Chrome } from 'lucide-react';
+import { Menu, BookOpen, Camera, FileText, Download } from 'lucide-react';
 
-export default function Auth() {
-  const {
-    user,
-    loading,
-    signUp,
-    signIn,
-    signInWithGoogle
-  } = useAuth();
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+export default function Dashboard() {
+  const { user, loading } = useAuth();
+  const [showGreeting, setShowGreeting] = useState(false);
 
-  // Redirect if already authenticated
-  if (!loading && user) {
-    return <Navigate to="/" replace />;
+  // Redirect if not authenticated
+  if (!loading && !user) {
+    return <Navigate to="/auth" replace />;
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !password) return;
-    setIsLoading(true);
-    try {
-      if (isSignUp) {
-        await signUp(email, password, fullName);
-      } else {
-        await signIn(email, password);
-      }
-    } finally {
-      setIsLoading(false);
+  useEffect(() => {
+    if (user) {
+      // Trigger greeting animation after component mounts
+      const timer = setTimeout(() => {
+        setShowGreeting(true);
+      }, 500);
+      return () => clearTimeout(timer);
     }
-  };
-
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    try {
-      await signInWithGoogle();
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }, [user]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-vice-pink mx-auto mb-4" />
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-vice-cyan border-t-transparent mx-auto mb-4" />
           <p className="text-white">Loading...</p>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue relative overflow-hidden">
-      {/* Background effects */}
-      <div className="absolute inset-0 bg-black/20 z-0" />
-      
-      {/* Animated waves */}
-      <div className="absolute bottom-0 left-0 w-full overflow-hidden opacity-30 z-10">
-        <div className="wave-bg h-16 bg-gradient-to-r from-vice-cyan to-vice-pink animate-wave-1"></div>
-        <div className="wave-bg h-12 bg-gradient-to-r from-vice-pink to-vice-purple animate-wave-2 -mt-6"></div>
-        <div className="wave-bg h-8 bg-gradient-to-r from-vice-blue to-vice-cyan animate-wave-3 -mt-4"></div>
-      </div>
+  const firstName = user?.user_metadata?.full_name?.split(' ')[0] || 'User';
 
-      {/* Lens flares */}
-      <div className="absolute top-10 left-10 w-20 h-20 bg-vice-cyan rounded-full opacity-20 blur-xl animate-lens-flare-1 z-10"></div>
-      <div className="absolute top-20 right-16 w-16 h-16 bg-vice-pink rounded-full opacity-30 blur-lg animate-lens-flare-2 z-10"></div>
-      <div className="absolute bottom-20 left-16 w-24 h-24 bg-vice-purple rounded-full opacity-15 blur-2xl animate-lens-flare-3 z-10"></div>
-      <div className="absolute bottom-10 right-10 w-12 h-12 bg-vice-orange rounded-full opacity-25 blur-md animate-lens-flare-4 z-10"></div>
+  return (
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Background Image */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: 'url(/2.jpeg)' }}
+      />
+      
+      {/* Dark overlay for better contrast */}
+      <div className="absolute inset-0 bg-black/30" />
 
       {/* Content */}
-      <div className="relative flex flex-col justify-center items-center min-h-screen py-6 px-4 z-30">
-        <div className="w-full max-w-sm space-y-3">
-          {/* Logo */}
-          <div className="text-center pt-1">
-            <div className="mb-3">
-              <img 
-                src="/vicecity.png" 
-                alt="Vice City Logo" 
-                className="mx-auto h-28 w-auto sm:h-32 md:h-36 lg:h-40 drop-shadow-[0_4px_12px_rgba(255,20,147,0.4)] opacity-95"
-                style={{ 
-                  filter: 'drop-shadow(0 0 15px rgba(0,255,255,0.3)) drop-shadow(0 0 25px rgba(255,20,147,0.2))',
-                  mixBlendMode: 'normal'
-                }}
-              />
+      <div className="relative z-10 min-h-screen flex flex-col">
+        {/* Header area for greeting */}
+        <div className="flex-1 flex items-start justify-center pt-16">
+          <div className="relative">
+            {/* Animated Greeting */}
+            <div 
+              className={`
+                text-5xl sm:text-6xl font-bold text-center
+                vice-block-letters
+                transition-all duration-2000 ease-out
+                ${showGreeting 
+                  ? 'transform translate-y-0 opacity-100' 
+                  : 'transform translate-y-8 opacity-0 text-vice-blue/30'
+                }
+              `}
+              style={{
+                clipPath: showGreeting 
+                  ? 'polygon(0 0, 100% 0, 100% 100%, 0 100%)'
+                  : 'polygon(0 0, 100% 0, 100% 60%, 0 60%)',
+                transition: 'clip-path 2s ease-out, transform 2s ease-out, opacity 2s ease-out',
+                textShadow: showGreeting 
+                  ? '0 0 10px rgba(0, 255, 255, 0.8), 0 0 20px rgba(0, 255, 255, 0.6), 0 0 30px rgba(0, 255, 255, 0.4)'
+                  : '0 0 5px rgba(0, 255, 255, 0.3)'
+              }}
+            >
+              Hello, {firstName}
             </div>
           </div>
+        </div>
 
-          {/* Auth Card */}
-          <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm">
-            <CardHeader className="text-center pb-2 pt-4">
-              <CardTitle className="text-white text-xl">
-                {isSignUp ? 'Create Account' : 'Sign In'}
-              </CardTitle>
-              <CardDescription className="text-vice-cyan/80">
-                {isSignUp ? 'Register with your invitation email' : 'Access your SPR account'}
-              </CardDescription>
-            </CardHeader>
-              <form onSubmit={handleSubmit} className="space-y-1.5">
-                {isSignUp && (
-                  <div className="space-y-0.5">
-                    <Label htmlFor="fullName" className="text-white text-sm">Name</Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-vice-cyan/60" />
-                      <Input 
-                        id="fullName" 
-                        type="text" 
-                        placeholder="Enter your name" 
-                        value={fullName} 
-                        onChange={e => setFullName(e.target.value)} 
-                        className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-9" 
-                      />
-                    </div>
-                  </div>
-                )}
-                
-                <div className="space-y-0.5">
-                  <Label htmlFor="email" className="text-white text-sm">Email</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-vice-cyan/60" />
-                    <Input 
-                      id="email" 
-                      type="email" 
-                      placeholder="Enter your email" 
-                      value={email} 
-                      onChange={e => setEmail(e.target.value)} 
-                      className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-9" 
-                      required 
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-0.5">
-                  <Label htmlFor="password" className="text-white text-sm">Password</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-vice-cyan/60" />
-                    <Input 
-                      id="password" 
-                      type="password" 
-                      placeholder="7+ letters, at least 1 number" 
-                      value={password} 
-                      onChange={e => setPassword(e.target.value)} 
-                      className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-9" 
-                      minLength={7} 
-                      pattern="^(?=.*[0-9]).{7,}$" 
-                      title="Password must be at least 7 characters and contain at least one number" 
-                      required 
-                    />
-                  </div>
-                </div>
-                
-                <div className="pt-1">
-                  <Button 
-                  type="submit" 
-                  className="w-full bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink text-white font-semibold h-9" 
-                  disabled={isLoading}
-                >
-                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  {isSignUp ? 'Create Account' : 'Sign In'}
-                  </Button>
-                </div>
-              </form>
+        {/* Comma as water line reference */}
+        <div className="flex justify-center">
+          <div className="text-8xl text-vice-cyan/60 font-bold select-none">
+            ,
+          </div>
+        </div>
 
-              <Separator className="bg-vice-cyan/20 my-2" />
-
-              <Button 
-                onClick={handleGoogleSignIn} 
-                variant="outline" 
-                className="w-full bg-white/10 border-vice-cyan/30 text-white hover:bg-white/20 h-9" 
-                disabled={isLoading}
+        {/* Navigation Section */}
+        <div className="flex-1 flex items-end justify-center pb-20">
+          <div className="relative">
+            {/* Semi-circle navigation buttons */}
+            <div className="relative">
+              {/* Books - far left, lower */}
+              <Button
+                className="absolute w-16 h-16 rounded-full bg-vice-blue/80 hover:bg-vice-blue border-2 border-vice-cyan/30 hover:border-vice-cyan transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-vice-blue/50"
+                style={{ 
+                  left: '-140px', 
+                  bottom: '40px',
+                  animationDelay: '0.1s'
+                }}
               >
-                <Chrome className="h-4 w-4 mr-2" />
-                Continue with Google
+                <BookOpen className="h-6 w-6 text-white" />
               </Button>
 
-              <div className="text-center pt-1">
-                <button 
-                  type="button" 
-                  onClick={() => setIsSignUp(!isSignUp)} 
-                  className="text-vice-cyan hover:text-vice-pink text-xs transition-colors pb-1"
-                >
-                  {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
-                </button>
-              </div>
-            </CardContent>
-          </Card>
+              {/* Capture - left, higher */}
+              <Button
+                className="absolute w-16 h-16 rounded-full bg-vice-pink/80 hover:bg-vice-pink border-2 border-vice-cyan/30 hover:border-vice-cyan transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-vice-pink/50"
+                style={{ 
+                  left: '-80px', 
+                  bottom: '80px',
+                  animationDelay: '0.2s'
+                }}
+              >
+                <Camera className="h-6 w-6 text-white" />
+              </Button>
+
+              {/* Details - right, higher */}
+              <Button
+                className="absolute w-16 h-16 rounded-full bg-vice-cyan/80 hover:bg-vice-cyan border-2 border-vice-cyan/30 hover:border-vice-cyan transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-vice-cyan/50"
+                style={{ 
+                  left: '20px', 
+                  bottom: '80px',
+                  animationDelay: '0.3s'
+                }}
+              >
+                <FileText className="h-6 w-6 text-white" />
+              </Button>
+
+              {/* Export - far right, lower */}
+              <Button
+                className="absolute w-16 h-16 rounded-full bg-vice-purple/80 hover:bg-vice-purple border-2 border-vice-cyan/30 hover:border-vice-cyan transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-vice-purple/50"
+                style={{ 
+                  left: '80px', 
+                  bottom: '40px',
+                  animationDelay: '0.4s'
+                }}
+              >
+                <Download className="h-6 w-6 text-white" />
+              </Button>
+
+              {/* Central hamburger menu */}
+              <Button
+                className="w-16 h-16 rounded-full bg-black/60 hover:bg-black/80 border-2 border-vice-cyan/50 hover:border-vice-cyan transition-all duration-300 hover:scale-110 shadow-xl backdrop-blur-sm"
+              >
+                <Menu className="h-6 w-6 text-vice-cyan" />
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Custom styles for Vice City font */}
+      <style jsx>{`
+        .vice-block-letters {
+          font-family: 'Impact', 'Arial Black', sans-serif;
+          font-weight: 900;
+          letter-spacing: 0.1em;
+          background: linear-gradient(45deg, #00ffff, #ff1493, #9400d3);
+          background-clip: text;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          text-transform: uppercase;
+        }
+      `}</style>
     </div>
   );
 }
