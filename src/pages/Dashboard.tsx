@@ -31,25 +31,25 @@ export default function Dashboard() {
       icon: <Camera className="w-6 h-6" />,
       label: 'Capture',
       onClick: () => navigate('/capture'),
-      position: { left: '-80px', bottom: '120px' } // Left position
+      position: { left: '-120px', bottom: '140px' } // Far left position
     },
     {
       icon: <FileText className="w-6 h-6" />,
       label: 'Details',
       onClick: () => navigate('/details-previous'),
-      position: { left: '-40px', bottom: '160px' } // Left-center position
+      position: { left: '-60px', bottom: '180px' } // Left-center position
     },
     {
       icon: <BookOpen className="w-6 h-6" />,
       label: 'Books',
       onClick: () => navigate('/books'),
-      position: { left: '40px', bottom: '160px' } // Right-center position
+      position: { left: '60px', bottom: '180px' } // Right-center position
     },
     {
       icon: <Settings className="w-6 h-6" />,
       label: 'Export',
       onClick: () => navigate('/export'),
-      position: { left: '80px', bottom: '120px' } // Right position
+      position: { left: '120px', bottom: '140px' } // Far right position
     }
   ];
 
