@@ -31,25 +31,25 @@ export default function Dashboard() {
       icon: <Camera className="w-6 h-6" />,
       label: 'Capture',
       onClick: () => navigate('/capture'),
-      position: { left: '-120px', bottom: '140px' } // Far left position
+      position: { left: '-80px', bottom: '80px' } // Far left position
     },
     {
       icon: <FileText className="w-6 h-6" />,
       label: 'Details',
       onClick: () => navigate('/details-previous'),
-      position: { left: '-60px', bottom: '180px' } // Left-center position
+      position: { left: '-40px', bottom: '100px' } // Left-center position
     },
     {
       icon: <BookOpen className="w-6 h-6" />,
       label: 'Books',
       onClick: () => navigate('/books'),
-      position: { left: '60px', bottom: '180px' } // Right-center position
+      position: { left: '40px', bottom: '100px' } // Right-center position
     },
     {
       icon: <Settings className="w-6 h-6" />,
       label: 'Export',
       onClick: () => navigate('/export'),
-      position: { left: '120px', bottom: '140px' } // Far right position
+      position: { left: '80px', bottom: '80px' } // Far right position
     }
   ];
 
@@ -66,17 +66,6 @@ export default function Dashboard() {
       {/* Content */}
       <div className="relative flex flex-col justify-center items-center min-h-screen py-6 px-4 z-30">
         <div className="w-full max-w-sm space-y-6">
-          {/* Welcome Message */}
-          <div className="text-center space-y-4">
-            <h1 className="text-3xl font-bold vice-city-font text-white">
-              Welcome Back
-            </h1>
-            {profile?.full_name && (
-              <p className="text-vice-cyan text-lg">
-                {profile.full_name}
-              </p>
-            )}
-          </div>
         </div>
       </div>
 
