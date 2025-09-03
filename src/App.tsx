@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate, useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -396,11 +397,11 @@ Status: ${form.status}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
                           <h3 className="text-white font-medium">Unit {form.unit_number}</h3>
-                          <span className={\`px-2 py-1 rounded text-xs font-medium ${
+                          <span className={cn("px-2 py-1 rounded text-xs font-medium", 
                             form.status === 'submitted' 
                               ? 'bg-green-500/20 text-green-400' 
                               : 'bg-yellow-500/20 text-yellow-400'
-                          }`}>
+                          )}>
                             {form.status}
                           </span>
                         </div>
