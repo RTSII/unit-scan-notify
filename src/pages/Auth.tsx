@@ -174,23 +174,23 @@ export default function Auth() {
                 </div>
               </form>
 
-              <Separator className="bg-vice-cyan/20 my-2" />
+              <Separator className="bg-vice-cyan/20 my-3" />
 
               <Button 
                 onClick={handleGoogleSignIn} 
                 variant="outline" 
-                className="w-full bg-white/10 border-vice-cyan/30 text-white hover:bg-white/20 h-9" 
+                className="w-full bg-white/10 border-vice-cyan/30 text-white hover:bg-white/20 h-11 text-base" 
                 disabled={isLoading}
               >
                 <Chrome className="h-4 w-4 mr-2" />
                 Continue with Google
               </Button>
 
-              <div className="text-center pt-1">
+              <div className="text-center pt-2">
                 <button 
                   type="button" 
                   onClick={() => setIsSignUp(!isSignUp)} 
-                  className="text-vice-cyan hover:text-vice-pink text-xs transition-colors pb-1"
+                  className="text-vice-cyan hover:text-vice-pink text-sm transition-colors"
                 >
                   {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
                 </button>
