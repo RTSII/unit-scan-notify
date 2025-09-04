@@ -10,10 +10,10 @@ const CameraCapture = () => {
   const [capturedImageUrl, setCapturedImageUrl] = useState<string>('');
   const [isCapturing, setIsCapturing] = useState(false);
   const [cameraError, setCameraError] = useState<string>('');
+  const [isUsingFrontCamera, setIsUsingFrontCamera] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-
 
   const startCamera = useCallback(async () => {
     console.log('Starting camera...');
@@ -40,16 +40,35 @@ const CameraCapture = () => {
           audio: false
         },
         {
+          video: { 
+            facingMode: 'user',
+            width: { ideal: 640 },
+            height: { ideal: 480 }
+          },
+          audio: false
+        },
+        {
           video: true,
           audio: false
         }
       ];
 
       let stream = null;
-      for (const constraint of constraints) {
+      let usingFrontCamera = false;
+      
+      for (let i = 0; i < constraints.length; i++) {
+        const constraint = constraints[i];
         try {
           console.log('Trying camera constraint:', constraint);
           stream = await navigator.mediaDevices.getUserMedia(constraint);
+          
+          // Check if we're using front camera (user-facing)
+          if (constraint.video && typeof constraint.video === 'object' && constraint.video.facingMode === 'user') {
+            usingFrontCamera = true;
+          } else if (i >= 2) { // fallback constraints might be front camera
+            usingFrontCamera = true;
+          }
+          
           break;
         } catch (err) {
           console.log('Camera constraint failed:', err);
@@ -61,11 +80,14 @@ const CameraCapture = () => {
         throw new Error('Unable to access camera with any constraints');
       }
       
+      setIsUsingFrontCamera(usingFrontCamera);
+      
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
         console.log('Camera started successfully');
         console.log('Video dimensions:', videoRef.current.videoWidth, 'x', videoRef.current.videoHeight);
+        console.log('Using front camera:', usingFrontCamera);
       }
     } catch (error) {
       console.error('Error accessing camera:', error);
@@ -87,6 +109,9 @@ const CameraCapture = () => {
     if (isPowerOn) {
       stopCamera();
       setIsPowerOn(false);
+      // Reset capture state when turning off camera
+      setCaptureState('initial');
+      setCapturedImageUrl('');
     } else {
       startCamera();
       setIsPowerOn(true);
@@ -129,17 +154,35 @@ const CameraCapture = () => {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             
-            // Draw current video frame to canvas (without mirroring to match reality)
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            // Clear any previous transforms
+            context.setTransform(1, 0, 0, 1, 0, 0);
+            
+            // If using front camera, flip the image horizontally to match what user expects
+            if (isUsingFrontCamera) {
+              context.scale(-1, 1);
+              context.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+            } else {
+              // Draw current video frame to canvas normally for rear camera
+              context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            }
             
             // Convert to data URL (base64 image)
             const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
-            setCapturedImageUrl(imageDataUrl);
             
             console.log('Photo captured successfully, data URL length:', imageDataUrl.length);
-            console.log('Setting capture state to confirm, current state:', captureState);
+            console.log('Setting captured image URL...');
+            
+            // Set the captured image URL
+            setCapturedImageUrl(imageDataUrl);
+            
+            // Wait a moment to ensure the image URL is set
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            console.log('Changing capture state to confirm...');
+            // Change to confirm state to show the captured image and confirm buttons
             setCaptureState('confirm');
-            console.log('Captured image URL set:', capturedImageUrl ? 'yes' : 'no');
+            
+            console.log('Capture state changed to confirm, capturedImageUrl length:', imageDataUrl.length);
           } else {
             throw new Error('Canvas context or video dimensions not available');
           }
@@ -156,27 +199,30 @@ const CameraCapture = () => {
   };
 
   const handleCancelCapture = () => {
-    console.log('Canceling capture');
+    console.log('Canceling capture - returning to live camera view');
     setCaptureState('initial');
     setCapturedImageUrl('');
+    // Note: We don't stop the camera, just return to live view
   };
 
   const handleConfirmCapture = () => {
+    console.log('Confirming capture, capturedImageUrl length:', capturedImageUrl.length);
     if (capturedImageUrl) {
       // Store captured image in sessionStorage to pass to details page
       sessionStorage.setItem('capturedImage', capturedImageUrl);
-      console.log('Photo saved to session storage, data URL length:', capturedImageUrl.length);
+      console.log('Photo saved to session storage, navigating to details-live');
       
       // Navigate to details-live page
       navigate('/details-live');
+      
+      // Reset states after navigation
       setCaptureState('initial');
       setCapturedImageUrl('');
     } else {
-      console.error('No captured image available');
+      console.error('No captured image available for confirmation');
       alert('No image captured. Please try again.');
     }
   };
-
 
   return (
     <div className="fixed inset-0 bg-black text-white flex flex-col overflow-hidden">
@@ -208,27 +254,41 @@ const CameraCapture = () => {
         {isPowerOn && (
           <div className="w-full h-full bg-gray-700 flex items-center justify-center relative overflow-hidden">
             {captureState === 'initial' ? (
+              // Show live video feed
               <video
                 ref={videoRef}
                 autoPlay
                 playsInline
                 muted
-                className="absolute inset-0 w-full h-full object-cover"
+                className={`absolute inset-0 w-full h-full object-cover ${
+                  isUsingFrontCamera ? 'scale-x-[-1]' : ''
+                }`}
               />
-            ) : (
-              // Show captured image for review
-              capturedImageUrl && (
+            ) : captureState === 'confirm' && capturedImageUrl ? (
+              // Show captured image for review - this should display after capture button is pressed
+              <div className="absolute inset-0 w-full h-full">
                 <img
                   src={capturedImageUrl}
-                  alt="Captured"
-                  className="absolute inset-0 w-full h-full object-cover"
+                  alt="Captured photo for review"
+                  className="w-full h-full object-cover"
+                  onLoad={() => console.log('Captured image loaded for review')}
+                  onError={() => console.error('Error loading captured image')}
                 />
-              )
+                {/* Optional overlay to indicate this is review mode */}
+                <div className="absolute top-4 left-4 bg-black/70 rounded-lg px-3 py-1">
+                  <p className="text-white text-sm">Review Photo</p>
+                </div>
+              </div>
+            ) : (
+              // Fallback state
+              <div className="text-center text-white">
+                <p>Loading captured image...</p>
+              </div>
             )}
             
             {/* Capturing indicator */}
             {isCapturing && (
-              <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+              <div className="absolute inset-0 bg-black/20 flex items-center justify-center z-10">
                 <div className="bg-black/70 rounded-lg px-4 py-2">
                   <p className="text-white text-sm">Capturing...</p>
                 </div>
@@ -243,19 +303,21 @@ const CameraCapture = () => {
 
       {/* Footer */}
       <footer className="bg-black/50 backdrop-blur-sm flex-shrink-0 pb-safe-bottom">
-        {/* Capture Confirm State */}
+        {/* Capture Confirm State - Red X (Cancel) and Green Check (Approve) buttons */}
         {captureState === 'confirm' && (
           <div className="flex justify-center py-4">
             <div className="flex gap-16">
               <button 
                 className="w-16 h-16 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center shadow-lg transform active:scale-95 transition-all"
                 onClick={handleCancelCapture}
+                title="Cancel - Take Another Photo"
               >
                 <X className="w-8 h-8 text-white" />
               </button>
               <button 
                 className="w-16 h-16 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-lg transform active:scale-95 transition-all"
                 onClick={handleConfirmCapture}
+                title="Approve - Save Photo"
               >
                 <Check className="w-8 h-8 text-white" />
               </button>
@@ -263,7 +325,7 @@ const CameraCapture = () => {
           </div>
         )}
 
-        {/* Main Controls */}
+        {/* Main Controls - Only show when in initial state (live camera view) */}
         <div className="flex justify-between items-center h-28 px-4">
           {/* Power Button */}
           <button 
@@ -299,7 +361,6 @@ const CameraCapture = () => {
             <Settings className="w-8 h-8 text-white" />
           </button>
         </div>
-
       </footer>
     </div>
   );
