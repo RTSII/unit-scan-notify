@@ -7,6 +7,7 @@ const CameraCapture = () => {
   const navigate = useNavigate();
   const [isPowerOn, setIsPowerOn] = useState(false);
   const [captureState, setCaptureState] = useState<'initial' | 'confirm'>('initial');
+  const [capturedImageUrl, setCapturedImageUrl] = useState<string>('');
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -54,39 +55,56 @@ const CameraCapture = () => {
 
   const handleCaptureClick = () => {
     if (captureState === 'initial') {
+      // Actually capture the photo first
+      if (videoRef.current && canvasRef.current) {
+        const video = videoRef.current;
+        const canvas = canvasRef.current;
+        const context = canvas.getContext('2d');
+        
+        if (context) {
+          // Set canvas dimensions to video dimensions
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          
+          // Save the current transform
+          context.save();
+          
+          // Flip the canvas horizontally to correct the mirroring
+          context.scale(-1, 1);
+          context.translate(-canvas.width, 0);
+          
+          // Draw current video frame to canvas (this will be unmirrored)
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+          
+          // Restore the transform
+          context.restore();
+          
+          // Convert to data URL (base64 image)
+          const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+          setCapturedImageUrl(imageDataUrl);
+          
+          console.log('Photo captured successfully');
+        }
+      }
       setCaptureState('confirm');
     }
   };
 
   const handleCancelCapture = () => {
     setCaptureState('initial');
+    setCapturedImageUrl('');
   };
 
   const handleConfirmCapture = () => {
-    if (videoRef.current && canvasRef.current) {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      const context = canvas.getContext('2d');
-      
-      if (context) {
-        // Set canvas dimensions to video dimensions
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        
-        // Draw current video frame to canvas
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        // Convert to data URL (base64 image)
-        const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
-        
-        // Store captured image in sessionStorage to pass to details page
-        sessionStorage.setItem('capturedImage', imageDataUrl);
-        console.log('Photo captured successfully');
-      }
+    if (capturedImageUrl) {
+      // Store captured image in sessionStorage to pass to details page
+      sessionStorage.setItem('capturedImage', capturedImageUrl);
+      console.log('Photo saved to session storage');
     }
     // Navigate to details-live page
     navigate('/details-live');
     setCaptureState('initial');
+    setCapturedImageUrl('');
   };
 
 
@@ -115,15 +133,25 @@ const CameraCapture = () => {
 
         {/* Camera On State */}
         {isPowerOn && (
-          <div className="w-full h-full bg-gray-700 flex items-center justify-center relative">
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              className="absolute inset-0 w-full h-full object-cover"
-              style={{ transform: 'scaleX(-1)' }}
-            />
+          <div className="w-full h-full bg-gray-700 flex items-center justify-center relative overflow-hidden">
+            {captureState === 'initial' ? (
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            ) : (
+              // Show captured image for review
+              capturedImageUrl && (
+                <img
+                  src={capturedImageUrl}
+                  alt="Captured"
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              )
+            )}
           </div>
         )}
 
