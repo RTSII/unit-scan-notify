@@ -129,18 +129,8 @@ const CameraCapture = () => {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             
-            // Save the current transform
-            context.save();
-            
-            // Mirror the image to match what user sees (since video preview will be mirrored)
-            context.scale(-1, 1);
-            context.translate(-canvas.width, 0);
-            
-            // Draw current video frame to canvas
+            // Draw current video frame to canvas (without mirroring to match reality)
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            // Restore the transform
-            context.restore();
             
             // Convert to data URL (base64 image)
             const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
