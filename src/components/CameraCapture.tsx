@@ -137,7 +137,9 @@ const CameraCapture = () => {
             setCapturedImageUrl(imageDataUrl);
             
             console.log('Photo captured successfully, data URL length:', imageDataUrl.length);
+            console.log('Setting capture state to confirm, current state:', captureState);
             setCaptureState('confirm');
+            console.log('Captured image URL set:', capturedImageUrl ? 'yes' : 'no');
           } else {
             throw new Error('Canvas context or video dimensions not available');
           }
@@ -212,7 +214,6 @@ const CameraCapture = () => {
                 playsInline
                 muted
                 className="absolute inset-0 w-full h-full object-cover"
-                style={{ transform: 'scaleX(-1)' }}
               />
             ) : (
               // Show captured image for review
