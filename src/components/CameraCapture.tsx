@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Power } from "lucide-react";
+import { Power, Home, Settings, Camera, X, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const CameraCapture = () => {
@@ -8,30 +8,70 @@ const CameraCapture = () => {
   const [isPowerOn, setIsPowerOn] = useState(false);
   const [captureState, setCaptureState] = useState<'initial' | 'confirm'>('initial');
   const [capturedImageUrl, setCapturedImageUrl] = useState<string>('');
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [cameraError, setCameraError] = useState<string>('');
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
 
   const startCamera = useCallback(async () => {
+    console.log('Starting camera...');
+    setCameraError('');
+    
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { 
-          facingMode: 'environment',
-          width: { ideal: 1280, max: 1920 },
-          height: { ideal: 720, max: 1080 },
-          frameRate: { ideal: 30 }
+      // Try different camera constraints with fallbacks
+      const constraints = [
+        {
+          video: { 
+            facingMode: 'environment',
+            width: { ideal: 1280, max: 1920 },
+            height: { ideal: 720, max: 1080 },
+            frameRate: { ideal: 30 }
+          },
+          audio: false
         },
-        audio: false
-      });
+        {
+          video: { 
+            facingMode: 'environment',
+            width: { ideal: 640 },
+            height: { ideal: 480 }
+          },
+          audio: false
+        },
+        {
+          video: true,
+          audio: false
+        }
+      ];
+
+      let stream = null;
+      for (const constraint of constraints) {
+        try {
+          console.log('Trying camera constraint:', constraint);
+          stream = await navigator.mediaDevices.getUserMedia(constraint);
+          break;
+        } catch (err) {
+          console.log('Camera constraint failed:', err);
+          continue;
+        }
+      }
+
+      if (!stream) {
+        throw new Error('Unable to access camera with any constraints');
+      }
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
+        await videoRef.current.play();
+        console.log('Camera started successfully');
+        console.log('Video dimensions:', videoRef.current.videoWidth, 'x', videoRef.current.videoHeight);
       }
     } catch (error) {
       console.error('Error accessing camera:', error);
-      alert('Camera access denied. Please enable camera permissions in your browser settings.');
+      const errorMessage = 'Camera access denied. Please enable camera permissions in your browser settings.';
+      setCameraError(errorMessage);
+      alert(errorMessage);
     }
   }, []);
 
@@ -53,44 +93,78 @@ const CameraCapture = () => {
     }
   };
 
-  const handleCaptureClick = () => {
-    if (captureState === 'initial') {
-      // Actually capture the photo first
-      if (videoRef.current && canvasRef.current) {
-        const video = videoRef.current;
-        const canvas = canvasRef.current;
-        const context = canvas.getContext('2d');
+  const handleCaptureClick = async () => {
+    if (captureState === 'initial' && !isCapturing) {
+      console.log('Starting photo capture...');
+      setIsCapturing(true);
+      
+      try {
+        // Wait a bit to ensure video is stable
+        await new Promise(resolve => setTimeout(resolve, 100));
         
-        if (context) {
-          // Set canvas dimensions to video dimensions
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
+        if (videoRef.current && canvasRef.current) {
+          const video = videoRef.current;
+          const canvas = canvasRef.current;
+          const context = canvas.getContext('2d');
           
-          // Save the current transform
-          context.save();
+          // Check video readiness
+          if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+            console.log('Video not ready, waiting...');
+            await new Promise(resolve => {
+              const checkReady = () => {
+                if (video.readyState >= video.HAVE_ENOUGH_DATA) {
+                  resolve(undefined);
+                } else {
+                  setTimeout(checkReady, 50);
+                }
+              };
+              checkReady();
+            });
+          }
           
-          // Flip the canvas horizontally to correct the mirroring
-          context.scale(-1, 1);
-          context.translate(-canvas.width, 0);
-          
-          // Draw current video frame to canvas (this will be unmirrored)
-          context.drawImage(video, 0, 0, canvas.width, canvas.height);
-          
-          // Restore the transform
-          context.restore();
-          
-          // Convert to data URL (base64 image)
-          const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
-          setCapturedImageUrl(imageDataUrl);
-          
-          console.log('Photo captured successfully');
+          if (context && video.videoWidth > 0 && video.videoHeight > 0) {
+            console.log('Capturing image from video:', video.videoWidth, 'x', video.videoHeight);
+            
+            // Set canvas dimensions to video dimensions
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Save the current transform
+            context.save();
+            
+            // Mirror the image to match what user sees (since video preview will be mirrored)
+            context.scale(-1, 1);
+            context.translate(-canvas.width, 0);
+            
+            // Draw current video frame to canvas
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Restore the transform
+            context.restore();
+            
+            // Convert to data URL (base64 image)
+            const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            setCapturedImageUrl(imageDataUrl);
+            
+            console.log('Photo captured successfully, data URL length:', imageDataUrl.length);
+            setCaptureState('confirm');
+          } else {
+            throw new Error('Canvas context or video dimensions not available');
+          }
+        } else {
+          throw new Error('Video or canvas not available');
         }
+      } catch (error) {
+        console.error('Error capturing photo:', error);
+        alert('Failed to capture photo. Please try again.');
+      } finally {
+        setIsCapturing(false);
       }
-      setCaptureState('confirm');
     }
   };
 
   const handleCancelCapture = () => {
+    console.log('Canceling capture');
     setCaptureState('initial');
     setCapturedImageUrl('');
   };
@@ -99,24 +173,28 @@ const CameraCapture = () => {
     if (capturedImageUrl) {
       // Store captured image in sessionStorage to pass to details page
       sessionStorage.setItem('capturedImage', capturedImageUrl);
-      console.log('Photo saved to session storage');
+      console.log('Photo saved to session storage, data URL length:', capturedImageUrl.length);
+      
+      // Navigate to details-live page
+      navigate('/details-live');
+      setCaptureState('initial');
+      setCapturedImageUrl('');
+    } else {
+      console.error('No captured image available');
+      alert('No image captured. Please try again.');
     }
-    // Navigate to details-live page
-    navigate('/details-live');
-    setCaptureState('initial');
-    setCapturedImageUrl('');
   };
 
 
   return (
-    <div className="fixed inset-0 bg-[var(--background-color)] text-[var(--text-primary)] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-black text-white flex flex-col overflow-hidden">
       {/* Header */}
       <header className="bg-black/50 backdrop-blur-sm flex-shrink-0 z-10">
         <div className="flex justify-between items-center h-20 px-4">
           <div></div>
           <h1 className="text-xl font-semibold text-white">Capture</h1>
-          <button className="p-2" onClick={() => navigate('/')}>
-            <span className="material-symbols-outlined text-white">home</span>
+          <button className="p-2 hover:bg-white/10 rounded-full transition-colors" onClick={() => navigate('/')}>
+            <Home className="w-6 h-6 text-white" />
           </button>
         </div>
       </header>
@@ -126,8 +204,11 @@ const CameraCapture = () => {
         {/* Camera Off State */}
         {!isPowerOn && (
           <div className="text-center">
-            <span className="material-symbols-outlined text-gray-600 text-9xl">photo_camera</span>
-            <p className="text-[var(--text-secondary)] mt-2">Camera is off</p>
+            <Camera className="w-24 h-24 text-gray-600 mx-auto mb-4" />
+            <p className="text-gray-400 mt-2">Camera is off</p>
+            {cameraError && (
+              <p className="text-red-400 mt-2 text-sm px-4">{cameraError}</p>
+            )}
           </div>
         )}
 
@@ -141,6 +222,7 @@ const CameraCapture = () => {
                 playsInline
                 muted
                 className="absolute inset-0 w-full h-full object-cover"
+                style={{ transform: 'scaleX(-1)' }}
               />
             ) : (
               // Show captured image for review
@@ -151,6 +233,15 @@ const CameraCapture = () => {
                   className="absolute inset-0 w-full h-full object-cover"
                 />
               )
+            )}
+            
+            {/* Capturing indicator */}
+            {isCapturing && (
+              <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                <div className="bg-black/70 rounded-lg px-4 py-2">
+                  <p className="text-white text-sm">Capturing...</p>
+                </div>
+              </div>
             )}
           </div>
         )}
@@ -166,16 +257,16 @@ const CameraCapture = () => {
           <div className="flex justify-center py-4">
             <div className="flex gap-16">
               <button 
-                className="w-16 h-16 bg-[var(--color-red)] rounded-full flex items-center justify-center shadow-lg transform active:scale-95 transition-transform"
+                className="w-16 h-16 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center shadow-lg transform active:scale-95 transition-all"
                 onClick={handleCancelCapture}
               >
-                <span className="material-symbols-outlined text-white text-4xl">close</span>
+                <X className="w-8 h-8 text-white" />
               </button>
               <button 
-                className="w-16 h-16 bg-[var(--color-green)] rounded-full flex items-center justify-center shadow-lg transform active:scale-95 transition-transform"
+                className="w-16 h-16 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-lg transform active:scale-95 transition-all"
                 onClick={handleConfirmCapture}
               >
-                <span className="material-symbols-outlined text-white text-4xl">check</span>
+                <Check className="w-8 h-8 text-white" />
               </button>
             </div>
           </div>
@@ -184,32 +275,37 @@ const CameraCapture = () => {
         {/* Main Controls */}
         <div className="flex justify-between items-center h-28 px-4">
           {/* Power Button */}
-          <button className="p-2" onClick={handlePowerClick}>
-            <span 
-              className={`material-symbols-outlined text-3xl ${
-                isPowerOn ? 'text-[var(--color-green)]' : 'text-[var(--color-red)]'
+          <button 
+            className="p-3 rounded-full hover:bg-white/10 transition-colors" 
+            onClick={handlePowerClick}
+          >
+            <Power 
+              className={`w-8 h-8 ${
+                isPowerOn ? 'text-green-500' : 'text-red-500'
               }`}
-            >
-              power_settings_new
-            </span>
+            />
           </button>
 
           {/* Capture Button - Only show in initial state */}
           {captureState === 'initial' && (
             <div className="flex-grow flex justify-center">
               <button 
-                className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg transform active:scale-95 transition-transform"
+                className={`w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg transform transition-all ${
+                  !isPowerOn || isCapturing 
+                    ? 'opacity-50 cursor-not-allowed' 
+                    : 'hover:scale-105 active:scale-95'
+                }`}
                 onClick={handleCaptureClick}
-                disabled={!isPowerOn}
+                disabled={!isPowerOn || isCapturing}
               >
-                <div className="w-18 h-18 bg-white rounded-full border-4 border-black"></div>
+                <div className="w-16 h-16 bg-white rounded-full border-4 border-black"></div>
               </button>
             </div>
           )}
 
           {/* Settings Button */}
-          <button className="p-2">
-            <span className="material-symbols-outlined text-white text-3xl">build</span>
+          <button className="p-3 rounded-full hover:bg-white/10 transition-colors">
+            <Settings className="w-8 h-8 text-white" />
           </button>
         </div>
 
