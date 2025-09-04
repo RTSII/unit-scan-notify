@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**SPR Vice City** is a mobile-first violation notice management application designed for field operations. Built with a retro-futuristic Vice City aesthetic, this app enables property management teams to capture, document, and manage violation notices efficiently on mobile devices.
+**SPR Vice City** is a mobile-first violation notice management application designed for field operations. Built with a Vaporwave retro-futuristic aesthetic set in Coastal South Carolina, this app enables my property management team to capture, document, export, and manage violation notices efficiently on mobile devices.
 
 **Live URL**: https://lovable.dev/projects/22649cbf-4588-41b8-adc2-962a2e3dd1da
 
@@ -12,17 +12,17 @@
 - **Mobile Camera Integration**: Real-time photo capture with confirmation workflow
 - **Violation Form Management**: Comprehensive form system for documenting violations
 - **User Authentication**: Secure invite-only registration system with role-based access
-- **Data Export**: Email and print export capabilities for violation notices
-- **Books Library**: Searchable archive of all saved violation forms
+- **Data Export**: Email and print export capabilities for violation notices with the ability to attach photos taken both in the field, and added from User's mobile device.
+- **Books Library**: Searchable archive of all saved violation forms 
 
 ### 📱 Mobile-Optimized Design
-- **Responsive Layout**: Fully optimized for iOS and Android devices
+- **Responsive Layout**: Fully optimized for iOS and Android devices ensures all UI content is fully visible and accessable 
 - **Touch-Friendly Interface**: Minimum 44px touch targets for accessibility
 - **Safe Area Support**: Proper handling of device notches and home indicators
 - **Viewport Optimization**: Uses `dvh` units for consistent full-screen experience
 
 ### 🎨 Vice City Theme
-- **Retro-Futuristic Design**: Neon colors, gradients, and cyberpunk aesthetics
+- **Vaporwave Retro-Futuristic Design**: Neon colors, gradients, beach/ocean elements, and cyberpunk aesthetics
 - **Custom Typography**: Orbitron and Righteous fonts with neon glow effects
 - **Animated Elements**: Subtle animations and hover states
 - **Color Palette**: Vice purple, pink, cyan, blue, and orange theme
@@ -48,7 +48,7 @@ src/
 │   ├── CameraCapture.tsx # Camera functionality
 │   └── DetailsPrevious.tsx # Form details component
 ├── pages/              # Route components
-│   ├── Dashboard.tsx   # Main dashboard with hamburger menu
+│   ├── Main.tsx   # Main dashboard with hamburger menu
 │   ├── Auth.tsx        # Authentication page
 │   ├── Capture.tsx     # Camera capture page
 │   ├── Books.tsx       # Violation forms library
@@ -122,14 +122,15 @@ The project uses Supabase for backend services. Environment variables are automa
 - **Confirmation Workflow**: Two-step capture process (capture → confirm)
 - **Session Storage**: Temporarily stores captured images during form completion
 
+
 ### Form Management
-- **Auto-Population**: Live details auto-fill current date/time
+- **Auto-Population**: DetailsLive.tsx does auto-fill current date/time
 - **Validation**: Ensures required fields and violation types are selected
-- **Status Tracking**: Forms can be saved as drafts or marked complete
+- **Status Tracking**: Book Em button serves as Save form functionality including photos taken and redirects to Books.tsx where the saved froms are displayed
 
 ### Export System
-- **Email Export**: Generates formatted email with violation details
-- **Print Layout**: 2x2 grid layout optimized for printing (max 4 forms)
+- **Email Export**: Allows User to email up to 4 Violations at one time, and be able to attach their photos 
+- **Print Layout**: 2x2 grid layout optimized for printing (max 4 forms) scaled to fit on a standard sheet of printer paper
 - **Batch Operations**: Select multiple forms for bulk export
 
 ## Mobile Optimization
@@ -218,21 +219,19 @@ This is SPR Vice City, a mobile-first violation notice management application fo
 
 Key project requirements:
 - Mobile-optimized for iOS and Android devices exclusively
-- Vice City retro-futuristic aesthetic with neon colors (vice-purple, vice-pink, vice-cyan, vice-blue)
+- SPR Vice City has Vaporwave retro-futuristic aesthetics and beach/ocean elements, with neon colors (vice-purple, vice-pink, vice-cyan, vice-blue)
 - Supabase backend with invite-only authentication system
 - Camera integration for violation photo capture
 - Form management system for violation notices
 - Export capabilities (email/print)
 - Books library for saved forms
 - Dashboard with hamburger menu and semi-circle button layout
-- Uses 2.jpeg as background image without animated effects
+- Uses 2.jpeg as background image without animated effects on the main.tsx page (User Dashboard)
 - All UI must be fully visible on mobile screens without content cutoff
 - Touch targets minimum 44px for accessibility
 - Export capabilities (email/print)
 - Books library for saved forms
-- Uses 2.jpeg as background image without animated effects
 - All UI must be fully visible on mobile screens without content cutoff
 - Touch targets minimum 44px for accessibility
 - Uses Work Sans font family and Material Symbols
 
-Focus on the detailslive.tsx page to ensure that no content is cut off and you see the Book Em button at the bottom of the page all properly responsive and contained in the UI
