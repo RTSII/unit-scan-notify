@@ -1,16 +1,25 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Loader2, Camera, BookOpen, FileText, Download, Menu, X } from 'lucide-react';
+import { Loader2, Camera, BookOpen, FileText, Download, Menu, X, Settings } from 'lucide-react';
 
 // Import the background image
 const backgroundImage = '/2.jpeg';
 
 export default function Dashboard() {
-  const { user, loading } = useAuth();
+  const { user, loading, profile } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Dashboard Debug Info:');
+    console.log('- User:', user?.email);
+    console.log('- Profile:', profile);
+    console.log('- Profile Role:', profile?.role);
+    console.log('- Loading:', loading);
+  }, [user, profile, loading]);
 
   // Redirect if not authenticated
   if (!loading && !user) {
@@ -29,8 +38,8 @@ export default function Dashboard() {
     );
   }
 
-  // CORRECTED ORDER: Books (far left), Capture, Details, Export (far right)
-  const menuItems = [
+  // Base menu items for all users
+  const baseMenuItems = [
     {
       icon: <BookOpen className="w-5 h-5 xs:w-6 xs:h-6" />,
       onClick: () => navigate('/books'),
@@ -53,6 +62,21 @@ export default function Dashboard() {
     }
   ];
 
+  // Add Admin icon for admin users only
+  const menuItems = profile?.role === 'admin' 
+    ? [
+        ...baseMenuItems,
+        {
+          icon: <Settings className="w-5 h-5 xs:w-6 xs:h-6" />,
+          onClick: () => navigate('/admin'),
+          label: 'Admin'
+        }
+      ]
+    : baseMenuItems;
+
+  // Debug: Show current menu count
+  console.log('Menu items count:', menuItems.length, 'Is admin:', profile?.role === 'admin');
+
   // Responsive semi-circle arc configuration - 180 degrees above hamburger
   const getButtonPosition = (index: number) => {
     // Responsive radius based on screen size
@@ -65,10 +89,13 @@ export default function Dashboard() {
 
     const radius = getRadius();
 
-    // REVERSED angles to fix mirroring: 150°, 110°, 70°, 30° from horizontal
-    // This will place Books on far left and Export on far right
-    const angles = [150, 110, 70, 30]; // degrees from horizontal (0° = right, 90° = up)
-    const angle = angles[index];
+    // Dynamic angle calculation based on number of items
+    const totalItems = menuItems.length;
+    const totalAngle = 120; // Total arc span in degrees
+    const angleStep = totalAngle / (totalItems - 1);
+    const startAngle = 150; // Starting angle from horizontal
+    
+    const angle = startAngle - (index * angleStep);
 
     // Convert to radians
     const radians = (angle * Math.PI) / 180;
@@ -93,10 +120,19 @@ export default function Dashboard() {
       {/* Background overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-vice-purple/20 to-black/60 z-10" />
 
+      {/* Debug info - remove this later */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed top-4 right-4 z-50 bg-black/80 text-white p-2 rounded text-xs">
+          <div>User: {user?.email}</div>
+          <div>Role: {profile?.role || 'loading...'}</div>
+          <div>Menu Items: {menuItems.length}</div>
+        </div>
+      )}
+
       {/* Navigation Dock */}
       <div className="fixed bottom-6 xs:bottom-8 left-1/2 transform -translate-x-1/2 z-50 pb-safe">
         <div className="relative">
-          {/* Arc Menu Buttons - Books, Capture, Details, Export */}
+          {/* Arc Menu Buttons - Books, Capture, Details, Export, Admin (if admin) */}
           {menuItems.map((item, index) => {
             const position = getButtonPosition(index);
 
@@ -108,11 +144,14 @@ export default function Dashboard() {
                   setIsMenuOpen(false);
                 }}
                 className={`
-                  absolute touch-target-lg rounded-full bg-vice-cyan/90 hover:bg-vice-cyan 
-                  border-2 border-vice-pink/50 backdrop-blur-sm
-                  transition-all duration-500 ease-out shadow-lg group hover:scale-105
+                  absolute touch-target-lg rounded-full backdrop-blur-sm
+                  border-2 transition-all duration-500 ease-out shadow-lg group hover:scale-105
                   flex items-center justify-center no-select
                   w-12 h-12 xs:w-14 xs:h-14
+                  ${item.label === 'Admin' 
+                    ? 'bg-vice-pink/90 hover:bg-vice-pink border-vice-cyan/50' 
+                    : 'bg-vice-cyan/90 hover:bg-vice-cyan border-vice-pink/50'
+                  }
                   ${isMenuOpen
                     ? 'opacity-100 scale-100 pointer-events-auto'
                     : 'opacity-0 scale-75 pointer-events-none'
@@ -152,13 +191,6 @@ export default function Dashboard() {
               )}
             </div>
           </Button>
-        </div>
-      </div>
-
-      {/* Optional: Add a subtle label for the current page */}
-      <div className="absolute top-6 left-1/2 transform -translate-x-1/2 z-30 pt-safe">
-        <div className="bg-black/30 backdrop-blur-sm rounded-full px-4 py-2 border border-vice-cyan/30">
-          <p className="text-white text-sm font-medium">Dashboard</p>
         </div>
       </div>
     </div>

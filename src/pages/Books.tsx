@@ -25,6 +25,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 
 interface SavedForm {
   id: string;
+  user_id: string;
   unit_number: string;
   date: string;
   time: string;
@@ -33,6 +34,12 @@ interface SavedForm {
   photos: string[];
   status: string;
   created_at: string;
+  // Add user profile information - make it optional since the join might fail
+  profiles?: {
+    email: string;
+    full_name: string | null;
+    role: string;
+  } | null;
 }
 
 const Books = () => {
@@ -56,19 +63,55 @@ const Books = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      // First, try to fetch with the join
+      let { data, error } = await supabase
         .from('violation_forms')
-        .select('*')
-        .eq('user_id', user.id)
+        .select(`
+          *,
+          profiles!violation_forms_user_id_fkey (
+            email,
+            full_name,
+            role
+          )
+        `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setForms(data || []);
+      // If the join fails, fall back to separate queries
+      if (error || !data) {
+        console.log('Join query failed, falling back to separate queries:', error);
+
+        // Fetch violation forms
+        const { data: formsData, error: formsError } = await supabase
+          .from('violation_forms')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (formsError) throw formsError;
+
+        // Fetch all profiles
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('user_id, email, full_name, role');
+
+        if (profilesError) throw profilesError;
+
+        // Manually join the data
+        const formsWithProfiles = (formsData || []).map(form => ({
+          ...form,
+          profiles: profilesData?.find(profile => profile.user_id === form.user_id) || null
+        }));
+
+        setForms(formsWithProfiles);
+      } else {
+        // Type assertion to handle the Supabase response
+        const formsWithProfiles = (data || []) as unknown as SavedForm[];
+        setForms(formsWithProfiles);
+      }
     } catch (error) {
       console.error('Error fetching forms:', error);
       toast({
         title: "Error",
-        description: "Failed to load saved forms",
+        description: "Failed to load violation forms",
         variant: "destructive",
       });
     } finally {
@@ -79,12 +122,14 @@ const Books = () => {
   const applyFilters = (formsToFilter: SavedForm[]) => {
     let filtered = formsToFilter;
 
-    // Apply search filter
+    // Apply search filter (now includes user names)
     if (searchTerm) {
       filtered = filtered.filter(form =>
         form.unit_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
         form.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        form.location.toLowerCase().includes(searchTerm.toLowerCase())
+        form.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        form.profiles?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        form.profiles?.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -133,7 +178,7 @@ const Books = () => {
       <div className="min-h-dvh bg-gradient-to-br from-vice-purple via-black to-vice-blue flex items-center justify-center px-4">
         <div className="text-center">
           <BookOpen className="h-8 w-8 animate-pulse text-vice-pink mx-auto mb-4" />
-          <p className="text-white">Loading your books...</p>
+          <p className="text-white">Loading team violations...</p>
         </div>
       </div>
     );
@@ -151,7 +196,7 @@ const Books = () => {
         >
           <Printer className="w-5 h-5" />
         </Button>
-        <h1 className="text-xl sm:text-2xl font-bold vice-block-letters text-white text-center">Books</h1>
+        <h1 className="text-xl sm:text-2xl font-bold vice-block-letters text-white text-center">Team Violations</h1>
         <Button
           onClick={() => navigate('/')}
           variant="ghost"
@@ -170,7 +215,7 @@ const Books = () => {
             <div className="relative w-full max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-vice-cyan" />
               <Input
-                placeholder="Search forms..."
+                placeholder="Search by unit, description, location, or team member..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 bg-black/30 border-vice-cyan/50 text-white placeholder:text-vice-cyan/70 min-h-[44px] w-full"
@@ -239,7 +284,13 @@ const Books = () => {
                     <CardContent className="p-3">
                       <div className="flex items-center justify-between">
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-white truncate">Unit {form.unit_number}</p>
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="text-sm font-medium text-white truncate">Unit {form.unit_number}</p>
+                            <span className="text-xs text-gray-400">•</span>
+                            <p className="text-xs text-vice-pink truncate">
+                              {form.profiles?.full_name || form.profiles?.email || 'Unknown User'}
+                            </p>
+                          </div>
                           <p className="text-xs text-vice-cyan/70 truncate">{form.description}</p>
                         </div>
                         <Badge className={`text-xs ml-2 flex-shrink-0 ${form.status === 'completed' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-vice-pink/20 text-vice-pink border-vice-pink/30'}`}>
@@ -277,7 +328,13 @@ const Books = () => {
                     <CardContent className="p-3">
                       <div className="flex items-center justify-between">
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-white truncate">Unit {form.unit_number}</p>
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="text-sm font-medium text-white truncate">Unit {form.unit_number}</p>
+                            <span className="text-xs text-gray-400">•</span>
+                            <p className="text-xs text-vice-pink truncate">
+                              {form.profiles?.full_name || form.profiles?.email || 'Unknown User'}
+                            </p>
+                          </div>
                           <p className="text-xs text-vice-cyan/70 truncate">{form.description}</p>
                         </div>
                         <Badge className={`text-xs ml-2 flex-shrink-0 ${form.status === 'completed' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-vice-pink/20 text-vice-pink border-vice-pink/30'}`}>
@@ -311,7 +368,7 @@ const Books = () => {
             <div className="text-center py-8">
               <p className="text-vice-cyan/70">
                 {forms.length === 0
-                  ? 'Complete forms and save them from the Details tab to see them here.'
+                  ? 'No team violations found. Complete and save forms from the Details tab to see them here.'
                   : 'Try adjusting your search terms or filter settings.'
                 }
               </p>
@@ -404,7 +461,7 @@ const Books = () => {
                 <div className="text-center py-8">
                   <BookOpen className="w-12 h-12 text-vice-cyan mx-auto mb-4 opacity-50" />
                   <p className="text-vice-cyan/70">
-                    Complete forms and save them from the Details tab to see them here.
+                    No team violations found. Complete and save forms from the Details tab to see them here.
                   </p>
                 </div>
               ) : (
@@ -419,9 +476,14 @@ const Books = () => {
                           <div className="flex-1 min-w-0">
                             <CardTitle className="text-base font-semibold text-white flex flex-col gap-2">
                               <span className="truncate">Unit {form.unit_number}</span>
-                              <Badge className={`self-start ${form.status === 'completed' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-vice-pink/20 text-vice-pink border-vice-pink/30'}`}>
-                                {form.status}
-                              </Badge>
+                              <div className="flex items-center gap-2">
+                                <Badge className={`self-start ${form.status === 'completed' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-vice-pink/20 text-vice-pink border-vice-pink/30'}`}>
+                                  {form.status}
+                                </Badge>
+                                <span className="text-xs text-vice-pink font-normal">
+                                  by {form.profiles?.full_name || form.profiles?.email || 'Unknown User'}
+                                </span>
+                              </div>
                             </CardTitle>
                             <div className="flex items-center gap-2 text-sm text-vice-cyan/70 mt-1">
                               <Calendar className="w-4 h-4 flex-shrink-0" />

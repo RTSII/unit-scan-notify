@@ -1,211 +1,186 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+interface Profile {
+  user_id: string;
+  email: string;
+  full_name: string | null;
+  role: string;
+  created_at: string;
+  updated_at: string;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
+  profile: Profile | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName?: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signInWithGoogle: () => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, fullName?: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
-  profile: any;
   refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<any>(null);
   const { toast } = useToast();
 
   const refreshProfile = async () => {
-    if (!user) return;
-    
+    if (!user) {
+      setProfile(null);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
         .single();
-      
+
       if (error) {
         console.error('Error fetching profile:', error);
+        setProfile(null);
         return;
       }
-      
+
       setProfile(data);
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('Error in refreshProfile:', error);
+      setProfile(null);
+    }
+  };
+
+  const signIn = async (email: string, password: string) => {
+    try {
+      setLoading(true);
+      const { error, data: { session }, data: { user } } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) throw error;
+
+      setSession(session);
+      setUser(user);
+      await refreshProfile();
+    } catch (error: any) {
+      toast({
+        title: "Error signing in",
+        description: error.message || "An error occurred during sign in.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signUp = async (email: string, password: string, fullName?: string) => {
+    try {
+      setLoading(true);
+      const { error, data: { session }, data: { user } } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      if (error) throw error;
+
+      if (user && fullName) {
+        const { error: profileError } = await supabase.from('profiles').insert({
+          user_id: user.id,
+          email: user.email,
+          full_name: fullName,
+        });
+        if (profileError) throw profileError;
+      }
+
+      setSession(session);
+      setUser(user);
+      await refreshProfile();
+    } catch (error: any) {
+      toast({
+        title: "Error signing up",
+        description: error.message || "An error occurred during sign up.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        title: "Error signing in with Google",
+        description: error.message || "An error occurred during Google sign in.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    // Set up auth state listener
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+
+      if (session?.user) {
+        refreshProfile();
+      }
+    });
+
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
-        
-        // Fetch profile when user signs in
+
         if (session?.user) {
-          setTimeout(() => {
-            refreshProfile();
-          }, 0);
+          refreshProfile();
         } else {
           setProfile(null);
         }
       }
     );
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-      
-      if (session?.user) {
-        setTimeout(() => {
-          refreshProfile();
-        }, 0);
-      }
-    });
-
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName?: string) => {
-    try {
-      const redirectUrl = `${window.location.origin}/`;
-      
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            full_name: fullName,
-          }
-        }
-      });
-
-      if (error) {
-        if (error.message.includes('Registration requires a valid invite')) {
-          toast({
-            title: "Invitation Required",
-            description: "You need a valid invitation to register. Please contact an administrator.",
-            variant: "destructive",
-          });
-        } else if (error.message.includes('User already registered')) {
-          toast({
-            title: "Account Exists",
-            description: "An account with this email already exists. Try signing in instead.",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Registration Failed",
-            description: error.message,
-            variant: "destructive",
-          });
-        }
-      } else {
-        toast({
-          title: "Registration Successful",
-          description: "Please check your email to verify your account.",
-        });
-      }
-
-      return { error };
-    } catch (error: any) {
-      toast({
-        title: "Registration Error",
-        description: error.message,
-        variant: "destructive",
-      });
-      return { error };
+  // Refresh profile when user changes
+  useEffect(() => {
+    if (user) {
+      refreshProfile();
     }
-  };
-
-  const signIn = async (email: string, password: string) => {
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        if (error.message.includes('Invalid login credentials')) {
-          toast({
-            title: "Sign In Failed",
-            description: "Invalid email or password. Please check your credentials.",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Sign In Failed",
-            description: error.message,
-            variant: "destructive",
-          });
-        }
-      }
-
-      return { error };
-    } catch (error: any) {
-      toast({
-        title: "Sign In Error",
-        description: error.message,
-        variant: "destructive",
-      });
-      return { error };
-    }
-  };
-
-  const signInWithGoogle = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/`,
-        }
-      });
-
-      if (error) {
-        toast({
-          title: "Google Sign In Failed",
-          description: error.message,
-          variant: "destructive",
-        });
-      }
-
-      return { error };
-    } catch (error: any) {
-      toast({
-        title: "Google Sign In Error",
-        description: error.message,
-        variant: "destructive",
-      });
-      return { error };
-    }
-  };
+  }, [user]);
 
   const signOut = async () => {
     try {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+
+      setUser(null);
+      setSession(null);
       setProfile(null);
-      toast({
-        title: "Signed Out",
-        description: "You have been successfully signed out.",
-      });
     } catch (error: any) {
       toast({
-        title: "Sign Out Error",
+        title: "Error signing out",
         description: error.message,
         variant: "destructive",
       });
@@ -215,16 +190,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = {
     user,
     session,
+    profile,
     loading,
-    signUp,
     signIn,
+    signUp,
     signInWithGoogle,
     signOut,
-    profile,
     refreshProfile,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
