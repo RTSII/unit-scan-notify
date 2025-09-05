@@ -92,32 +92,53 @@ The application uses React Router DOM with the following route structure:
 
 ### Key File Responsibilities
 
+#### **File Architecture & Routing Logic Explained**
+
+**🔍 Common Confusion: `main.tsx` vs `Dashboard.tsx`**
+
+- **`main.tsx`** = **Application Bootstrap/Entry Point**
+  - **Purpose**: Initializes the entire React application
+  - **Role**: Sets up mobile optimizations, viewport fixes, and renders the root `<App />` component
+  - **Routing**: NOT a route - this file runs once when the app starts
+  - **Contains**: Mobile viewport calculations, touch behavior prevention, gesture handling
+  - **Think of it as**: The "launcher" that starts your app and applies global mobile settings
+
+- **`Dashboard.tsx`** = **Main Navigation Page/Route**
+  - **Purpose**: The main landing page users see after authentication
+  - **Role**: Displays the hamburger menu with semi-circle button layout
+  - **Routing**: Accessible at route `"/"` (root path)
+  - **Contains**: Navigation buttons, background image, authentication checks
+  - **Think of it as**: The "home screen" where users choose what to do
+
+**🔍 Common Confusion: `Capture.tsx` vs `CameraCapture.tsx`**
+
+- **`Capture.tsx`** = **Route Wrapper/Authentication Guard**
+  - **Purpose**: Protects the camera route and handles authentication
+  - **Role**: Checks if user is logged in before allowing camera access
+  - **Routing**: Accessible at route `"/capture"`
+  - **Contains**: Authentication logic, loading states, redirects to `/auth` if not logged in
+  - **Think of it as**: The "security guard" that checks your ID before letting you use the camera
+
+- **`CameraCapture.tsx`** = **Actual Camera Implementation**
+  - **Purpose**: The complete camera functionality and UI
+  - **Role**: Handles camera stream, photo capture, confirmation workflow
+  - **Routing**: NOT a route - it's a component rendered by `Capture.tsx`
+  - **Contains**: Camera controls, photo capture logic, image processing, mobile optimizations
+  - **Think of it as**: The "actual camera app" with all the photo-taking features
+
+#### **Routing Flow Example:**
+```
+User visits "/capture"
+    ↓
+Capture.tsx checks authentication
+    ↓
+If authenticated: renders <CameraCapture />
+If not authenticated: redirects to "/auth"
+    ↓
+CameraCapture.tsx displays camera interface
+```
+
 #### `main.tsx` - Application Bootstrap
-- **Mobile viewport fixes**: Dynamic viewport height calculation for iOS Safari
-- **Touch behavior optimization**: Prevents double-tap zoom and pinch gestures
-- **Orientation handling**: Recalculates viewport on device rotation
-- **App initialization**: Renders the main App component
-
-#### `Dashboard.tsx` - Main Navigation Hub
-- **Full-screen background**: Uses `dashboard-container` class for complete coverage
-- **Responsive arc menu**: Semi-circle button layout with dynamic positioning
-- **Screen size adaptation**: Adjusts button sizes and spacing based on device width
-- **Safe area integration**: Uses `pb-safe` for proper bottom spacing around home indicators
-- **Background image handling**: Proper 2.jpeg integration with overlay effects
-
-#### `Capture.tsx` & `CameraCapture.tsx` - Camera System
-- **Capture.tsx**: Authentication wrapper and route protection
-- **CameraCapture.tsx**: Full camera implementation with mobile optimizations
-  - Responsive camera controls and touch targets
-  - Safe area handling for notched devices
-  - Confirmation workflow (capture → review → approve/cancel)
-  - Session storage integration for form workflow
-
-#### `index.css` - Global Mobile Styles
-- **Layout fixes**: Proper margin/padding reset to eliminate white space
-- **Safe area utilities**: CSS classes for handling device safe areas
-- **Touch-friendly styles**: Minimum touch target sizes and no-select utilities
-- **Mobile viewport handling**: Dynamic height calculations and overflow management
 - **Vice City theme**: Neon effects, animations, and color variables
 - **Full-screen utilities**: `dashboard-container` class for complete coverage
 
@@ -157,6 +178,9 @@ The application uses React Router DOM with the following route structure:
 **Root Causes**:
 - `overflow: hidden` on html/body elements
 - Missing margin/padding reset
+- Viewport meta tag configuration issues
+- CSS reset not properly applied
+=======
 - Incorrect viewport height calculations
 - Background image positioning issues
 
@@ -374,6 +398,45 @@ Navigate to Project > Settings > Domains to connect a custom domain.
 [Domain Setup Guide](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
 
 ## Security Features
+
+### 🚨 **File Confusion & Architecture Issues**
+
+#### **Problem**: Confusion between similar file names and their purposes
+**Common Confusions**:
+- `main.tsx` vs `Dashboard.tsx` - "Which one is the main page?"
+- `Capture.tsx` vs `CameraCapture.tsx` - "Why are there two camera files?"
+- Route components vs regular components
+
+#### **Solution & Understanding**:
+
+**File Naming Convention**:
+```
+src/
+├── main.tsx                    # ⚡ App entry point (NOT a page)
+├── App.tsx                     # 🔀 Router configuration
+├── pages/                      # 📄 Route components (pages)
+│   ├── Dashboard.tsx           # 🏠 Main navigation page
+│   ├── Capture.tsx             # 🔒 Camera route wrapper
+│   ├── Books.tsx               # 📚 Forms library page
+│   └── [other pages]
+└── components/                 # 🧩 Reusable components
+    ├── CameraCapture.tsx       # 📷 Actual camera functionality
+    └── [other components]
+```
+
+**Quick Reference**:
+- **Files in `src/pages/`** = Routes (accessible via URL)
+- **Files in `src/components/`** = Reusable components (used by pages)
+- **`main.tsx`** = App startup (runs once)
+- **`App.tsx`** = Router setup (defines all routes)
+
+#### **Prevention**:
+1. **Follow naming conventions**: Pages in `/pages/`, components in `/components/`
+2. **Use descriptive names**: `AuthWrapper.tsx` instead of `Auth.tsx` for wrappers
+3. **Add comments**: Clearly document file purposes
+4. **Consistent patterns**: All route wrappers follow same authentication pattern
+
+## Common Styling Issues & Solutions
 
 - **Invite-Only Registration**: Prevents unauthorized access
 - **Row Level Security**: Database-level access control
