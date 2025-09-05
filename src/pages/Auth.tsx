@@ -66,7 +66,7 @@ export default function Auth() {
     <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue relative overflow-hidden">
       {/* Background effects */}
       <div className="absolute inset-0 bg-black/20 z-0" />
-      
+
       {/* Animated waves */}
       <div className="absolute bottom-0 left-0 w-full overflow-hidden opacity-30 z-10">
         <div className="wave-bg h-16 bg-gradient-to-r from-vice-cyan to-vice-pink animate-wave-1"></div>
@@ -82,17 +82,49 @@ export default function Auth() {
 
       {/* Content */}
       <div className="relative flex flex-col justify-center items-center min-h-screen py-6 px-4 z-30">
-        <div className="w-full max-w-sm space-y-3">
-          {/* Logo */}
-          <div className="text-center pt-1">
-            <div className="mb-3">
-              <img 
-                src="/vicecity.png" 
-                alt="Vice City Logo" 
-                className="mx-auto h-28 w-auto sm:h-32 md:h-36 lg:h-40 drop-shadow-[0_4px_12px_rgba(255,20,147,0.4)] opacity-95"
-                style={{ 
-                  filter: 'drop-shadow(0 0 15px rgba(0,255,255,0.3)) drop-shadow(0 0 25px rgba(255,20,147,0.2))',
-                  mixBlendMode: 'normal'
+        <div className="w-full max-w-sm space-y-6">
+          {/* Logo - Enhanced for true transparency and larger size */}
+          <div className="text-center mb-8">
+            <div className="spr-logo-container">
+              <img
+                src="/vicecity.png"
+                alt="SPR Vice City Logo"
+                className="spr-logo mx-auto w-48 h-auto sm:w-56 md:w-64 lg:w-72 xl:w-80 max-w-[90vw] object-contain"
+                style={{
+                  // Force transparent background
+                  backgroundColor: 'transparent',
+                  background: 'none',
+                  // Prevent any box or border artifacts
+                  border: 'none',
+                  outline: 'none',
+                  boxShadow: 'none',
+                  // Optimize rendering
+                  imageRendering: 'crisp-edges'
+                }}
+                onLoad={(e) => {
+                  // Ensure the image background is truly transparent
+                  const img = e.target as HTMLImageElement;
+                  img.style.backgroundColor = 'transparent';
+                  img.style.background = 'transparent';
+
+                  // Remove any potential canvas or container backgrounds
+                  const parent = img.parentElement;
+                  if (parent) {
+                    parent.style.backgroundColor = 'transparent';
+                    parent.style.background = 'transparent';
+                  }
+                }}
+                onError={(e) => {
+                  console.error('Logo failed to load:', e);
+                  // Fallback: show styled text instead
+                  const img = e.target as HTMLImageElement;
+                  img.style.display = 'none';
+
+                  // Create fallback text element
+                  const fallback = document.createElement('div');
+                  fallback.className = 'vice-city-font text-4xl sm:text-5xl md:text-6xl text-center';
+                  fallback.textContent = 'SPR VICE CITY';
+                  img.parentElement?.appendChild(fallback);
                 }}
               />
             </div>
@@ -115,71 +147,71 @@ export default function Auth() {
                     <Label htmlFor="fullName" className="text-white text-sm">Name</Label>
                     <div className="relative">
                       <User className="absolute left-3 top-3 h-4 w-4 text-vice-cyan/60" />
-                      <Input 
-                        id="fullName" 
-                        type="text" 
-                        placeholder="Enter your name" 
-                        value={fullName} 
-                        onChange={e => setFullName(e.target.value)} 
-                        className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-9" 
+                      <Input
+                        id="fullName"
+                        type="text"
+                        placeholder="Enter your name"
+                        value={fullName}
+                        onChange={e => setFullName(e.target.value)}
+                        className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-9"
                       />
                     </div>
                   </div>
                 )}
-                
+
                 <div className="space-y-0.5">
                   <Label htmlFor="email" className="text-white text-sm">Email</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-3 h-4 w-4 text-vice-cyan/60" />
-                    <Input 
-                      id="email" 
-                      type="email" 
-                      placeholder="Enter your email" 
-                      value={email} 
-                      onChange={e => setEmail(e.target.value)} 
-                      className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-9" 
-                      required 
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="Enter your email"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-9"
+                      required
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-0.5">
                   <Label htmlFor="password" className="text-white text-sm">Password</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-vice-cyan/60" />
-                    <Input 
-                      id="password" 
-                      type="password" 
-                      placeholder="7+ letters, at least 1 number" 
-                      value={password} 
-                      onChange={e => setPassword(e.target.value)} 
-                      className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-9" 
-                      minLength={7} 
-                      pattern="^(?=.*[0-9]).{7,}$" 
-                      title="Password must be at least 7 characters and contain at least one number" 
-                      required 
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="7+ letters, at least 1 number"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink h-9"
+                      minLength={7}
+                      pattern="^(?=.*[0-9]).{7,}$"
+                      title="Password must be at least 7 characters and contain at least one number"
+                      required
                     />
                   </div>
                 </div>
-                
+
                 <div className="pt-1">
-                  <Button 
-                  type="submit" 
-                  className="w-full bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink text-white font-semibold h-9" 
-                  disabled={isLoading}
-                >
-                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  {isSignUp ? 'Create Account' : 'Sign In'}
+                  <Button
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink text-white font-semibold h-9"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                    {isSignUp ? 'Create Account' : 'Sign In'}
                   </Button>
                 </div>
               </form>
 
               <Separator className="bg-vice-cyan/20 my-3" />
 
-              <Button 
-                onClick={handleGoogleSignIn} 
-                variant="outline" 
-                className="w-full bg-white/10 border-vice-cyan/30 text-white hover:bg-white/20 h-11 text-base" 
+              <Button
+                onClick={handleGoogleSignIn}
+                variant="outline"
+                className="w-full bg-white/10 border-vice-cyan/30 text-white hover:bg-white/20 h-11 text-base"
                 disabled={isLoading}
               >
                 <Chrome className="h-4 w-4 mr-2" />
@@ -187,9 +219,9 @@ export default function Auth() {
               </Button>
 
               <div className="text-center pt-2">
-                <button 
-                  type="button" 
-                  onClick={() => setIsSignUp(!isSignUp)} 
+                <button
+                  type="button"
+                  onClick={() => setIsSignUp(!isSignUp)}
                   className="text-vice-cyan hover:text-vice-pink text-sm transition-colors"
                 >
                   {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}

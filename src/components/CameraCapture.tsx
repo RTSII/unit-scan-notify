@@ -227,12 +227,15 @@ const CameraCapture = () => {
   return (
     <div className="fixed inset-0 bg-black text-white flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="bg-black/50 backdrop-blur-sm flex-shrink-0 z-10">
-        <div className="flex justify-between items-center h-20 px-4">
+      <header className="bg-black/50 backdrop-blur-sm flex-shrink-0 z-10 pt-safe">
+        <div className="flex justify-between items-center h-16 xs:h-20 px-4">
           <div></div>
-          <h1 className="text-xl font-semibold text-white">Capture</h1>
-          <button className="p-2 hover:bg-white/10 rounded-full transition-colors" onClick={() => navigate('/')}>
-            <Home className="w-6 h-6 text-white" />
+          <h1 className="text-lg xs:text-xl font-semibold text-white">Capture</h1>
+          <button
+            className="p-2 hover:bg-white/10 rounded-full transition-colors touch-target"
+            onClick={() => navigate('/')}
+          >
+            <Home className="w-5 h-5 xs:w-6 xs:h-6 text-white" />
           </button>
         </div>
       </header>
@@ -241,11 +244,11 @@ const CameraCapture = () => {
       <main className="flex-1 flex items-center justify-center bg-gray-900 overflow-hidden">
         {/* Camera Off State */}
         {!isPowerOn && (
-          <div className="text-center">
-            <Camera className="w-24 h-24 text-gray-600 mx-auto mb-4" />
-            <p className="text-gray-400 mt-2">Camera is off</p>
+          <div className="text-center px-4">
+            <Camera className="w-20 h-20 xs:w-24 xs:h-24 text-gray-600 mx-auto mb-4" />
+            <p className="text-gray-400 mt-2 text-sm xs:text-base">Camera is off</p>
             {cameraError && (
-              <p className="text-red-400 mt-2 text-sm px-4">{cameraError}</p>
+              <p className="text-red-400 mt-2 text-xs xs:text-sm px-4 max-w-sm mx-auto">{cameraError}</p>
             )}
           </div>
         )}
@@ -276,21 +279,21 @@ const CameraCapture = () => {
                 />
                 {/* Optional overlay to indicate this is review mode */}
                 <div className="absolute top-4 left-4 bg-black/70 rounded-lg px-3 py-1">
-                  <p className="text-white text-sm">Review Photo</p>
+                  <p className="text-white text-xs xs:text-sm">Review Photo</p>
                 </div>
               </div>
             ) : (
               // Fallback state
-              <div className="text-center text-white">
-                <p>Loading captured image...</p>
+              <div className="text-center text-white px-4">
+                <p className="text-sm xs:text-base">Loading captured image...</p>
               </div>
             )}
-            
+
             {/* Capturing indicator */}
             {isCapturing && (
               <div className="absolute inset-0 bg-black/20 flex items-center justify-center z-10">
                 <div className="bg-black/70 rounded-lg px-4 py-2">
-                  <p className="text-white text-sm">Capturing...</p>
+                  <p className="text-white text-xs xs:text-sm">Capturing...</p>
                 </div>
               </div>
             )}
@@ -302,38 +305,38 @@ const CameraCapture = () => {
       </main>
 
       {/* Footer */}
-      <footer className="bg-black/50 backdrop-blur-sm flex-shrink-0 pb-safe-bottom">
+      <footer className="bg-black/50 backdrop-blur-sm flex-shrink-0 pb-safe">
         {/* Capture Confirm State - Red X (Cancel) and Green Check (Approve) buttons */}
         {captureState === 'confirm' && (
           <div className="flex justify-center py-4">
-            <div className="flex gap-16">
-              <button 
-                className="w-16 h-16 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center shadow-lg transform active:scale-95 transition-all"
+            <div className="flex gap-12 xs:gap-16">
+              <button
+                className="touch-target-lg bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center shadow-lg transform active:scale-95 transition-all"
                 onClick={handleCancelCapture}
                 title="Cancel - Take Another Photo"
               >
-                <X className="w-8 h-8 text-white" />
+                <X className="w-6 h-6 xs:w-8 xs:h-8 text-white" />
               </button>
-              <button 
-                className="w-16 h-16 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-lg transform active:scale-95 transition-all"
+              <button
+                className="touch-target-lg bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-lg transform active:scale-95 transition-all"
                 onClick={handleConfirmCapture}
                 title="Approve - Save Photo"
               >
-                <Check className="w-8 h-8 text-white" />
+                <Check className="w-6 h-6 xs:w-8 xs:h-8 text-white" />
               </button>
             </div>
           </div>
         )}
 
         {/* Main Controls - Only show when in initial state (live camera view) */}
-        <div className="flex justify-between items-center h-28 px-4">
+        <div className="flex justify-between items-center h-24 xs:h-28 px-4">
           {/* Power Button */}
-          <button 
-            className="p-3 rounded-full hover:bg-white/10 transition-colors" 
+          <button
+            className="touch-target rounded-full hover:bg-white/10 transition-colors"
             onClick={handlePowerClick}
           >
-            <Power 
-              className={`w-8 h-8 ${
+            <Power
+              className={`w-6 h-6 xs:w-8 xs:h-8 ${
                 isPowerOn ? 'text-green-500' : 'text-red-500'
               }`}
             />
@@ -342,23 +345,23 @@ const CameraCapture = () => {
           {/* Capture Button - Only show in initial state */}
           {captureState === 'initial' && (
             <div className="flex-grow flex justify-center">
-              <button 
-                className={`w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg transform transition-all ${
-                  !isPowerOn || isCapturing 
-                    ? 'opacity-50 cursor-not-allowed' 
+              <button
+                className={`w-16 h-16 xs:w-20 xs:h-20 bg-white rounded-full flex items-center justify-center shadow-lg transform transition-all touch-target-lg ${
+                  !isPowerOn || isCapturing
+                    ? 'opacity-50 cursor-not-allowed'
                     : 'hover:scale-105 active:scale-95'
                 }`}
                 onClick={handleCaptureClick}
                 disabled={!isPowerOn || isCapturing}
               >
-                <div className="w-16 h-16 bg-white rounded-full border-4 border-black"></div>
+                <div className="w-12 h-12 xs:w-16 xs:h-16 bg-white rounded-full border-2 xs:border-4 border-black"></div>
               </button>
             </div>
           )}
 
           {/* Settings Button */}
-          <button className="p-3 rounded-full hover:bg-white/10 transition-colors">
-            <Settings className="w-8 h-8 text-white" />
+          <button className="touch-target rounded-full hover:bg-white/10 transition-colors">
+            <Settings className="w-6 h-6 xs:w-8 xs:h-8 text-white" />
           </button>
         </div>
       </footer>

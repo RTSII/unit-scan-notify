@@ -14,6 +14,7 @@ export default {
 			center: true,
 			padding: '1rem',
 			screens: {
+				'xs': '375px',  // iPhone SE and small phones
 				'sm': '640px',
 				'md': '768px',
 				'lg': '1024px',
@@ -21,14 +22,35 @@ export default {
 				'2xl': '1400px'
 			}
 		},
+		screens: {
+			'xs': '375px',   // iPhone SE (375px)
+			'sm': '640px',   // Small tablets
+			'md': '768px',   // Tablets
+			'lg': '1024px',  // Small laptops
+			'xl': '1280px',  // Laptops
+			'2xl': '1536px', // Large screens
+			// iPhone specific breakpoints
+			'iphone-se': '375px',      // iPhone SE
+			'iphone-13': '390px',      // iPhone 13/14/15
+			'iphone-13-pro': '393px',  // iPhone 13/14/15 Pro
+			'iphone-13-pro-max': '428px', // iPhone 13/14/15 Pro Max
+		},
 		extend: {
 			fontFamily: {
 				sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
 			},
+			spacing: {
+				'safe-top': 'env(safe-area-inset-top)',
+				'safe-bottom': 'env(safe-area-inset-bottom)',
+				'safe-left': 'env(safe-area-inset-left)',
+				'safe-right': 'env(safe-area-inset-right)',
+				'touch': '44px', // iOS recommended touch target size
+				'touch-lg': '48px', // Larger touch targets
+			},
 			colors: {
 				// Vice City / Vaporwave Colors
 				'vice-purple': '#8b2fa0',
-				'vice-pink': '#ff1493', 
+				'vice-pink': '#ff1493',
 				'vice-cyan': '#00ffff',
 				'vice-blue': '#4169e1',
 				'vice-orange': '#ff6347',
@@ -94,17 +116,10 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				}
 			},
-			spacing: {
-				'touch': 'var(--touch-target)',
-			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
-			},
-			boxShadow: {
-				'camera': 'var(--shadow-camera)',
-				'professional': 'var(--shadow-lg)',
 			},
 			keyframes: {
 				'accordion-down': {
@@ -123,147 +138,120 @@ export default {
 						height: '0'
 					}
 				},
-				'pulse-capture': {
-					'0%': { transform: 'scale(1)', opacity: '1' },
-					'50%': { transform: 'scale(1.05)', opacity: '0.8' },
-					'100%': { transform: 'scale(1)', opacity: '1' },
+				'collapsible-down': {
+					from: {
+						height: '0'
+					},
+					to: {
+						height: 'var(--radix-collapsible-content-height)'
+					}
 				},
-				// Wave animations
-				'wave-1': {
-					'0%': { 
-						transform: 'translateX(-100%) scaleY(1)',
-						opacity: '0.6' 
+				'collapsible-up': {
+					from: {
+						height: 'var(--radix-collapsible-content-height)'
 					},
-					'50%': { 
-						transform: 'translateX(0%) scaleY(1.2)',
-						opacity: '0.8' 
-					},
-					'100%': { 
-						transform: 'translateX(100%) scaleY(1)',
-						opacity: '0.6' 
-					},
+					to: {
+						height: '0'
+					}
 				},
-				'wave-2': {
-					'0%': { 
-						transform: 'translateX(-150%) scaleY(0.8)',
-						opacity: '0.4' 
+				'fade-in': {
+					'0%': {
+						opacity: '0'
 					},
-					'50%': { 
-						transform: 'translateX(-50%) scaleY(1.1)',
-						opacity: '0.7' 
-					},
-					'100%': { 
-						transform: 'translateX(50%) scaleY(0.8)',
-						opacity: '0.4' 
-					},
+					'100%': {
+						opacity: '1'
+					}
 				},
-				'wave-3': {
-					'0%': { 
-						transform: 'translateX(-200%) scaleY(0.6)',
-						opacity: '0.3' 
+				'fade-out': {
+					'0%': {
+						opacity: '1'
 					},
-					'50%': { 
-						transform: 'translateX(-100%) scaleY(0.9)',
-						opacity: '0.5' 
-					},
-					'100%': { 
-						transform: 'translateX(0%) scaleY(0.6)',
-						opacity: '0.3' 
-					},
+					'100%': {
+						opacity: '0'
+					}
 				},
-				// Lens flare animations
-				'lens-flare-1': {
-					'0%': { 
-						opacity: '0.2',
-						transform: 'scale(0.5)' 
+				'slide-in-from-top': {
+					'0%': {
+						transform: 'translateY(-100%)'
 					},
-					'25%': { 
-						opacity: '0.8',
-						transform: 'scale(1.2)' 
-					},
-					'50%': { 
-						opacity: '0.6',
-						transform: 'scale(1)' 
-					},
-					'75%': { 
-						opacity: '0.9',
-						transform: 'scale(1.5)' 
-					},
-					'100%': { 
-						opacity: '0.2',
-						transform: 'scale(0.5)' 
-					},
+					'100%': {
+						transform: 'translateY(0)'
+					}
 				},
-				'lens-flare-2': {
-					'0%': { 
-						opacity: '0.1',
-						transform: 'scale(0.3)' 
+				'slide-in-from-bottom': {
+					'0%': {
+						transform: 'translateY(100%)'
 					},
-					'33%': { 
-						opacity: '0.6',
-						transform: 'scale(1)' 
-					},
-					'66%': { 
-						opacity: '0.4',
-						transform: 'scale(0.8)' 
-					},
-					'100%': { 
-						opacity: '0.1',
-						transform: 'scale(0.3)' 
-					},
+					'100%': {
+						transform: 'translateY(0)'
+					}
 				},
-				'lens-flare-3': {
-					'0%': { 
-						opacity: '0.3',
-						transform: 'scale(0.8)' 
+				'slide-in-from-left': {
+					'0%': {
+						transform: 'translateX(-100%)'
 					},
-					'40%': { 
-						opacity: '0.9',
-						transform: 'scale(1.3)' 
-					},
-					'80%': { 
-						opacity: '0.5',
-						transform: 'scale(1.1)' 
-					},
-					'100%': { 
-						opacity: '0.3',
-						transform: 'scale(0.8)' 
-					},
+					'100%': {
+						transform: 'translateX(0)'
+					}
 				},
-				'lens-flare-4': {
-					'0%': { 
-						opacity: '0.1',
-						transform: 'scale(0.2)' 
+				'slide-in-from-right': {
+					'0%': {
+						transform: 'translateX(100%)'
 					},
-					'20%': { 
-						opacity: '0.5',
-						transform: 'scale(1)' 
-					},
-					'60%': { 
-						opacity: '0.3',
-						transform: 'scale(0.7)' 
-					},
-					'100%': { 
-						opacity: '0.1',
-						transform: 'scale(0.2)' 
-					},
+					'100%': {
+						transform: 'translateX(0)'
+					}
 				},
+				'slide-out-to-top': {
+					'0%': {
+						transform: 'translateY(0)'
+					},
+					'100%': {
+						transform: 'translateY(-100%)'
+					}
+				},
+				'slide-out-to-bottom': {
+					'0%': {
+						transform: 'translateY(0)'
+					},
+					'100%': {
+						transform: 'translateY(100%)'
+					}
+				},
+				'slide-out-to-left': {
+					'0%': {
+						transform: 'translateX(0)'
+					},
+					'100%': {
+						transform: 'translateX(-100%)'
+					}
+				},
+				'slide-out-to-right': {
+					'0%': {
+						transform: 'translateX(0)'
+					},
+					'100%': {
+						transform: 'translateX(100%)'
+					}
+				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-				'pulse-capture': 'pulse-capture 2s ease-in-out infinite',
-				// Wave animations with different speeds
-				'wave-1': 'wave-1 8s ease-in-out infinite',
-				'wave-2': 'wave-2 6s ease-in-out infinite reverse',
-				'wave-3': 'wave-3 10s ease-in-out infinite',
-				// Lens flare animations with different timings
-				'lens-flare-1': 'lens-flare-1 3s ease-in-out infinite',
-				'lens-flare-2': 'lens-flare-2 4s ease-in-out infinite 0.5s',
-				'lens-flare-3': 'lens-flare-3 2.5s ease-in-out infinite 1s',
-				'lens-flare-4': 'lens-flare-4 5s ease-in-out infinite 1.5s',
+				'collapsible-down': 'collapsible-down 0.2s ease-out',
+				'collapsible-up': 'collapsible-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.2s ease-out',
+				'fade-out': 'fade-out 0.2s ease-out',
+				'slide-in-from-top': 'slide-in-from-top 0.2s ease-out',
+				'slide-in-from-bottom': 'slide-in-from-bottom 0.2s ease-out',
+				'slide-in-from-left': 'slide-in-from-left 0.2s ease-out',
+				'slide-in-from-right': 'slide-in-from-right 0.2s ease-out',
+				'slide-out-to-top': 'slide-out-to-top 0.2s ease-out',
+				'slide-out-to-bottom': 'slide-out-to-bottom 0.2s ease-out',
+				'slide-out-to-left': 'slide-out-to-left 0.2s ease-out',
+				'slide-out-to-right': 'slide-out-to-right 0.2s ease-out'
 			}
 		}
 	},
-	plugins: [require("tailwindcss-animate")],
+	plugins: [require("tailwindcss-animate")]
 } satisfies Config;

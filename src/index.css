@@ -49,7 +49,7 @@
   --popover-foreground: 0 0% 98%;
   --primary: 0 0% 98%;
   --primary-foreground: 240 5.9% 10%;
-  --secondary: 240 3.7% 15.9%;
+  --secondary: 240 10% 3.9%;
   --secondary-foreground: 0 0% 98%;
   --muted: 240 3.7% 15.9%;
   --muted-foreground: 240 5% 64.9%;
@@ -67,143 +67,380 @@
   --chart-5: 340 75% 55%;
 }
 
+* {
+  border-color: hsl(var(--border));
+}
+
 body {
-  font-family: 'Work Sans', sans-serif;
-  min-height: 100vh;
-  min-height: 100dvh;
-  height: 100vh;
-  height: 100dvh;
-  width: 100vw;
-  width: 100dvw;
-  overflow: hidden;
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+  font-feature-settings: "rlig" 1, "calt" 1;
+  /* Prevent horizontal scrolling on mobile */
+  overflow-x: hidden;
+  /* Improve text rendering on mobile */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Prevent zoom on input focus on iOS */
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Mobile-specific optimizations */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+}
+
+/* Prevent iOS bounce scrolling */
+html,
+body {
+  height: 100%;
   margin: 0;
   padding: 0;
-  -webkit-text-size-adjust: 100%;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
 }
 
 #root {
   height: 100vh;
-  height: 100dvh;
-  width: 100vw;
-  width: 100dvw;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Safe area utilities */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .pl-safe {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .pr-safe {
+    padding-right: env(safe-area-inset-right);
+  }
+
+  .p-safe {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Touch-friendly utilities */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .touch-target-lg {
+    min-height: 48px;
+    min-width: 48px;
+  }
+
+  /* Prevent text selection on UI elements */
+  .no-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  /* Ensure full coverage for dashboard */
+  .dashboard-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    height: -webkit-fill-available;
+  }
+
+  /* Mobile viewport height fix */
+  .min-h-screen-mobile {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    min-height: calc(var(--vh, 1vh) * 100);
+  }
+
+  .h-screen-mobile {
+    height: 100vh;
+    height: -webkit-fill-available;
+    height: calc(var(--vh, 1vh) * 100);
+  }
+}
+
+/* Vice City Theme Colors */
+:root {
+  --vice-purple: #8b2fa0;
+  --vice-pink: #ff1493;
+  --vice-cyan: #00ffff;
+  --vice-blue: #4169e1;
+  --vice-orange: #ff6b35;
+}
+
+/* Wave animations */
+@keyframes wave-1 {
+
+  0%,
+  100% {
+    transform: translateX(-100px) scaleY(1);
+  }
+
+  50% {
+    transform: translateX(-50px) scaleY(0.8);
+  }
+}
+
+@keyframes wave-2 {
+
+  0%,
+  100% {
+    transform: translateX(-100px) scaleY(0.8);
+  }
+
+  50% {
+    transform: translateX(-50px) scaleY(1);
+  }
+}
+
+@keyframes wave-3 {
+
+  0%,
+  100% {
+    transform: translateX(-100px) scaleY(1.2);
+  }
+
+  50% {
+    transform: translateX(-50px) scaleY(0.6);
+  }
+}
+
+.wave-1 {
+  animation: wave-1 8s ease-in-out infinite;
+}
+
+.wave-2 {
+  animation: wave-2 10s ease-in-out infinite;
+}
+
+.wave-3 {
+  animation: wave-3 12s ease-in-out infinite;
+}
+
+/* Neon glow effects */
+.neon-glow {
+  text-shadow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 15px currentColor;
+}
+
+.neon-border {
+  box-shadow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 15px currentColor;
+}
+
+/* Retro grid background */
+.retro-grid {
+  background-image:
+    linear-gradient(rgba(255, 20, 147, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 20, 147, 0.1) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+/* Glitch effect */
+@keyframes glitch {
+  0% {
+    transform: translate(0);
+  }
+
+  20% {
+    transform: translate(-2px, 2px);
+  }
+
+  40% {
+    transform: translate(-2px, -2px);
+  }
+
+  60% {
+    transform: translate(2px, 2px);
+  }
+
+  80% {
+    transform: translate(2px, -2px);
+  }
+
+  100% {
+    transform: translate(0);
+  }
+}
+
+.glitch {
+  animation: glitch 0.3s infinite;
+}
+
+/* Pulse animation for buttons */
+@keyframes pulse-neon {
+
+  0%,
+  100% {
+    box-shadow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 15px currentColor;
+  }
+
+  50% {
+    box-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;
+  }
+}
+
+.pulse-neon {
+  animation: pulse-neon 2s ease-in-out infinite;
+}
+
+/* Scanlines effect */
+.scanlines::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(transparent 50%,
+      rgba(0, 255, 255, 0.03) 50%);
+  background-size: 100% 4px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* CRT screen effect */
+.crt-screen {
+  position: relative;
   overflow: hidden;
 }
 
-.material-symbols-outlined {
-  font-variation-settings:
-  'FILL' 0,
-  'wght' 400, 
-  'GRAD' 0,
-  'opsz' 24
+.crt-screen::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.3) 100%),
+    linear-gradient(transparent 50%, rgba(0, 255, 255, 0.02) 50%);
+  background-size: 100% 100%, 100% 2px;
+  pointer-events: none;
+  z-index: 1;
 }
 
-/* Android and mobile optimizations */
-html, body {
-  touch-action: manipulation;
-  -webkit-overflow-scrolling: touch;
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-}
+/* Holographic effect */
+@keyframes hologram {
 
-/* Ensure proper touch targets for mobile (minimum 44px) */
-button, .cursor-pointer, [role="button"] {
-  min-height: 44px;
-  min-width: 44px;
-  touch-action: manipulation;
-}
+  0%,
+  100% {
+    opacity: 1;
+    filter: hue-rotate(0deg);
+  }
 
-/* Improve form input experience on mobile */
-input, textarea, select {
-  font-size: 16px; /* Prevents zoom on iOS */
-  -webkit-appearance: none;
-  border-radius: 8px;
-}
+  25% {
+    opacity: 0.8;
+    filter: hue-rotate(90deg);
+  }
 
-/* Android Chrome address bar handling */
-@media screen and (max-height: 700px) {
-  .fixed.inset-0 {
-    height: 100vh;
-    height: 100dvh;
+  50% {
+    opacity: 0.9;
+    filter: hue-rotate(180deg);
+  }
+
+  75% {
+    opacity: 0.7;
+    filter: hue-rotate(270deg);
   }
 }
 
-/* Safe area support for iOS and Android */
-.pb-safe-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
+.hologram {
+  animation: hologram 4s ease-in-out infinite;
 }
 
-/* Vice City / Vaporwave Custom Fonts and Effects */
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Righteous&display=swap');
-
-.vice-block-letters {
-  font-family: 'Orbitron', monospace;
-  font-weight: 900;
-  text-shadow: 
-    0 0 10px #4169e1,
-    0 0 20px #4169e1,
-    0 0 30px #4169e1,
-    4px 4px 0px #000,
-    8px 8px 0px rgba(0, 0, 0, 0.5);
-  background: linear-gradient(45deg, #4169e1, #00ffff, #4169e1);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+/* Cyberpunk button styles */
+.cyber-button {
+  position: relative;
+  background: linear-gradient(45deg, #ff1493, #8b2fa0);
+  border: 2px solid #00ffff;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: bold;
+  transition: all 0.3s ease;
 }
 
-.vice-city-font {
-  font-family: 'Righteous', cursive;
-  text-shadow: 
+.cyber-button:hover {
+  background: linear-gradient(45deg, #8b2fa0, #ff1493);
+  box-shadow: 0 0 20px #00ffff;
+  transform: translateY(-2px);
+}
+
+.cyber-button::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #ff1493, #00ffff, #8b2fa0, #ff1493);
+  z-index: -1;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.cyber-button:hover::before {
+  opacity: 1;
+}
+
+/* Neon text styles */
+.neon-text-pink {
+  color: #ff1493;
+  text-shadow:
     0 0 5px #ff1493,
     0 0 10px #ff1493,
     0 0 15px #ff1493,
-    2px 2px 0px #000,
-    4px 4px 0px rgba(0, 0, 0, 0.7);
-  background: linear-gradient(45deg, #ff1493, #8b2fa0, #ff1493);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+    0 0 20px #ff1493;
 }
 
-.vice-neon-glow {
-  text-shadow: 
-    0 0 5px #ff1493,
-    0 0 10px #ff1493,
-    0 0 15px #ff1493,
-    0 0 20px #ff1493,
-    0 0 25px #ff1493,
-    0 0 30px #ff1493,
-    0 0 35px #ff1493;
-  filter: brightness(1.3) saturate(1.2);
-  animation: neon-pulse 2s ease-in-out infinite alternate;
+.neon-text-cyan {
+  color: #00ffff;
+  text-shadow:
+    0 0 5px #00ffff,
+    0 0 10px #00ffff,
+    0 0 15px #00ffff,
+    0 0 20px #00ffff;
 }
 
-@keyframes neon-pulse {
-  from {
-    text-shadow: 
-      0 0 5px #ff1493,
-      0 0 10px #ff1493,
-      0 0 15px #ff1493,
-      0 0 20px #ff1493,
-      0 0 25px #ff1493,
-      0 0 30px #ff1493,
-      0 0 35px #ff1493;
+.neon-text-purple {
+  color: #8b2fa0;
+  text-shadow:
+    0 0 5px #8b2fa0,
+    0 0 10px #8b2fa0,
+    0 0 15px #8b2fa0,
+    0 0 20px #8b2fa0;
+}
+
+/* Responsive text scaling */
+@media (max-width: 428px) {
+  html {
+    font-size: 14px;
   }
-  to {
-    text-shadow: 
-      0 0 8px #ff1493,
-      0 0 15px #ff1493,
-      0 0 20px #ff1493,
-      0 0 25px #ff1493,
-      0 0 30px #ff1493,
-      0 0 35px #ff1493,
-      0 0 40px #ff1493;
+}
+
+@media (max-width: 375px) {
+  html {
+    font-size: 13px;
   }
 }
