@@ -11,19 +11,19 @@ const CameraCapture = () => {
   const [isCapturing, setIsCapturing] = useState(false);
   const [cameraError, setCameraError] = useState<string>('');
   const [isUsingFrontCamera, setIsUsingFrontCamera] = useState(false);
-  
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const startCamera = useCallback(async () => {
     console.log('Starting camera...');
     setCameraError('');
-    
+
     try {
       // Try different camera constraints with fallbacks
       const constraints = [
         {
-          video: { 
+          video: {
             facingMode: 'environment',
             width: { ideal: 1280, max: 1920 },
             height: { ideal: 720, max: 1080 },
@@ -32,7 +32,7 @@ const CameraCapture = () => {
           audio: false
         },
         {
-          video: { 
+          video: {
             facingMode: 'environment',
             width: { ideal: 640 },
             height: { ideal: 480 }
@@ -40,7 +40,7 @@ const CameraCapture = () => {
           audio: false
         },
         {
-          video: { 
+          video: {
             facingMode: 'user',
             width: { ideal: 640 },
             height: { ideal: 480 }
@@ -55,20 +55,20 @@ const CameraCapture = () => {
 
       let stream = null;
       let usingFrontCamera = false;
-      
+
       for (let i = 0; i < constraints.length; i++) {
         const constraint = constraints[i];
         try {
           console.log('Trying camera constraint:', constraint);
           stream = await navigator.mediaDevices.getUserMedia(constraint);
-          
+
           // Check if we're using front camera (user-facing)
           if (constraint.video && typeof constraint.video === 'object' && constraint.video.facingMode === 'user') {
             usingFrontCamera = true;
           } else if (i >= 2) { // fallback constraints might be front camera
             usingFrontCamera = true;
           }
-          
+
           break;
         } catch (err) {
           console.log('Camera constraint failed:', err);
@@ -79,9 +79,9 @@ const CameraCapture = () => {
       if (!stream) {
         throw new Error('Unable to access camera with any constraints');
       }
-      
+
       setIsUsingFrontCamera(usingFrontCamera);
-      
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
@@ -122,16 +122,16 @@ const CameraCapture = () => {
     if (captureState === 'initial' && !isCapturing) {
       console.log('Starting photo capture...');
       setIsCapturing(true);
-      
+
       try {
         // Wait a bit to ensure video is stable
         await new Promise(resolve => setTimeout(resolve, 100));
-        
+
         if (videoRef.current && canvasRef.current) {
           const video = videoRef.current;
           const canvas = canvasRef.current;
           const context = canvas.getContext('2d');
-          
+
           // Check video readiness
           if (video.readyState !== video.HAVE_ENOUGH_DATA) {
             console.log('Video not ready, waiting...');
@@ -146,18 +146,19 @@ const CameraCapture = () => {
               checkReady();
             });
           }
-          
+
           if (context && video.videoWidth > 0 && video.videoHeight > 0) {
             console.log('Capturing image from video:', video.videoWidth, 'x', video.videoHeight);
-            
+
             // Set canvas dimensions to video dimensions
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
-            
+
             // Clear any previous transforms
             context.setTransform(1, 0, 0, 1, 0, 0);
-            
-            // If using front camera, flip the image horizontally to match what user expects
+
+            // For front camera, flip the captured image to match what user expects
+            // For rear camera, capture normally (no flipping needed)
             if (isUsingFrontCamera) {
               context.scale(-1, 1);
               context.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
@@ -165,23 +166,23 @@ const CameraCapture = () => {
               // Draw current video frame to canvas normally for rear camera
               context.drawImage(video, 0, 0, canvas.width, canvas.height);
             }
-            
+
             // Convert to data URL (base64 image)
             const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
-            
+
             console.log('Photo captured successfully, data URL length:', imageDataUrl.length);
             console.log('Setting captured image URL...');
-            
+
             // Set the captured image URL
             setCapturedImageUrl(imageDataUrl);
-            
+
             // Wait a moment to ensure the image URL is set
             await new Promise(resolve => setTimeout(resolve, 100));
-            
+
             console.log('Changing capture state to confirm...');
             // Change to confirm state to show the captured image and confirm buttons
             setCaptureState('confirm');
-            
+
             console.log('Capture state changed to confirm, capturedImageUrl length:', imageDataUrl.length);
           } else {
             throw new Error('Canvas context or video dimensions not available');
@@ -211,10 +212,10 @@ const CameraCapture = () => {
       // Store captured image in sessionStorage to pass to details page
       sessionStorage.setItem('capturedImage', capturedImageUrl);
       console.log('Photo saved to session storage, navigating to details-live');
-      
+
       // Navigate to details-live page
       navigate('/details-live');
-      
+
       // Reset states after navigation
       setCaptureState('initial');
       setCapturedImageUrl('');
@@ -257,15 +258,14 @@ const CameraCapture = () => {
         {isPowerOn && (
           <div className="w-full h-full bg-gray-700 flex items-center justify-center relative overflow-hidden">
             {captureState === 'initial' ? (
-              // Show live video feed
+              // Show live video feed - NO mirroring for rear camera, mirror only for front camera
               <video
                 ref={videoRef}
                 autoPlay
                 playsInline
                 muted
-                className={`absolute inset-0 w-full h-full object-cover ${
-                  isUsingFrontCamera ? 'scale-x-[-1]' : ''
-                }`}
+                className={`absolute inset-0 w-full h-full object-cover ${isUsingFrontCamera ? 'scale-x-[-1]' : ''
+                  }`}
               />
             ) : captureState === 'confirm' && capturedImageUrl ? (
               // Show captured image for review - this should display after capture button is pressed
@@ -275,15 +275,20 @@ const CameraCapture = () => {
                   alt="Captured photo for review"
                   className="w-full h-full object-cover"
                   onLoad={() => console.log('Captured image loaded for review')}
-                  onError={() => console.error('Error loading captured image')}
+                  onError={(e) => {
+                    console.error('Error loading captured image:', e);
+                    // Fallback to initial state if image fails to load
+                    setCaptureState('initial');
+                    setCapturedImageUrl('');
+                  }}
                 />
-                {/* Optional overlay to indicate this is review mode */}
+                {/* Overlay to indicate this is review mode */}
                 <div className="absolute top-4 left-4 bg-black/70 rounded-lg px-3 py-1">
                   <p className="text-white text-xs xs:text-sm">Review Photo</p>
                 </div>
               </div>
             ) : (
-              // Fallback state
+              // Fallback state - show loading or return to initial
               <div className="text-center text-white px-4">
                 <p className="text-sm xs:text-base">Loading captured image...</p>
               </div>
@@ -329,41 +334,39 @@ const CameraCapture = () => {
         )}
 
         {/* Main Controls - Only show when in initial state (live camera view) */}
-        <div className="flex justify-between items-center h-24 xs:h-28 px-4">
-          {/* Power Button */}
-          <button
-            className="touch-target rounded-full hover:bg-white/10 transition-colors"
-            onClick={handlePowerClick}
-          >
-            <Power
-              className={`w-6 h-6 xs:w-8 xs:h-8 ${
-                isPowerOn ? 'text-green-500' : 'text-red-500'
-              }`}
-            />
-          </button>
+        {captureState === 'initial' && (
+          <div className="flex justify-between items-center h-24 xs:h-28 px-4">
+            {/* Power Button */}
+            <button
+              className="touch-target rounded-full hover:bg-white/10 transition-colors"
+              onClick={handlePowerClick}
+            >
+              <Power
+                className={`w-6 h-6 xs:w-8 xs:h-8 ${isPowerOn ? 'text-green-500' : 'text-red-500'
+                  }`}
+              />
+            </button>
 
-          {/* Capture Button - Only show in initial state */}
-          {captureState === 'initial' && (
+            {/* Capture Button - Only show in initial state */}
             <div className="flex-grow flex justify-center">
               <button
-                className={`w-16 h-16 xs:w-20 xs:h-20 bg-white rounded-full flex items-center justify-center shadow-lg transform transition-all touch-target-lg ${
-                  !isPowerOn || isCapturing
+                className={`w-16 h-16 xs:w-20 xs:h-20 bg-white rounded-full flex items-center justify-center shadow-lg transform transition-all touch-target-lg ${!isPowerOn || isCapturing
                     ? 'opacity-50 cursor-not-allowed'
                     : 'hover:scale-105 active:scale-95'
-                }`}
+                  }`}
                 onClick={handleCaptureClick}
                 disabled={!isPowerOn || isCapturing}
               >
                 <div className="w-12 h-12 xs:w-16 xs:h-16 bg-white rounded-full border-2 xs:border-4 border-black"></div>
               </button>
             </div>
-          )}
 
-          {/* Settings Button */}
-          <button className="touch-target rounded-full hover:bg-white/10 transition-colors">
-            <Settings className="w-6 h-6 xs:w-8 xs:h-8 text-white" />
-          </button>
-        </div>
+            {/* Settings Button */}
+            <button className="touch-target rounded-full hover:bg-white/10 transition-colors">
+              <Settings className="w-6 h-6 xs:w-8 xs:h-8 text-white" />
+            </button>
+          </div>
+        )}
       </footer>
     </div>
   );
