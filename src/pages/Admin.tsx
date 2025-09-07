@@ -176,373 +176,373 @@ export default function Admin() {
     }
   };
 
-useEffect(() => {
-  if (profile?.role === 'admin') {
-    fetchData();
-  }
-}, [profile]);
+  useEffect(() => {
+    if (profile?.role === 'admin') {
+      fetchData();
+    }
+  }, [profile]);
 
-const createInvite = async (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!email) return;
+  const createInvite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
 
-  setCreating(true);
-  try {
-    const { error } = await supabase.rpc('create_invite', {
-      invite_email: email
-    });
-
-    if (error) throw error;
-
-    setEmail('');
-    await fetchData();
-    toast({
-      title: "Invite Created",
-      description: `Invitation sent to ${email}`,
-    });
-  } catch (error: any) {
-    toast({
-      title: "Failed to Create Invite",
-      description: error.message,
-      variant: "destructive",
-    });
-  } finally {
-    setCreating(false);
-  }
-};
-
-const copyInviteLink = async (token: string) => {
-  const inviteLink = `${window.location.origin}/auth?invite=${token}`;
-  try {
-    await navigator.clipboard.writeText(inviteLink);
-    setCopiedTokens(prev => new Set([...prev, token]));
-    toast({
-      title: "Copied!",
-      description: "Invite link copied to clipboard",
-    });
-    setTimeout(() => {
-      setCopiedTokens(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(token);
-        return newSet;
+    setCreating(true);
+    try {
+      const { error } = await supabase.rpc('create_invite', {
+        invite_email: email
       });
-    }, 2000);
-  } catch (error) {
-    toast({
-      title: "Failed to copy",
-      description: "Could not copy invite link",
-      variant: "destructive",
-    });
-  }
-};
 
-if (loadingData) {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue flex items-center justify-center">
-      <div className="text-center">
-        <Loader2 className="h-8 w-8 animate-spin text-vice-pink mx-auto mb-4" />
-        <p className="text-white">Loading admin data...</p>
-      </div>
-    </div>
-  );
-}
+      if (error) throw error;
 
-return (
-  <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue p-4 pb-safe">
-    {/* Header */}
-    <div className="flex items-center justify-between p-4 border-b border-vice-cyan/20">
-      <h1 className="text-2xl font-bold text-white">Admin Panel</h1>
-      <Button
-        onClick={() => navigate('/dashboard')}
-        variant="ghost"
-        size="sm"
-        className="text-white hover:bg-white/10 p-2"
-      >
-        <Home className="w-5 h-5" />
-      </Button>
-    </div>
+      setEmail('');
+      await fetchData();
+      toast({
+        title: "Invite Created",
+        description: `Invitation sent to ${email}`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Failed to Create Invite",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setCreating(false);
+    }
+  };
 
-    <div className="max-w-6xl mx-auto space-y-6">
-      {/* Stats Overview */}
-      {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-          <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm">
-            <CardContent className="p-4 text-center">
-              <FileText className="w-8 h-8 text-vice-cyan mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">{stats.total_violations}</div>
-              <div className="text-sm text-gray-300">Total Violations</div>
-            </CardContent>
-          </Card>
+  const copyInviteLink = async (token: string) => {
+    const inviteLink = `${window.location.origin}/auth?invite=${token}`;
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      setCopiedTokens(prev => new Set([...prev, token]));
+      toast({
+        title: "Copied!",
+        description: "Invite link copied to clipboard",
+      });
+      setTimeout(() => {
+        setCopiedTokens(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(token);
+          return newSet;
+        });
+      }, 2000);
+    } catch (error) {
+      toast({
+        title: "Failed to copy",
+        description: "Could not copy invite link",
+        variant: "destructive",
+      });
+    }
+  };
 
-          <Card className="bg-black/30 border-vice-pink/30 backdrop-blur-sm">
-            <CardContent className="p-4 text-center">
-              <BarChart3 className="w-8 h-8 text-vice-pink mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">{stats.this_month}</div>
-              <div className="text-sm text-gray-300">This Month</div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-black/30 border-purple-400/30 backdrop-blur-sm">
-            <CardContent className="p-4 text-center">
-              <BarChart3 className="w-8 h-8 text-purple-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">{stats.violations_this_week}</div>
-              <div className="text-sm text-gray-300">This Week</div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-black/30 border-yellow-400/30 backdrop-blur-sm">
-            <CardContent className="p-4 text-center">
-              <Clock className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">{stats.pending_violations}</div>
-              <div className="text-sm text-gray-300">Pending</div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-black/30 border-green-400/30 backdrop-blur-sm">
-            <CardContent className="p-4 text-center">
-              <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">{stats.completed_violations}</div>
-              <div className="text-sm text-gray-300">Completed</div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-black/30 border-blue-400/30 backdrop-blur-sm">
-            <CardContent className="p-4 text-center">
-              <Users className="w-8 h-8 text-blue-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">{stats.team_completion_rate}%</div>
-              <div className="text-sm text-gray-300">Completion Rate</div>
-            </CardContent>
-          </Card>
+  if (loadingData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-vice-pink mx-auto mb-4" />
+          <p className="text-white">Loading admin data...</p>
         </div>
-      )}
+      </div>
+    );
+  }
 
-      {/* Team Performance Overview */}
-      {userActivity.length > 0 && (
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue p-4 pb-safe">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-vice-cyan/20">
+        <h1 className="text-2xl font-bold text-white">Admin Panel</h1>
+        <Button
+          onClick={() => navigate('/')}
+          variant="ghost"
+          size="sm"
+          className="text-white hover:bg-white/10 p-2"
+        >
+          <Home className="w-5 h-5" />
+        </Button>
+      </div>
+
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* Stats Overview */}
+        {stats && (
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+            <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm">
+              <CardContent className="p-4 text-center">
+                <FileText className="w-8 h-8 text-vice-cyan mx-auto mb-2" />
+                <div className="text-2xl font-bold text-white">{stats.total_violations}</div>
+                <div className="text-sm text-gray-300">Total Violations</div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-black/30 border-vice-pink/30 backdrop-blur-sm">
+              <CardContent className="p-4 text-center">
+                <BarChart3 className="w-8 h-8 text-vice-pink mx-auto mb-2" />
+                <div className="text-2xl font-bold text-white">{stats.this_month}</div>
+                <div className="text-sm text-gray-300">This Month</div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-black/30 border-purple-400/30 backdrop-blur-sm">
+              <CardContent className="p-4 text-center">
+                <BarChart3 className="w-8 h-8 text-purple-400 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-white">{stats.violations_this_week}</div>
+                <div className="text-sm text-gray-300">This Week</div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-black/30 border-yellow-400/30 backdrop-blur-sm">
+              <CardContent className="p-4 text-center">
+                <Clock className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-white">{stats.pending_violations}</div>
+                <div className="text-sm text-gray-300">Pending</div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-black/30 border-green-400/30 backdrop-blur-sm">
+              <CardContent className="p-4 text-center">
+                <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-white">{stats.completed_violations}</div>
+                <div className="text-sm text-gray-300">Completed</div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-black/30 border-blue-400/30 backdrop-blur-sm">
+              <CardContent className="p-4 text-center">
+                <Users className="w-8 h-8 text-blue-400 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-white">{stats.team_completion_rate}%</div>
+                <div className="text-sm text-gray-300">Completion Rate</div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Team Performance Overview */}
+        {userActivity.length > 0 && (
+          <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Users className="w-5 h-5 text-vice-cyan" />
+                Team Performance
+              </CardTitle>
+              <CardDescription className="text-gray-300">
+                Individual user activity and performance metrics
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {userActivity.map((user) => (
+                  <div key={user.user_id} className="flex items-center justify-between p-4 bg-black/20 rounded-lg border border-white/10">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 bg-gradient-to-br from-vice-purple to-vice-pink rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-sm">
+                          {user.full_name ? user.full_name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="text-white font-medium">
+                          {user.full_name || user.email}
+                        </div>
+                        <div className="text-sm text-gray-400">
+                          {user.email} • {user.role === 'admin' ? 'Admin' : 'User'}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-6 text-sm">
+                      <div className="text-center">
+                        <div className="text-white font-bold">{user.total_violations}</div>
+                        <div className="text-gray-400">Total</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-vice-pink font-bold">{user.violations_this_month}</div>
+                        <div className="text-gray-400">This Month</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-yellow-400 font-bold">{user.pending_violations}</div>
+                        <div className="text-gray-400">Pending</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-green-400 font-bold">{user.completed_violations}</div>
+                        <div className="text-gray-400">Completed</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-blue-400 font-bold">{user.completion_rate_percent}%</div>
+                        <div className="text-gray-400">Rate</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-gray-300 font-bold">
+                          {user.last_violation_date
+                            ? new Date(user.last_violation_date).toLocaleDateString()
+                            : 'Never'
+                          }
+                        </div>
+                        <div className="text-gray-400">Last Activity</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Create Invite */}
         <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Users className="w-5 h-5 text-vice-cyan" />
-              Team Performance
+            <CardTitle className="text-white flex items-center">
+              <Plus className="w-5 h-5 mr-2 text-vice-pink" />
+              Create New Invite
             </CardTitle>
             <CardDescription className="text-gray-300">
-              Individual user activity and performance metrics
+              Send an invitation to a new team member
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {userActivity.map((user) => (
-                <div key={user.user_id} className="flex items-center justify-between p-4 bg-black/20 rounded-lg border border-white/10">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-vice-purple to-vice-pink rounded-full flex items-center justify-center">
-                      <span className="text-white font-bold text-sm">
-                        {user.full_name ? user.full_name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <div>
-                      <div className="text-white font-medium">
-                        {user.full_name || user.email}
-                      </div>
-                      <div className="text-sm text-gray-400">
-                        {user.email} • {user.role === 'admin' ? 'Admin' : 'User'}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-6 text-sm">
-                    <div className="text-center">
-                      <div className="text-white font-bold">{user.total_violations}</div>
-                      <div className="text-gray-400">Total</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-vice-pink font-bold">{user.violations_this_month}</div>
-                      <div className="text-gray-400">This Month</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-yellow-400 font-bold">{user.pending_violations}</div>
-                      <div className="text-gray-400">Pending</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-green-400 font-bold">{user.completed_violations}</div>
-                      <div className="text-gray-400">Completed</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-blue-400 font-bold">{user.completion_rate_percent}%</div>
-                      <div className="text-gray-400">Rate</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-gray-300 font-bold">
-                        {user.last_violation_date
-                          ? new Date(user.last_violation_date).toLocaleDateString()
-                          : 'Never'
-                        }
-                      </div>
-                      <div className="text-gray-400">Last Activity</div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <form onSubmit={createInvite} className="flex gap-4">
+              <div className="flex-1">
+                <Label htmlFor="email" className="text-white">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="colleague@ursllc.com"
+                  className="bg-black/20 border-vice-cyan/30 text-white placeholder:text-gray-400"
+                  required
+                />
+              </div>
+              <Button
+                type="submit"
+                disabled={creating || !email}
+                className="bg-vice-pink hover:bg-vice-pink/80 text-white self-end"
+              >
+                {creating ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <Mail className="w-4 h-4 mr-2" />
+                    Create Invite
+                  </>
+                )}
+              </Button>
+            </form>
           </CardContent>
         </Card>
-      )}
 
-      {/* Create Invite */}
-      <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center">
-            <Plus className="w-5 h-5 mr-2 text-vice-pink" />
-            Create New Invite
-          </CardTitle>
-          <CardDescription className="text-gray-300">
-            Send an invitation to a new team member
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={createInvite} className="flex gap-4">
-            <div className="flex-1">
-              <Label htmlFor="email" className="text-white">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="colleague@ursllc.com"
-                className="bg-black/20 border-vice-cyan/30 text-white placeholder:text-gray-400"
-                required
-              />
-            </div>
-            <Button
-              type="submit"
-              disabled={creating || !email}
-              className="bg-vice-pink hover:bg-vice-pink/80 text-white self-end"
-            >
-              {creating ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <>
-                  <Mail className="w-4 h-4 mr-2" />
-                  Create Invite
-                </>
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-
-      {/* Active Invites */}
-      <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle className="text-white">Active Invitations</CardTitle>
-          <CardDescription className="text-gray-300">
-            Manage pending invitations
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {invites.length === 0 ? (
-            <p className="text-gray-400 text-center py-4">No invitations found</p>
-          ) : (
-            <div className="space-y-3">
-              {invites.map((invite) => (
-                <div
-                  key={invite.id}
-                  className="flex items-center justify-between p-3 bg-black/20 rounded-lg border border-vice-cyan/20"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-white font-medium">{invite.email}</span>
-                      {invite.used_at ? (
-                        <Badge variant="secondary" className="bg-green-500/20 text-green-400 border-green-500/30">
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                          Used
-                        </Badge>
-                      ) : new Date(invite.expires_at) < new Date() ? (
-                        <Badge variant="secondary" className="bg-red-500/20 text-red-400 border-red-500/30">
-                          <Clock className="w-3 h-3 mr-1" />
-                          Expired
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
-                          <Clock className="w-3 h-3 mr-1" />
-                          Pending
-                        </Badge>
-                      )}
+        {/* Active Invites */}
+        <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="text-white">Active Invitations</CardTitle>
+            <CardDescription className="text-gray-300">
+              Manage pending invitations
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {invites.length === 0 ? (
+              <p className="text-gray-400 text-center py-4">No invitations found</p>
+            ) : (
+              <div className="space-y-3">
+                {invites.map((invite) => (
+                  <div
+                    key={invite.id}
+                    className="flex items-center justify-between p-3 bg-black/20 rounded-lg border border-vice-cyan/20"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-white font-medium">{invite.email}</span>
+                        {invite.used_at ? (
+                          <Badge variant="secondary" className="bg-green-500/20 text-green-400 border-green-500/30">
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            Used
+                          </Badge>
+                        ) : new Date(invite.expires_at) < new Date() ? (
+                          <Badge variant="secondary" className="bg-red-500/20 text-red-400 border-red-500/30">
+                            <Clock className="w-3 h-3 mr-1" />
+                            Expired
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
+                            <Clock className="w-3 h-3 mr-1" />
+                            Pending
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="text-sm text-gray-400">
+                        Created: {new Date(invite.created_at).toLocaleDateString()}
+                        {invite.used_at && (
+                          <span className="ml-4">
+                            Used: {new Date(invite.used_at).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-400">
-                      Created: {new Date(invite.created_at).toLocaleDateString()}
-                      {invite.used_at && (
-                        <span className="ml-4">
-                          Used: {new Date(invite.used_at).toLocaleDateString()}
-                        </span>
-                      )}
-                    </div>
-                  </div>
 
-                  {!invite.used_at && new Date(invite.expires_at) > new Date() && (
-                    <Button
-                      onClick={() => copyInviteLink(invite.token)}
-                      variant="outline"
-                      size="sm"
-                      className="border-vice-cyan/30 text-vice-cyan hover:bg-vice-cyan/10"
-                    >
-                      {copiedTokens.has(invite.token) ? (
-                        <Check className="w-4 h-4" />
-                      ) : (
-                        <Copy className="w-4 h-4" />
-                      )}
-                    </Button>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* User Management */}
-      <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle className="text-white">Team Members</CardTitle>
-          <CardDescription className="text-gray-300">
-            Current registered users
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {profiles.length === 0 ? (
-            <p className="text-gray-400 text-center py-4">No users found</p>
-          ) : (
-            <div className="space-y-3">
-              {profiles.map((profile) => (
-                <div
-                  key={profile.user_id}
-                  className="flex items-center justify-between p-3 bg-black/20 rounded-lg border border-vice-cyan/20"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-white font-medium">
-                        {profile.full_name || profile.email}
-                      </span>
-                      <Badge
-                        variant="secondary"
-                        className={
-                          profile.role === 'admin'
-                            ? "bg-vice-pink/20 text-vice-pink border-vice-pink/30"
-                            : "bg-vice-cyan/20 text-vice-cyan border-vice-cyan/30"
-                        }
+                    {!invite.used_at && new Date(invite.expires_at) > new Date() && (
+                      <Button
+                        onClick={() => copyInviteLink(invite.token)}
+                        variant="outline"
+                        size="sm"
+                        className="border-vice-cyan/30 text-vice-cyan hover:bg-vice-cyan/10"
                       >
-                        {profile.role}
-                      </Badge>
-                    </div>
-                    <div className="text-sm text-gray-400">
-                      {profile.email} • Joined: {new Date(profile.created_at).toLocaleDateString()}
+                        {copiedTokens.has(invite.token) ? (
+                          <Check className="w-4 h-4" />
+                        ) : (
+                          <Copy className="w-4 h-4" />
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* User Management */}
+        <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="text-white">Team Members</CardTitle>
+            <CardDescription className="text-gray-300">
+              Current registered users
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {profiles.length === 0 ? (
+              <p className="text-gray-400 text-center py-4">No users found</p>
+            ) : (
+              <div className="space-y-3">
+                {profiles.map((profile) => (
+                  <div
+                    key={profile.user_id}
+                    className="flex items-center justify-between p-3 bg-black/20 rounded-lg border border-vice-cyan/20"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-white font-medium">
+                          {profile.full_name || profile.email}
+                        </span>
+                        <Badge
+                          variant="secondary"
+                          className={
+                            profile.role === 'admin'
+                              ? "bg-vice-pink/20 text-vice-pink border-vice-pink/30"
+                              : "bg-vice-cyan/20 text-vice-cyan border-vice-cyan/30"
+                          }
+                        >
+                          {profile.role}
+                        </Badge>
+                      </div>
+                      <div className="text-sm text-gray-400">
+                        {profile.email} • Joined: {new Date(profile.created_at).toLocaleDateString()}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
-  </div>
-);
+  );
 }
