@@ -5,6 +5,50 @@ All notable changes to the SPR Vice City project will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2025-09-07
+
+### 🚀 **FEATURE RELEASE - Enhanced Violation Forms & UI Improvements**
+
+This release focuses on improving the user experience for violation form entry and fixing critical functionality issues in the Books page.
+
+### ✨ **Added**
+
+#### **Enhanced Violation Forms**
+- **Combined Violation Types**: Merged "Items left outside Unit" and "Trash left outside Unit" into single selectable option
+- **Selectable Sub-Options**: Added "items" vs "trash" selection buttons for combined violation type
+- **Balcony/Front Selection**: Added "balcony" vs "front" selection for railing violations
+- **New Violation Category**: Added "Items left in Parking lot" as third violation type
+- **Auto-Formatting**: Implemented automatic date formatting (MM/DD) and time formatting (HH:MM)
+- **AM/PM Selector**: Added dropdown selector for time entry
+- **Auto-Capitalization**: Unit field automatically converts input to uppercase
+
+#### **"Book Em" Button Enhancement**
+- **Consistent Styling**: Redesigned save buttons with oval shape and centered content
+- **Photo Count Badge**: Added visual indicator showing number of photos attached
+- **Responsive Design**: Maintained mobile-first approach with proper touch targets
+- **Loading States**: Enhanced loading indicators during form submission
+
+### 🔧 **Fixed**
+
+#### **Books Page Functionality**
+- **Filter Dropdown Persistence**: Fixed issue where filter dropdown stayed open after selection
+- **Click-Outside Functionality**: Added proper event handling to close dropdown when clicking outside
+- **Time Formatting**: Enhanced time display to handle both HH:MM and "HH:MM AM/PM" formats
+- **Search Enhancement**: Added null checks to prevent errors when searching across all fields
+- **Error Handling**: Improved data validation and null safety throughout the component
+
+#### **User Experience Improvements**
+- **Form Validation**: Enhanced validation logic for required fields and violation types
+- **Responsive Interactions**: All interactive elements now properly respond on mobile devices
+- **Data Persistence**: Improved form state management and data saving reliability
+
+### 🎨 **Changed**
+
+#### **UI/UX Consistency**
+- **Button Styling**: Standardized button appearance across DetailsPrevious and DetailsLive components
+- **Form Layout**: Improved spacing and alignment for better mobile experience
+- **Visual Feedback**: Enhanced user feedback with better loading states and error messages
+
 ## [2.0.0] - 2025-01-27
 
 ### 🚀 **MAJOR RELEASE - Admin Panel & Database Management**

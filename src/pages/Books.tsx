@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -54,10 +54,28 @@ const Books = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const filterRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchSavedForms();
   }, [user]);
+
+  // Click outside handler for filter dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setFilterOpen(false);
+      }
+    };
+
+    if (filterOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [filterOpen]);
 
   const fetchSavedForms = async () => {
     if (!user) return;
@@ -125,10 +143,10 @@ const Books = () => {
     // Apply search filter (now includes user names)
     if (searchTerm) {
       filtered = filtered.filter(form =>
-        form.unit_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        form.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        form.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        form.profiles?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        form.unit_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        form.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        form.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        form.profiles?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         form.profiles?.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -166,11 +184,23 @@ const Books = () => {
   };
 
   const formatTime = (timeString: string) => {
-    return new Date(`2000-01-01T${timeString}`).toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
+    if (!timeString) return 'N/A';
+
+    // If the time already includes AM/PM, return as is
+    if (timeString.includes('AM') || timeString.includes('PM')) {
+      return timeString;
+    }
+
+    // Otherwise, try to parse it as HH:MM format
+    try {
+      return new Date(`2000-01-01T${timeString}`).toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    } catch (error) {
+      return timeString; // Return original if parsing fails
+    }
   };
 
   if (loading) {
@@ -222,7 +252,7 @@ const Books = () => {
               />
             </div>
 
-            <div className="relative">
+            <div className="relative" ref={filterRef}>
               <Collapsible open={filterOpen} onOpenChange={setFilterOpen}>
                 <CollapsibleTrigger asChild>
                   <Button
@@ -242,7 +272,10 @@ const Books = () => {
                           key={filter}
                           variant={selectedFilter === filter ? "default" : "ghost"}
                           size="sm"
-                          onClick={() => setSelectedFilter(filter)}
+                          onClick={() => {
+                            setSelectedFilter(filter);
+                            setFilterOpen(false);
+                          }}
                           className="w-full justify-start text-white hover:bg-vice-cyan/20 min-h-[44px]"
                         >
                           {filter === "all" ? "All Forms" : filter.charAt(0).toUpperCase() + filter.slice(1)}

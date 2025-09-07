@@ -1,10 +1,22 @@
 # SPR Vice City - Development TODO List
 
 ## 🎯 **Current Status: MAJOR MILESTONE COMPLETED** ✅
-**Date**: January 27, 2025  
-**Version**: 2.0.0
+**Date**: September 7, 2025
+**Version**: 2.1.0
 
-### ✅ **Recently Completed (January 2025)**
+### ✅ **Recently Completed (January 28, 2025)**
+- [x] **Enhanced Violation Forms**: Combined violation types with selectable options (items/trash, balcony/front)
+- [x] **New Violation Type**: Added "Items left in Parking lot" violation category
+- [x] **Improved Form UX**: Auto-formatting for date/time fields and auto-capitalization for unit field
+- [x] **"Book Em" Button Enhancement**: Redesigned save buttons with consistent oval styling and photo count badges
+- [x] **Books Page Functionality Fixes**:
+  - [x] Fixed filter dropdown persistence issue
+  - [x] Added click-outside functionality for dropdown
+  - [x] Enhanced search functionality with null checks
+  - [x] Improved time formatting to handle AM/PM formats
+  - [x] Enhanced error handling and data validation
+
+### ✅ **Previously Completed (January 2025)**
 - [x] **Admin Panel Implementation**: Complete admin dashboard with team statistics
 - [x] **Database Management System**: Supabase CLI integration with custom migration helpers
 - [x] **Authentication Fixes**: Resolved `signIn is not a function` error

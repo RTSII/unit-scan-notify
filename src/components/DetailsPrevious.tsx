@@ -25,10 +25,13 @@ const DetailsPrevious = () => {
     unit: '',
     description: '',
     violationTypes: {
-      itemsOutside: false,
-      trashOutside: false,
-      itemsBalcony: false,
-    }
+      itemsTrashOutside: false,
+      balconyItems: false,
+      parkingLotItems: false,
+    },
+    itemsTrashChoice: '', // 'items' or 'trash'
+    balconyChoice: '', // 'balcony' or 'front'
+    ampm: 'AM'
   });
 
   // Keep fields blank for details-previous (no auto-completion)
@@ -39,10 +42,13 @@ const DetailsPrevious = () => {
       unit: '',
       description: '',
       violationTypes: {
-        itemsOutside: false,
-        trashOutside: false,
-        itemsBalcony: false,
-      }
+        itemsTrashOutside: false,
+        balconyItems: false,
+        parkingLotItems: false,
+      },
+      itemsTrashChoice: '',
+      balconyChoice: '',
+      ampm: 'AM'
     });
   }, []);
 
@@ -54,6 +60,43 @@ const DetailsPrevious = () => {
         [type]: checked
       }
     }));
+  };
+
+  const formatDateInput = (value: string) => {
+    // Remove all non-numeric characters
+    const numbers = value.replace(/\D/g, '');
+    
+    // Add slash after 2 digits (MM/DD format)
+    if (numbers.length >= 2) {
+      return numbers.slice(0, 2) + '/' + numbers.slice(2, 4);
+    }
+    return numbers;
+  };
+
+  const formatTimeInput = (value: string) => {
+    // Remove all non-numeric characters
+    const numbers = value.replace(/\D/g, '');
+    
+    // Add colon after 2 digits (HH:MM format)
+    if (numbers.length >= 2) {
+      return numbers.slice(0, 2) + ':' + numbers.slice(2, 4);
+    }
+    return numbers;
+  };
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatDateInput(e.target.value);
+    setFormData(prev => ({ ...prev, date: formatted }));
+  };
+
+  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatTimeInput(e.target.value);
+    setFormData(prev => ({ ...prev, time: formatted }));
+  };
+
+  const handleUnitChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const uppercased = e.target.value.toUpperCase();
+    setFormData(prev => ({ ...prev, unit: uppercased }));
   };
 
   const handleImageSelection = () => {
@@ -98,29 +141,40 @@ const DetailsPrevious = () => {
 
     const hasViolationType = Object.values(formData.violationTypes).some(checked => checked);
     const hasDescription = formData.description.trim().length > 0;
-    
+
     if (!hasViolationType && !hasDescription) {
       toast.error("Please select at least one violation type or enter a description");
       return;
     }
 
     setIsSaving(true);
-    
+
     try {
       console.log('Starting save process...');
-      
+
       // Get violation types as array
       const violationTypesArray = [];
-      if (formData.violationTypes.itemsOutside) violationTypesArray.push('Items left outside Unit');
-      if (formData.violationTypes.trashOutside) violationTypesArray.push('Trash left outside Unit');
-      if (formData.violationTypes.itemsBalcony) violationTypesArray.push('Items left on balcony/front railing');
+      if (formData.violationTypes.itemsTrashOutside) {
+        const choice = formData.itemsTrashChoice || 'items';
+        violationTypesArray.push(`${choice === 'items' ? 'Items' : 'Trash'} left outside Unit`);
+      }
+      if (formData.violationTypes.balconyItems) {
+        const location = formData.balconyChoice || 'balcony';
+        violationTypesArray.push(`Items left on ${location} railing`);
+      }
+      if (formData.violationTypes.parkingLotItems) {
+        violationTypesArray.push('Items left in Parking lot');
+      }
+
+      // Format time with AM/PM
+      const timeWithAmPm = formData.time ? `${formData.time} ${formData.ampm}` : '';
 
       // Create form data for database
       const formToSave = {
         user_id: user.id,
         unit_number: formData.unit,
         date: formData.date,
-        time: formData.time || '',
+        time: timeWithAmPm,
         description: formData.description || '',
         location: violationTypesArray.join(', '), // Store violation types in location field
         photos: selectedImages, // Store base64 images
@@ -142,60 +196,49 @@ const DetailsPrevious = () => {
 
       console.log('Form saved successfully:', data);
       toast.success("Violation saved successfully!");
-      
-      // Clear form data
+
+      // Reset form
       setFormData({
         date: '',
         time: '',
         unit: '',
         description: '',
         violationTypes: {
-          itemsOutside: false,
-          trashOutside: false,
-          itemsBalcony: false,
-        }
+          itemsTrashOutside: false,
+          balconyItems: false,
+          parkingLotItems: false,
+        },
+        itemsTrashChoice: '',
+        balconyChoice: '',
+        ampm: 'AM'
       });
       setSelectedImages([]);
-      
+      setIsDescriptionExpanded(false);
+      setIsPhotosExpanded(false);
+
       // Navigate to books page
-      setTimeout(() => {
-        navigate('/books');
-      }, 1000);
-      
+      navigate('/books');
+
     } catch (error) {
-      console.error('Save error:', error);
-      toast.error("Failed to save form");
+      console.error('Unexpected error:', error);
+      toast.error("An unexpected error occurred");
     } finally {
       setIsSaving(false);
     }
   };
 
-  const renderImageGrid = () => {
-    // If no images or only one image, show single add button
-    if (selectedImages.length <= 1) {
-      return (
-        <div className="flex justify-center">
-          <div 
-            className="aspect-square w-24 bg-black/40 border border-vice-cyan/30 rounded-lg flex items-center justify-center cursor-pointer hover:bg-black/60 transition-colors min-h-[44px]"
-            onClick={handleImageSelection}
-          >
-            {selectedImages[0] ? (
-              <img 
-                src={selectedImages[0]} 
-                alt="Evidence" 
-                className="w-full h-full object-cover rounded-lg"
-              />
-            ) : (
-              <Plus className="w-5 h-5 text-white/60" />
-            )}
-          </div>
-        </div>
-      );
-    }
+  // Calculate if form is valid for save button
+  const isFormValid = () => {
+    const hasRequiredFields = formData.unit && formData.date;
+    const hasViolationType = Object.values(formData.violationTypes).some(checked => checked);
+    const hasDescription = formData.description.trim().length > 0;
+    return hasRequiredFields && (hasViolationType || hasDescription);
+  };
 
-    // For multiple images, show 2x2 grid
+  // Photo display logic
+  const renderPhotoGrid = () => {
     const displayImages = selectedImages.slice(0, 3);
-    const additionalCount = selectedImages.length - 3;
+    const additionalCount = Math.max(0, selectedImages.length - 3);
 
     return (
       <div className="grid grid-cols-2 gap-2">
@@ -256,18 +299,14 @@ const DetailsPrevious = () => {
     );
   };
 
-  // Check if form is valid for submission
-  const isFormValid = formData.unit.trim() && formData.date.trim() && 
-    (Object.values(formData.violationTypes).some(v => v) || formData.description.trim());
-
   return (
-    <div className="h-screen h-[100dvh] bg-gradient-to-br from-vice-purple via-black to-vice-blue text-white flex flex-col overflow-hidden">
-      {/* Header - Fixed */}
-      <div className="flex-shrink-0 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm border-b border-vice-cyan/20 relative">
-        <h1 className="text-xl font-bold">Details</h1>
-        <Button 
-          variant="ghost" 
-          size="sm" 
+    <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-vice-purple via-black to-vice-blue flex flex-col">
+      {/* Header */}
+      <div className="relative p-4 border-b border-vice-cyan/20">
+        <h1 className="text-white text-xl font-bold text-center">Details Previous</h1>
+        <Button
+          variant="ghost"
+          size="sm"
           className="text-white hover:bg-white/10 p-2 absolute right-4"
           onClick={() => navigate('/')}
         >
@@ -284,25 +323,37 @@ const DetailsPrevious = () => {
               <Label className="text-vice-cyan font-medium text-sm text-center block">Date</Label>
               <Input
                 value={formData.date}
-                onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                onChange={handleDateChange}
                 placeholder="MM/DD"
+                maxLength={5}
                 className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11"
               />
             </div>
             <div className="space-y-2">
               <Label className="text-vice-cyan font-medium text-sm text-center block">Time</Label>
-              <Input
-                value={formData.time}
-                onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
-                placeholder="HH:MM"
-                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11"
-              />
+              <div className="flex gap-1">
+                <Input
+                  value={formData.time}
+                  onChange={handleTimeChange}
+                  placeholder="HH:MM"
+                  maxLength={5}
+                  className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11 flex-1"
+                />
+                <select
+                  value={formData.ampm}
+                  onChange={(e) => setFormData(prev => ({ ...prev, ampm: e.target.value }))}
+                  className="bg-black/40 border border-vice-cyan/30 text-white text-base h-11 px-2 rounded-md"
+                >
+                  <option value="AM">AM</option>
+                  <option value="PM">PM</option>
+                </select>
+              </div>
             </div>
             <div className="space-y-2">
               <Label className="text-vice-cyan font-medium text-sm text-center block">Unit</Label>
               <Input
                 value={formData.unit}
-                onChange={(e) => setFormData(prev => ({ ...prev, unit: e.target.value }))}
+                onChange={handleUnitChange}
                 placeholder="Unit #"
                 className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11"
               />
@@ -314,38 +365,105 @@ const DetailsPrevious = () => {
             <h3 className="text-vice-cyan font-medium text-base text-center">Violation Type (Select applicable)</h3>
             
             <div className="space-y-3">
-              <div className="flex items-center space-x-3 p-3 rounded-lg border border-vice-cyan/20 bg-black/20 min-h-[44px]">
-                <Checkbox
-                  checked={formData.violationTypes.itemsOutside}
-                  onCheckedChange={(checked) => handleViolationTypeChange('itemsOutside', checked as boolean)}
-                  className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink min-w-[20px] min-h-[20px]"
-                />
-                <Label className="text-white cursor-pointer text-sm leading-tight flex-1">Items left outside Unit</Label>
+              {/* Combined Items/Trash left outside Unit */}
+              <div className="space-y-2">
+                <div className="flex items-center space-x-3 p-3 rounded-lg border border-vice-cyan/20 bg-black/20 min-h-[44px]">
+                  <Checkbox
+                    checked={formData.violationTypes.itemsTrashOutside}
+                    onCheckedChange={(checked) => {
+                      handleViolationTypeChange('itemsTrashOutside', checked as boolean);
+                      if (!checked) setFormData(prev => ({ ...prev, itemsTrashChoice: '' }));
+                    }}
+                    className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink min-w-[20px] min-h-[20px]"
+                  />
+                  <Label className="text-white cursor-pointer text-sm leading-tight flex-1">Items/Trash left outside Unit</Label>
+                </div>
+                
+                {formData.violationTypes.itemsTrashOutside && (
+                  <div className="flex gap-2 justify-center">
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, itemsTrashChoice: 'items' }))}
+                      className={`px-3 py-1.5 rounded text-xs font-medium transition-all ${
+                        formData.itemsTrashChoice === 'items' 
+                          ? 'bg-vice-pink text-white' 
+                          : 'bg-transparent border border-vice-pink text-vice-pink hover:bg-vice-pink/20'
+                      }`}
+                    >
+                      items
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, itemsTrashChoice: 'trash' }))}
+                      className={`px-3 py-1.5 rounded text-xs font-medium transition-all ${
+                        formData.itemsTrashChoice === 'trash' 
+                          ? 'bg-vice-pink text-white' 
+                          : 'bg-transparent border border-vice-pink text-vice-pink hover:bg-vice-pink/20'
+                      }`}
+                    >
+                      trash
+                    </button>
+                  </div>
+                )}
               </div>
 
-              <div className="flex items-center space-x-3 p-3 rounded-lg border border-vice-cyan/20 bg-black/20 min-h-[44px]">
-                <Checkbox
-                  checked={formData.violationTypes.trashOutside}
-                  onCheckedChange={(checked) => handleViolationTypeChange('trashOutside', checked as boolean)}
-                  className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink min-w-[20px] min-h-[20px]"
-                />
-                <Label className="text-white cursor-pointer text-sm leading-tight flex-1">Trash left outside Unit</Label>
+              {/* Balcony/Front railing items */}
+              <div className="space-y-2">
+                <div className="flex items-center space-x-3 p-3 rounded-lg border border-vice-cyan/20 bg-black/20 min-h-[44px]">
+                  <Checkbox
+                    checked={formData.violationTypes.balconyItems}
+                    onCheckedChange={(checked) => {
+                      handleViolationTypeChange('balconyItems', checked as boolean);
+                      if (!checked) setFormData(prev => ({ ...prev, balconyChoice: '' }));
+                    }}
+                    className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink min-w-[20px] min-h-[20px]"
+                  />
+                  <Label className="text-white cursor-pointer text-sm leading-tight flex-1">Items left on balcony/front railing</Label>
+                </div>
+                
+                {formData.violationTypes.balconyItems && (
+                  <div className="flex gap-2 justify-center">
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, balconyChoice: 'balcony' }))}
+                      className={`px-3 py-1.5 rounded text-xs font-medium transition-all ${
+                        formData.balconyChoice === 'balcony' 
+                          ? 'bg-vice-pink text-white' 
+                          : 'bg-transparent border border-vice-pink text-vice-pink hover:bg-vice-pink/20'
+                      }`}
+                    >
+                      balcony
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, balconyChoice: 'front' }))}
+                      className={`px-3 py-1.5 rounded text-xs font-medium transition-all ${
+                        formData.balconyChoice === 'front' 
+                          ? 'bg-vice-pink text-white' 
+                          : 'bg-transparent border border-vice-pink text-vice-pink hover:bg-vice-pink/20'
+                      }`}
+                    >
+                      front
+                    </button>
+                  </div>
+                )}
               </div>
 
+              {/* New Parking lot items */}
               <div className="flex items-center space-x-3 p-3 rounded-lg border border-vice-cyan/20 bg-black/20 min-h-[44px]">
                 <Checkbox
-                  checked={formData.violationTypes.itemsBalcony}
-                  onCheckedChange={(checked) => handleViolationTypeChange('itemsBalcony', checked as boolean)}
+                  checked={formData.violationTypes.parkingLotItems}
+                  onCheckedChange={(checked) => handleViolationTypeChange('parkingLotItems', checked as boolean)}
                   className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink min-w-[20px] min-h-[20px]"
                 />
-                <Label className="text-white cursor-pointer text-sm leading-tight flex-1">Items left on balcony/front railing</Label>
+                <Label className="text-white cursor-pointer text-sm leading-tight flex-1">Items left in Parking lot</Label>
               </div>
             </div>
           </div>
 
           {/* Description Section - Collapsible */}
           <div className="space-y-3">
-            <div 
+            <div
               className="flex items-center justify-between cursor-pointer p-2 min-h-[44px]"
               onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
             >
@@ -364,20 +482,22 @@ const DetailsPrevious = () => {
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Enter additional details..."
-                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 min-h-[100px] resize-none text-base"
+                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 min-h-[100px] resize-none"
               />
             )}
           </div>
 
-          {/* Photo Evidence Section - Collapsible */}
+          {/* Photos Section - Collapsible */}
           <div className="space-y-3">
-            <div 
+            <div
               className="flex items-center justify-between cursor-pointer p-2 min-h-[44px]"
               onClick={() => setIsPhotosExpanded(!isPhotosExpanded)}
             >
               <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 rounded-full bg-vice-pink"></div>
-                <Label className="text-vice-pink font-medium text-sm">Photo Evidence</Label>
+                <Label className="text-vice-pink font-medium text-sm">
+                  Photos ({selectedImages.length})
+                </Label>
               </div>
               {isPhotosExpanded ? (
                 <ChevronUp className="w-5 h-5 text-vice-pink" />
@@ -385,50 +505,46 @@ const DetailsPrevious = () => {
                 <ChevronDown className="w-5 h-5 text-vice-pink" />
               )}
             </div>
-            {isPhotosExpanded && (
-              <>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  multiple
-                  accept="image/*"
-                  className="hidden"
-                />
-                {renderImageGrid()}
-              </>
-            )}
+            {isPhotosExpanded && renderPhotoGrid()}
           </div>
         </div>
       </div>
 
-      {/* Fixed Bottom Button */}
-      <div className="flex-shrink-0 bg-black/50 backdrop-blur-sm border-t border-vice-cyan/20 p-4 pb-safe-bottom">
-        <div className="flex justify-center max-w-md mx-auto">
-          <Button 
-            onClick={handleSaveForm}
-            disabled={isSaving || !isFormValid}
-            className="bg-vice-pink hover:bg-vice-pink/80 text-white px-8 py-3 rounded-lg font-semibold text-base min-h-[44px] min-w-[120px] disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Plus className="w-4 h-4 mr-2" />
-                Book Em
-                {selectedImages.length > 0 && (
-                  <span className="bg-white/20 rounded-full px-2 py-1 text-xs ml-2">
-                    {selectedImages.length}
-                  </span>
-                )}
-              </>
-            )}
-          </Button>
-        </div>
+      {/* Fixed Bottom Save Button */}
+      <div className="p-4 border-t border-vice-cyan/20 bg-black/20">
+        <Button
+          onClick={handleSaveForm}
+          disabled={isSaving || !isFormValid()}
+          className="bg-vice-pink hover:bg-vice-pink/80 text-white font-semibold text-base px-8 py-3 disabled:opacity-50 disabled:cursor-not-allowed rounded-full flex items-center justify-center gap-2 min-h-[48px] mx-auto"
+        >
+          {isSaving ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin mr-2" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Plus className="w-5 h-5" />
+              Book Em
+              {selectedImages.length > 0 && (
+                <span className="bg-white/20 rounded-full px-2 py-1 text-xs ml-1">
+                  {selectedImages.length}
+                </span>
+              )}
+            </>
+          )}
+        </Button>
       </div>
+
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        onChange={handleFileChange}
+        className="hidden"
+      />
     </div>
   );
 };
