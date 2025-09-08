@@ -138,6 +138,70 @@ export type Database = {
           invited_by: string
         }[]
       }
+      get_recent_team_activity: {
+        Args: { target_user_id?: string }
+        Returns: {
+          created_at: string
+          days_old: number
+          email: string
+          full_name: string
+          id: string
+          location: string
+          role: string
+          status: string
+          time_period: string
+          unit_number: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
+      get_team_performance_summary: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          completed_violations: number
+          draft_violations: number
+          most_active_user_this_month: string
+          pending_violations: number
+          team_completion_rate_percent: number
+          total_team_members: number
+          total_violations_all_time: number
+          violations_this_month: number
+          violations_this_week: number
+        }[]
+      }
+      get_team_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          completed_violations: number
+          draft_violations: number
+          most_active_user: string
+          pending_violations: number
+          team_completion_rate: number
+          total_team_members: number
+          total_violations: number
+          violations_this_month: number
+          violations_this_week: number
+        }[]
+      }
+      get_user_activity_summary: {
+        Args: { target_user_id?: string }
+        Returns: {
+          completed_violations: number
+          completion_rate_percent: number
+          draft_violations: number
+          email: string
+          first_violation_date: string
+          full_name: string
+          last_violation_date: string
+          pending_violations: number
+          role: string
+          total_violations: number
+          user_id: string
+          user_joined_at: string
+          violations_this_month: number
+          violations_this_week: number
+        }[]
+      }
       validate_invite_token: {
         Args: { token_input: string }
         Returns: boolean
