@@ -118,7 +118,56 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      recent_team_activity: {
+        Row: {
+          created_at: string | null
+          days_old: number | null
+          email: string | null
+          full_name: string | null
+          id: string | null
+          location: string | null
+          role: string | null
+          status: string | null
+          time_period: string | null
+          unit_number: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      team_performance_summary: {
+        Row: {
+          completed_violations: number | null
+          draft_violations: number | null
+          most_active_user_this_month: string | null
+          pending_violations: number | null
+          team_completion_rate_percent: number | null
+          total_team_members: number | null
+          total_violations_all_time: number | null
+          violations_this_month: number | null
+          violations_this_week: number | null
+        }
+        Relationships: []
+      }
+      user_activity_summary: {
+        Row: {
+          completed_violations: number | null
+          completion_rate_percent: number | null
+          draft_violations: number | null
+          email: string | null
+          first_violation_date: string | null
+          full_name: string | null
+          last_violation_date: string | null
+          pending_violations: number | null
+          role: string | null
+          total_violations: number | null
+          user_id: string | null
+          user_joined_at: string | null
+          violations_this_month: number | null
+          violations_this_week: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       create_invite: {
@@ -136,6 +185,20 @@ export type Database = {
           expires_at: string
           id: string
           invited_by: string
+        }[]
+      }
+      get_team_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          completed_violations: number
+          draft_violations: number
+          most_active_user: string
+          pending_violations: number
+          team_completion_rate: number
+          total_team_members: number
+          total_violations: number
+          violations_this_month: number
+          violations_this_week: number
         }[]
       }
       validate_invite_token: {
