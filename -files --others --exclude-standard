@@ -1,0 +1,10 @@
+warning: in the working copy of 'components.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/index.css', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/Dashboard.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'vite.config.ts', LF will be replaced by CRLF the next time Git touches it
+components.json
+package-lock.json
+package.json
+src/index.css
+src/pages/Dashboard.tsx
+vite.config.ts

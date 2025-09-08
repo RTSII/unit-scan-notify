@@ -2,10 +2,13 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Loader2, Camera, BookOpen, FileText, Download, Menu, X, Settings } from 'lucide-react';
+import { Loader2, Camera, BookOpen, FileText, Download, Settings } from 'lucide-react';
 
-// Import the background image
-const backgroundImage = '/2.jpeg';
+// Import the Siri Orb component
+import { SiriOrb } from '@/components/ui/siri-orb';
+
+// Import the background image properly
+import backgroundImage from '/2.jpeg';
 
 export default function Dashboard() {
   const { user, loading, profile } = useAuth();
@@ -111,7 +114,7 @@ export default function Dashboard() {
     <div
       className="dashboard-container bg-cover bg-center bg-gray-900"
       style={{
-        backgroundImage: `url("${backgroundImage}")`,
+        backgroundImage: `url(${backgroundImage})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'
@@ -174,23 +177,23 @@ export default function Dashboard() {
             );
           })}
 
-          {/* Hamburger Button */}
-          <Button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="touch-target-lg rounded-full bg-gradient-to-r from-vice-pink to-vice-purple 
-                     hover:from-vice-purple hover:to-vice-pink border-2 border-vice-cyan/50 
-                     backdrop-blur-sm transition-all duration-300 shadow-xl group relative z-50
-                     flex items-center justify-center no-select
-                     w-14 h-14 xs:w-16 xs:h-16"
-          >
-            <div className="group-hover:scale-110 transition-transform duration-200">
-              {isMenuOpen ? (
-                <X className="w-5 h-5 xs:w-6 xs:h-6 text-white" />
-              ) : (
-                <Menu className="w-5 h-5 xs:w-6 xs:h-6 text-white" />
-              )}
-            </div>
-          </Button>
+          {/* Siri Orb Button replacing the Hamburger Button */}
+          <div className="touch-target-lg rounded-full bg-transparent backdrop-blur-sm 
+                          transition-all duration-300 shadow-xl group relative z-50
+                          flex items-center justify-center no-select">
+            <SiriOrb
+              size={64}
+              animationDuration={2}
+              colors={{
+                bg: "linear-gradient(45deg, #8b2fa0, #ff1493)",
+                c1: "rgba(255, 255, 255, 0.7)",
+                c2: "rgba(255, 255, 255, 0.5)",
+                c3: "rgba(255, 255, 255, 0.3)",
+              }}
+              className="drop-shadow-2xl"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            />
+          </div>
         </div>
       </div>
     </div>

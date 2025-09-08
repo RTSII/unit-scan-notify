@@ -38,6 +38,13 @@
   --chart-4: 43 74% 66%;
   --chart-5: 27 87% 67%;
   --radius: 0.5rem;
+  
+  /* Vice City / Vaporwave Colors */
+  --color-primary: #8b2fa0; /* Vice Purple */
+  --color-secondary: #ff1493; /* Vice Pink */
+  --color-accent: #00ffff; /* Vice Cyan */
+  --color-complement: #4169e1; /* Vice Blue */
+  --color-warm: #ff6347; /* Vice Orange */
 }
 
 .dark {
@@ -49,7 +56,7 @@
   --popover-foreground: 0 0% 98%;
   --primary: 0 0% 98%;
   --primary-foreground: 240 5.9% 10%;
-  --secondary: 240 10% 3.9%;
+  --secondary: 240 3.7% 15.9%;
   --secondary-foreground: 0 0% 98%;
   --muted: 240 3.7% 15.9%;
   --muted-foreground: 240 5% 64.9%;
@@ -60,93 +67,27 @@
   --border: 240 3.7% 15.9%;
   --input: 240 3.7% 15.9%;
   --ring: 240 4.9% 83.9%;
-  --chart-1: 220 70% 50%;
-  --chart-2: 160 60% 45%;
-  --chart-3: 30 80% 55%;
-  --chart-4: 280 65% 60%;
-  --chart-5: 340 75% 55%;
 }
 
-* {
-  border-color: hsl(var(--border));
-}
-
-body {
-  color: hsl(var(--foreground));
-  background: hsl(var(--background));
-  font-feature-settings: "rlig" 1, "calt" 1;
-  /* Prevent horizontal scrolling on mobile */
-  overflow-x: hidden;
-  /* Improve text rendering on mobile */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  /* Prevent zoom on input focus on iOS */
-  -webkit-text-size-adjust: 100%;
-}
-
-/* Mobile-specific optimizations */
-@supports (padding: max(0px)) {
+/* Base styles for all components */
+@layer base {
+  * {
+    @apply border-border;
+  }
   body {
-    padding-left: max(0px, env(safe-area-inset-left));
-    padding-right: max(0px, env(safe-area-inset-right));
+    @apply bg-background text-foreground;
   }
-}
-
-/* Prevent iOS bounce scrolling */
-html,
-body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-#root {
-  height: 100vh;
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-
-  /* Safe area utilities */
-  .pt-safe {
-    padding-top: env(safe-area-inset-top);
-  }
-
-  .pb-safe {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-
-  .pl-safe {
-    padding-left: env(safe-area-inset-left);
-  }
-
-  .pr-safe {
-    padding-right: env(safe-area-inset-right);
-  }
-
-  .p-safe {
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
-  }
-
-  /* Touch-friendly utilities */
-  .touch-target {
-    min-height: 44px;
-    min-width: 44px;
-  }
-
+  
+  /* Utility classes for touch targets */
   .touch-target-lg {
-    min-height: 48px;
-    min-width: 48px;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-
-  /* Prevent text selection on UI elements */
+  
+  /* Prevent text selection on interactive elements */
   .no-select {
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -170,277 +111,55 @@ body {
   .min-h-screen-mobile {
     min-height: 100vh;
     min-height: -webkit-fill-available;
-    min-height: calc(var(--vh, 1vh) * 100);
   }
-
-  .h-screen-mobile {
-    height: 100vh;
-    height: -webkit-fill-available;
-    height: calc(var(--vh, 1vh) * 100);
+  
+  /* Safe area padding for mobile devices */
+  .p-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-top: env(safe-area-inset-top);
   }
-}
-
-/* Vice City Theme Colors */
-:root {
-  --vice-purple: #8b2fa0;
-  --vice-pink: #ff1493;
-  --vice-cyan: #00ffff;
-  --vice-blue: #4169e1;
-  --vice-orange: #ff6b35;
-}
-
-/* Wave animations */
-@keyframes wave-1 {
-
-  0%,
-  100% {
-    transform: translateX(-100px) scaleY(1);
+  
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
   }
-
-  50% {
-    transform: translateX(-50px) scaleY(0.8);
+  
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
   }
 }
 
-@keyframes wave-2 {
-
-  0%,
-  100% {
-    transform: translateX(-100px) scaleY(0.8);
-  }
-
-  50% {
-    transform: translateX(-50px) scaleY(1);
+/* Component styles */
+@layer components {
+  /* Arc menu button styles */
+  .arc-menu-button {
+    @apply absolute touch-target-lg rounded-full backdrop-blur-sm
+           border-2 transition-all duration-500 ease-out shadow-lg group hover:scale-105
+           flex items-center justify-center no-select;
   }
 }
 
-@keyframes wave-3 {
-
-  0%,
-  100% {
-    transform: translateX(-100px) scaleY(1.2);
-  }
-
-  50% {
-    transform: translateX(-50px) scaleY(0.6);
-  }
+/* Custom animations for Siri Orb */
+@keyframes siri-pulse-1 {
+  0%, 100% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.05); opacity: 0.4; }
 }
 
-.wave-1 {
-  animation: wave-1 8s ease-in-out infinite;
+@keyframes siri-pulse-2 {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.07); opacity: 0.3; }
 }
 
-.wave-2 {
-  animation: wave-2 10s ease-in-out infinite;
+@keyframes siri-pulse-3 {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.09); opacity: 0.2; }
 }
 
-.wave-3 {
-  animation: wave-3 12s ease-in-out infinite;
+@keyframes siri-dot-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.7; }
 }
 
-/* Neon glow effects */
-.neon-glow {
-  text-shadow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 15px currentColor;
-}
-
-.neon-border {
-  box-shadow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 15px currentColor;
-}
-
-/* Retro grid background */
-.retro-grid {
-  background-image:
-    linear-gradient(rgba(255, 20, 147, 0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 20, 147, 0.1) 1px, transparent 1px);
-  background-size: 50px 50px;
-}
-
-/* Glitch effect */
-@keyframes glitch {
-  0% {
-    transform: translate(0);
-  }
-
-  20% {
-    transform: translate(-2px, 2px);
-  }
-
-  40% {
-    transform: translate(-2px, -2px);
-  }
-
-  60% {
-    transform: translate(2px, 2px);
-  }
-
-  80% {
-    transform: translate(2px, -2px);
-  }
-
-  100% {
-    transform: translate(0);
-  }
-}
-
-.glitch {
-  animation: glitch 0.3s infinite;
-}
-
-/* Pulse animation for buttons */
-@keyframes pulse-neon {
-
-  0%,
-  100% {
-    box-shadow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 15px currentColor;
-  }
-
-  50% {
-    box-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;
-  }
-}
-
-.pulse-neon {
-  animation: pulse-neon 2s ease-in-out infinite;
-}
-
-/* Scanlines effect */
-.scanlines::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(transparent 50%,
-      rgba(0, 255, 255, 0.03) 50%);
-  background-size: 100% 4px;
-  pointer-events: none;
-  z-index: 1;
-}
-
-/* CRT screen effect */
-.crt-screen {
-  position: relative;
-  overflow: hidden;
-}
-
-.crt-screen::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background:
-    radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.3) 100%),
-    linear-gradient(transparent 50%, rgba(0, 255, 255, 0.02) 50%);
-  background-size: 100% 100%, 100% 2px;
-  pointer-events: none;
-  z-index: 1;
-}
-
-/* Holographic effect */
-@keyframes hologram {
-
-  0%,
-  100% {
-    opacity: 1;
-    filter: hue-rotate(0deg);
-  }
-
-  25% {
-    opacity: 0.8;
-    filter: hue-rotate(90deg);
-  }
-
-  50% {
-    opacity: 0.9;
-    filter: hue-rotate(180deg);
-  }
-
-  75% {
-    opacity: 0.7;
-    filter: hue-rotate(270deg);
-  }
-}
-
-.hologram {
-  animation: hologram 4s ease-in-out infinite;
-}
-
-/* Cyberpunk button styles */
-.cyber-button {
-  position: relative;
-  background: linear-gradient(45deg, #ff1493, #8b2fa0);
-  border: 2px solid #00ffff;
-  color: white;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  font-weight: bold;
-  transition: all 0.3s ease;
-}
-
-.cyber-button:hover {
-  background: linear-gradient(45deg, #8b2fa0, #ff1493);
-  box-shadow: 0 0 20px #00ffff;
-  transform: translateY(-2px);
-}
-
-.cyber-button::before {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  background: linear-gradient(45deg, #ff1493, #00ffff, #8b2fa0, #ff1493);
-  z-index: -1;
-  border-radius: inherit;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.cyber-button:hover::before {
-  opacity: 1;
-}
-
-/* Neon text styles */
-.neon-text-pink {
-  color: #ff1493;
-  text-shadow:
-    0 0 5px #ff1493,
-    0 0 10px #ff1493,
-    0 0 15px #ff1493,
-    0 0 20px #ff1493;
-}
-
-.neon-text-cyan {
-  color: #00ffff;
-  text-shadow:
-    0 0 5px #00ffff,
-    0 0 10px #00ffff,
-    0 0 15px #00ffff,
-    0 0 20px #00ffff;
-}
-
-.neon-text-purple {
-  color: #8b2fa0;
-  text-shadow:
-    0 0 5px #8b2fa0,
-    0 0 10px #8b2fa0,
-    0 0 15px #8b2fa0,
-    0 0 20px #8b2fa0;
-}
-
-/* Responsive text scaling */
-@media (max-width: 428px) {
-  html {
-    font-size: 14px;
-  }
-}
-
-@media (max-width: 375px) {
-  html {
-    font-size: 13px;
-  }
+@keyframes siri-glow {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.2); opacity: 0.2; }
 }
