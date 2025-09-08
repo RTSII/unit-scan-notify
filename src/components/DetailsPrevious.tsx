@@ -65,7 +65,7 @@ const DetailsPrevious = () => {
   const formatDateInput = (value: string) => {
     // Remove all non-numeric characters
     const numbers = value.replace(/\D/g, '');
-    
+
     // Add slash after 2 digits (MM/DD format)
     if (numbers.length >= 2) {
       return numbers.slice(0, 2) + '/' + numbers.slice(2, 4);
@@ -76,7 +76,7 @@ const DetailsPrevious = () => {
   const formatTimeInput = (value: string) => {
     // Remove all non-numeric characters
     const numbers = value.replace(/\D/g, '');
-    
+
     // Add colon after 2 digits (HH:MM format)
     if (numbers.length >= 2) {
       return numbers.slice(0, 2) + ':' + numbers.slice(2, 4);
@@ -108,7 +108,7 @@ const DetailsPrevious = () => {
     if (files) {
       const newImageUrls: string[] = [];
       let processedCount = 0;
-      
+
       Array.from(files).forEach(file => {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -127,7 +127,7 @@ const DetailsPrevious = () => {
 
   const handleSaveForm = async () => {
     console.log('Save form clicked');
-    
+
     if (!user?.id) {
       toast.error("Authentication required");
       return;
@@ -237,64 +237,33 @@ const DetailsPrevious = () => {
 
   // Photo display logic
   const renderPhotoGrid = () => {
-    const displayImages = selectedImages.slice(0, 3);
-    const additionalCount = Math.max(0, selectedImages.length - 3);
+    // Always show at least one card, plus additional cards for selected images
+    const totalSlots = Math.min(4, Math.max(1, selectedImages.length + 1));
 
     return (
-      <div className="grid grid-cols-2 gap-2">
-        {/* First image or add button */}
-        <div 
-          className="aspect-square bg-black/40 border border-vice-cyan/30 rounded-lg flex items-center justify-center cursor-pointer hover:bg-black/60 transition-colors min-h-[44px]"
-          onClick={handleImageSelection}
-        >
-          {displayImages[0] ? (
-            <img 
-              src={displayImages[0]} 
-              alt="Evidence 1" 
-              className="w-full h-full object-cover rounded-lg"
-            />
-          ) : (
-            <Plus className="w-5 h-5 text-white/60" />
-          )}
-        </div>
-
-        {/* Second image slot */}
-        <div className="aspect-square bg-black/40 border border-vice-cyan/30 rounded-lg flex items-center justify-center min-h-[44px]">
-          {displayImages[1] ? (
-            <img 
-              src={displayImages[1]} 
-              alt="Evidence 2" 
-              className="w-full h-full object-cover rounded-lg"
-            />
-          ) : (
-            <Camera className="w-5 h-5 text-white/40" />
-          )}
-        </div>
-
-        {/* Third image slot */}
-        <div className="aspect-square bg-black/40 border border-vice-cyan/30 rounded-lg flex items-center justify-center min-h-[44px]">
-          {displayImages[2] ? (
-            <img 
-              src={displayImages[2]} 
-              alt="Evidence 3" 
-              className="w-full h-full object-cover rounded-lg"
-            />
-          ) : (
-            <Camera className="w-5 h-5 text-white/40" />
-          )}
-        </div>
-
-        {/* Additional count or fourth slot */}
-        <div className="aspect-square bg-black/40 border border-vice-cyan/30 rounded-lg flex items-center justify-center min-h-[44px]">
-          {additionalCount > 0 ? (
-            <div className="text-center">
-              <span className="text-vice-cyan font-medium text-sm">+{additionalCount}</span>
-              <div className="text-white/60 text-xs">more</div>
-            </div>
-          ) : (
-            <Camera className="w-5 h-5 text-white/40" />
-          )}
-        </div>
+      <div className="grid grid-cols-2 gap-3">
+        {Array.from({ length: totalSlots }).map((_, index) => (
+          <div
+            key={index}
+            className="aspect-square bg-black/40 border border-vice-cyan/30 rounded-lg flex items-center justify-center cursor-pointer hover:bg-black/60 transition-colors min-h-[44px] relative"
+            onClick={index === selectedImages.length ? handleImageSelection : undefined}
+          >
+            {index < selectedImages.length ? (
+              <img
+                src={selectedImages[index]}
+                alt={`Evidence ${index + 1}`}
+                className="w-full h-full object-cover rounded-lg"
+              />
+            ) : (
+              <>
+                <Plus className="w-8 h-8 text-vice-cyan" />
+                {index === 0 && (
+                  <span className="absolute bottom-1 text-vice-cyan/70 text-xs">Add Photo</span>
+                )}
+              </>
+            )}
+          </div>
+        ))}
       </div>
     );
   };
@@ -303,14 +272,14 @@ const DetailsPrevious = () => {
     <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-vice-purple via-black to-vice-blue flex flex-col">
       {/* Header */}
       <div className="relative p-4 border-b border-vice-cyan/20">
-        <h1 className="text-white text-xl font-bold text-center">Details Previous</h1>
+        <h1 className="text-white text-xl font-bold text-center">Details</h1>
         <Button
           variant="ghost"
           size="sm"
-          className="text-white hover:bg-white/10 p-2 absolute right-4"
+          className="text-white hover:bg-white/10 p-2 absolute right-4 top-1/2 transform -translate-y-1/2"
           onClick={() => navigate('/')}
         >
-          <Home className="w-5 h-5" />
+          <Home className="w-6 h-6" />
         </Button>
       </div>
 
@@ -326,23 +295,23 @@ const DetailsPrevious = () => {
                 onChange={handleDateChange}
                 placeholder="MM/DD"
                 maxLength={5}
-                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11"
+                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11 text-center w-20 mx-auto"
               />
             </div>
             <div className="space-y-2">
               <Label className="text-vice-cyan font-medium text-sm text-center block">Time</Label>
-              <div className="flex gap-1">
+              <div className="flex gap-1 justify-center">
                 <Input
                   value={formData.time}
                   onChange={handleTimeChange}
                   placeholder="HH:MM"
                   maxLength={5}
-                  className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11 flex-1"
+                  className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11 flex-1 text-center min-w-[80px]"
                 />
                 <select
                   value={formData.ampm}
                   onChange={(e) => setFormData(prev => ({ ...prev, ampm: e.target.value }))}
-                  className="bg-black/40 border border-vice-cyan/30 text-white text-base h-11 px-2 rounded-md"
+                  className="bg-black/40 border border-vice-cyan/30 text-white text-base h-11 px-2 rounded-md min-w-[60px]"
                 >
                   <option value="AM">AM</option>
                   <option value="PM">PM</option>
@@ -355,7 +324,7 @@ const DetailsPrevious = () => {
                 value={formData.unit}
                 onChange={handleUnitChange}
                 placeholder="Unit #"
-                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11"
+                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11 text-center w-16 mx-auto"
               />
             </div>
           </div>
@@ -363,7 +332,7 @@ const DetailsPrevious = () => {
           {/* Violation Type Section */}
           <div className="space-y-4">
             <h3 className="text-vice-cyan font-medium text-base text-center">Violation Type (Select applicable)</h3>
-            
+
             <div className="space-y-3">
               {/* Combined Items/Trash left outside Unit */}
               <div className="space-y-2">
@@ -378,28 +347,26 @@ const DetailsPrevious = () => {
                   />
                   <Label className="text-white cursor-pointer text-sm leading-tight flex-1">Items/Trash left outside Unit</Label>
                 </div>
-                
+
                 {formData.violationTypes.itemsTrashOutside && (
                   <div className="flex gap-2 justify-center">
                     <button
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, itemsTrashChoice: 'items' }))}
-                      className={`px-3 py-1.5 rounded text-xs font-medium transition-all ${
-                        formData.itemsTrashChoice === 'items' 
-                          ? 'bg-vice-pink text-white' 
-                          : 'bg-transparent border border-vice-pink text-vice-pink hover:bg-vice-pink/20'
-                      }`}
+                      className={`px-3 py-1.5 rounded text-xs font-medium transition-all ${formData.itemsTrashChoice === 'items'
+                        ? 'bg-vice-pink text-white'
+                        : 'bg-transparent border border-vice-pink text-vice-pink hover:bg-vice-pink/20'
+                        }`}
                     >
                       items
                     </button>
                     <button
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, itemsTrashChoice: 'trash' }))}
-                      className={`px-3 py-1.5 rounded text-xs font-medium transition-all ${
-                        formData.itemsTrashChoice === 'trash' 
-                          ? 'bg-vice-pink text-white' 
-                          : 'bg-transparent border border-vice-pink text-vice-pink hover:bg-vice-pink/20'
-                      }`}
+                      className={`px-3 py-1.5 rounded text-xs font-medium transition-all ${formData.itemsTrashChoice === 'trash'
+                        ? 'bg-vice-pink text-white'
+                        : 'bg-transparent border border-vice-pink text-vice-pink hover:bg-vice-pink/20'
+                        }`}
                     >
                       trash
                     </button>
@@ -420,28 +387,26 @@ const DetailsPrevious = () => {
                   />
                   <Label className="text-white cursor-pointer text-sm leading-tight flex-1">Items left on balcony/front railing</Label>
                 </div>
-                
+
                 {formData.violationTypes.balconyItems && (
                   <div className="flex gap-2 justify-center">
                     <button
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, balconyChoice: 'balcony' }))}
-                      className={`px-3 py-1.5 rounded text-xs font-medium transition-all ${
-                        formData.balconyChoice === 'balcony' 
-                          ? 'bg-vice-pink text-white' 
-                          : 'bg-transparent border border-vice-pink text-vice-pink hover:bg-vice-pink/20'
-                      }`}
+                      className={`px-3 py-1.5 rounded text-xs font-medium transition-all ${formData.balconyChoice === 'balcony'
+                        ? 'bg-vice-pink text-white'
+                        : 'bg-transparent border border-vice-pink text-vice-pink hover:bg-vice-pink/20'
+                        }`}
                     >
                       balcony
                     </button>
                     <button
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, balconyChoice: 'front' }))}
-                      className={`px-3 py-1.5 rounded text-xs font-medium transition-all ${
-                        formData.balconyChoice === 'front' 
-                          ? 'bg-vice-pink text-white' 
-                          : 'bg-transparent border border-vice-pink text-vice-pink hover:bg-vice-pink/20'
-                      }`}
+                      className={`px-3 py-1.5 rounded text-xs font-medium transition-all ${formData.balconyChoice === 'front'
+                        ? 'bg-vice-pink text-white'
+                        : 'bg-transparent border border-vice-pink text-vice-pink hover:bg-vice-pink/20'
+                        }`}
                     >
                       front
                     </button>
@@ -461,52 +426,77 @@ const DetailsPrevious = () => {
             </div>
           </div>
 
-          {/* Description Section - Collapsible */}
-          <div className="space-y-3">
-            <div
-              className="flex items-center justify-between cursor-pointer p-2 min-h-[44px]"
-              onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+          {/* Morphing Description and Photos Buttons - Combined Row */}
+          <div className="flex gap-3 justify-center">
+            {/* Description Button */}
+            <button
+              type="button"
+              className={`flex items-center justify-center gap-2 px-4 py-3 rounded-full transition-all duration-300 ease-in-out min-h-[44px] min-w-[120px] transform-gpu ${isDescriptionExpanded
+                ? 'bg-vice-pink text-white shadow-lg shadow-vice-pink/30 scale-105'
+                : 'bg-black/40 border border-vice-cyan/30 text-vice-cyan hover:bg-vice-pink/20 hover:shadow-md hover:shadow-vice-pink/20'
+                }`}
+              onClick={() => {
+                setIsDescriptionExpanded(!isDescriptionExpanded);
+                // Close photos when opening description for exclusive expansion
+                if (!isDescriptionExpanded) setIsPhotosExpanded(false);
+              }}
+              aria-expanded={isDescriptionExpanded}
+              aria-label={isDescriptionExpanded ? "Collapse description section" : "Expand description section"}
             >
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 rounded-full bg-vice-pink"></div>
-                <Label className="text-vice-pink font-medium text-sm">Description</Label>
-              </div>
+              <div className="w-2 h-2 rounded-full bg-white"></div>
+              <span className="font-medium text-sm">Description</span>
               {isDescriptionExpanded ? (
-                <ChevronUp className="w-5 h-5 text-vice-pink" />
+                <ChevronUp className="w-4 h-4 transition-transform duration-300" />
               ) : (
-                <ChevronDown className="w-5 h-5 text-vice-pink" />
+                <ChevronDown className="w-4 h-4 transition-transform duration-300" />
               )}
-            </div>
-            {isDescriptionExpanded && (
+            </button>
+
+            {/* Photos Button */}
+            <button
+              type="button"
+              className={`flex items-center justify-center gap-2 px-4 py-3 rounded-full transition-all duration-300 ease-in-out min-h-[44px] min-w-[120px] transform-gpu ${isPhotosExpanded
+                ? 'bg-vice-pink text-white shadow-lg shadow-vice-pink/30 scale-105'
+                : 'bg-black/40 border border-vice-cyan/30 text-vice-cyan hover:bg-vice-pink/20 hover:shadow-md hover:shadow-vice-pink/20'
+                }`}
+              onClick={() => {
+                setIsPhotosExpanded(!isPhotosExpanded);
+                // Close description when opening photos for exclusive expansion
+                if (!isPhotosExpanded) setIsDescriptionExpanded(false);
+              }}
+              aria-expanded={isPhotosExpanded}
+              aria-label={isPhotosExpanded ? "Collapse photos section" : "Expand photos section"}
+            >
+              <Camera className="w-4 h-4" />
+              <span className="font-medium text-sm">
+                Photos ({selectedImages.length})
+              </span>
+              {isPhotosExpanded ? (
+                <ChevronUp className="w-4 h-4 transition-transform duration-300" />
+              ) : (
+                <ChevronDown className="w-4 h-4 transition-transform duration-300" />
+              )}
+            </button>
+          </div>
+
+          {/* Expanded Description Content with enhanced animation */}
+          {isDescriptionExpanded && (
+            <div className="mt-3 animate-in slide-in-from-top-2 duration-300 fade-in">
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Enter additional details..."
-                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 min-h-[100px] resize-none"
+                className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 min-h-[100px] resize-none transition-all duration-300"
               />
-            )}
-          </div>
-
-          {/* Photos Section - Collapsible */}
-          <div className="space-y-3">
-            <div
-              className="flex items-center justify-between cursor-pointer p-2 min-h-[44px]"
-              onClick={() => setIsPhotosExpanded(!isPhotosExpanded)}
-            >
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 rounded-full bg-vice-pink"></div>
-                <Label className="text-vice-pink font-medium text-sm">
-                  Photos ({selectedImages.length})
-                </Label>
-              </div>
-              {isPhotosExpanded ? (
-                <ChevronUp className="w-5 h-5 text-vice-pink" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-vice-pink" />
-              )}
             </div>
-            {isPhotosExpanded && renderPhotoGrid()}
-          </div>
+          )}
+
+          {/* Expanded Photos Content with enhanced animation */}
+          {isPhotosExpanded && (
+            <div className="mt-3 animate-in slide-in-from-top-2 duration-300 fade-in">
+              {renderPhotoGrid()}
+            </div>
+          )}
         </div>
       </div>
 
