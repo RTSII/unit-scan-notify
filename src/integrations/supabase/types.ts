@@ -118,56 +118,7 @@ export type Database = {
       }
     }
     Views: {
-      recent_team_activity: {
-        Row: {
-          created_at: string | null
-          days_old: number | null
-          email: string | null
-          full_name: string | null
-          id: string | null
-          location: string | null
-          role: string | null
-          status: string | null
-          time_period: string | null
-          unit_number: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
-      team_performance_summary: {
-        Row: {
-          completed_violations: number | null
-          draft_violations: number | null
-          most_active_user_this_month: string | null
-          pending_violations: number | null
-          team_completion_rate_percent: number | null
-          total_team_members: number | null
-          total_violations_all_time: number | null
-          violations_this_month: number | null
-          violations_this_week: number | null
-        }
-        Relationships: []
-      }
-      user_activity_summary: {
-        Row: {
-          completed_violations: number | null
-          completion_rate_percent: number | null
-          draft_violations: number | null
-          email: string | null
-          first_violation_date: string | null
-          full_name: string | null
-          last_violation_date: string | null
-          pending_violations: number | null
-          role: string | null
-          total_violations: number | null
-          user_id: string | null
-          user_joined_at: string | null
-          violations_this_month: number | null
-          violations_this_week: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       create_invite: {
@@ -187,6 +138,37 @@ export type Database = {
           invited_by: string
         }[]
       }
+      get_recent_team_activity: {
+        Args: { target_user_id?: string }
+        Returns: {
+          created_at: string
+          days_old: number
+          email: string
+          full_name: string
+          id: string
+          location: string
+          role: string
+          status: string
+          time_period: string
+          unit_number: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
+      get_team_performance_summary: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          completed_violations: number
+          draft_violations: number
+          most_active_user_this_month: string
+          pending_violations: number
+          team_completion_rate_percent: number
+          total_team_members: number
+          total_violations_all_time: number
+          violations_this_month: number
+          violations_this_week: number
+        }[]
+      }
       get_team_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -197,6 +179,25 @@ export type Database = {
           team_completion_rate: number
           total_team_members: number
           total_violations: number
+          violations_this_month: number
+          violations_this_week: number
+        }[]
+      }
+      get_user_activity_summary: {
+        Args: { target_user_id?: string }
+        Returns: {
+          completed_violations: number
+          completion_rate_percent: number
+          draft_violations: number
+          email: string
+          first_violation_date: string
+          full_name: string
+          last_violation_date: string
+          pending_violations: number
+          role: string
+          total_violations: number
+          user_id: string
+          user_joined_at: string
           violations_this_month: number
           violations_this_week: number
         }[]
