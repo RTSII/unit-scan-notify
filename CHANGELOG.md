@@ -5,6 +5,24 @@ All notable changes to the SPR Vice City project will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [2.1.1] - 2025-09-08
+
+### 🚀 **OPTIMIZATION RELEASE - Image Optimization & Repository Cleanup**
+
+This release focuses on optimizing the application's assets and cleaning up the repository to improve performance and maintainability.
+
+### ✨ **Added**
+- **Repository Cleanup**: Removed unused images and files, saving approximately 8.7MB
+- **Git Configuration**: Added `bun.lockb` and `.bolt/` to `.gitignore`
+
+### 🔧 **Fixed**
+- **Image Optimization**: Optimized SPR logo (`vicecity.png`) from 297KB to 58KB (80% reduction)
+- **File Management**: Removed unnecessary files and directories
+
+### 🎨 **Changed**
+- **Repository Structure**: Cleaned up unused assets and improved organization
+
 ## [2.1.0] - 2025-09-07
 
 ### 🚀 **FEATURE RELEASE - Enhanced Violation Forms & UI Improvements**

@@ -1,19 +1,32 @@
-# 🎉 SPR Vice City v2.0.0 - DEPLOYMENT SUMMARY
+# 🎉 SPR Vice City v2.1.1 - DEPLOYMENT SUMMARY
 
-## ✅ **SUCCESSFULLY COMPLETED - January 27, 2025**
+## ✅ **SUCCESSFULLY COMPLETED - September 8, 2025**
 
-### 🚀 **Major Release Deployed to GitHub**
+### 🚀 **Optimization Release Deployed**
 - **Repository**: https://github.com/RTSII/unit-scan-notify.git
-- **Commit Hash**: `5d9ea6a`
-- **Version**: 2.0.0
-- **Files Changed**: 22 files, 2,776 insertions, 755 deletions
+- **Version**: 2.1.1
+- **Optimization**: Image optimization and repository cleanup
 
 ---
 
 ## 📋 **WHAT WAS ACCOMPLISHED**
 
-### ✨ **NEW FEATURES IMPLEMENTED**
-1. **Complete Admin Dashboard**
+### ✨ **OPTIMIZATION & CLEANUP**
+1. **Image Optimization**
+   - Optimized SPR logo (`vicecity.png`) from 297KB to 58KB (80% reduction)
+   - Improved loading performance on mobile devices
+   - Maintained visual quality while reducing file size
+
+2. **Repository Cleanup**
+   - Removed unused images and files, saving approximately 8.7MB
+   - Cleaned up `lovable-uploads` directories and unused assets
+   - Improved repository organization and maintainability
+
+3. **Git Configuration**
+   - Updated `.gitignore` to exclude `bun.lockb` and `.bolt/` directories
+   - Prevented unnecessary files from being tracked in version control
+
+// ... existing content ...
    - Team statistics and performance metrics
    - User activity monitoring and analytics
    - Real-time violation tracking

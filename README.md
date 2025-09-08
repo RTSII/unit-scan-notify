@@ -18,6 +18,19 @@
 - **Click-Outside Functionality**: Filter dropdown now properly closes when clicking outside
 - **Enhanced Error Handling**: Added null checks and improved data validation throughout
 
+### ✅ **Latest Updates - September 8, 2025**
+- **Image Optimization**: Optimized SPR logo (`vicecity.png`) from 297KB to 58KB (80% reduction)
+- **Repository Cleanup**: Removed unused images and files, saving approximately 8.7MB
+- **Git Configuration**: Updated `.gitignore` to properly exclude unnecessary files
+- **Enhanced Violation Forms**: Combined violation types with selectable options (items/trash, balcony/front)
+- **New Violation Type**: Added "Items left in Parking lot" violation category
+- **Improved Date/Time Entry**: Auto-formatting for MM/DD date and HH:MM time with AM/PM selector
+- **Auto-Capitalization**: Unit field automatically converts to uppercase
+- **"Book Em" Button**: Redesigned save buttons with consistent oval styling and photo count badges
+- **Books Page Fixes**: Fixed filter dropdown persistence, enhanced search functionality, improved time formatting
+- **Click-Outside Functionality**: Filter dropdown now properly closes when clicking outside
+- **Enhanced Error Handling**: Added null checks and improved data validation throughout
+
 ### ✅ **Admin Panel & Database Management (January 2025)**
 - **Full Admin Dashboard**: Complete admin panel with team statistics, user activity tracking, and violation management
 - **Supabase CLI Integration**: Local CLI setup with custom migration helpers for professional database management
