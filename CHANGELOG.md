@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.1.3] - 2025-09-08
+
+### 🚀 **FEATURE RELEASE - Camera Improvements**
+
+This release focuses on improving the camera functionality for mobile devices, particularly iOS devices, with better compatibility and proper rear camera handling.
+
+### ✨ **Added**
+- **Rear Camera Priority**: Camera now tries to use the rear camera (environment) first for violation documentation
+- **No Mirroring for Rear Camera**: Rear camera feed and captured images are no longer mirrored for accurate documentation
+- **Enhanced iOS Compatibility**: Simplified camera constraints that work better on iOS devices
+
+### 🔧 **Fixed**
+- **Camera Access Issues**: Improved camera access with multiple fallback constraints for different device capabilities
+- **Error Handling**: More detailed error messages for different types of camera access failures
+- **Debugging**: Additional console logs to help troubleshoot camera issues
+
+### 🎨 **Changed**
+- **Camera Component**: Completely refactored CameraCapture.tsx with better error handling and device compatibility
+- **Camera Constraints**: Updated constraints to prioritize rear camera with multiple fallback options
+
 ## [2.1.2] - 2025-09-08
 
 ### 🚀 **FEATURE RELEASE - UI/UX Enhancements**

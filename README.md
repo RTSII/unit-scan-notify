@@ -28,6 +28,20 @@
 - **Auto-Capitalization**: Unit field automatically converts to uppercase
 - **"Book Em" Button**: Redesigned save buttons with consistent oval styling and photo count badges
 - **Books Page Fixes**: Fixed filter dropdown persistence, enhanced search functionality, improved time formatting
+- **Camera Improvements**: Enhanced camera functionality with better iOS compatibility and proper rear camera priority
+- **No Mirroring for Rear Camera**: Rear camera feed and captured images are no longer mirrored for accurate violation documentation
+- **Improved Camera Constraints**: Simplified camera constraints that work better on iOS devices with multiple fallback options
+- **Enhanced Error Handling**: More detailed error messages for different types of camera access failures
+- **Better Debugging**: Additional console logs to help troubleshoot camera issues
+- **Image Optimization**: Optimized SPR logo (`vicecity.png`) from 297KB to 58KB (80% reduction)
+- **Repository Cleanup**: Removed unused images and files, saving approximately 8.7MB
+- **Git Configuration**: Updated `.gitignore` to properly exclude unnecessary files
+- **Enhanced Violation Forms**: Combined violation types with selectable options (items/trash, balcony/front)
+- **New Violation Type**: Added "Items left in Parking lot" violation category
+- **Improved Date/Time Entry**: Auto-formatting for MM/DD date and HH:MM time with AM/PM selector
+- **Auto-Capitalization**: Unit field automatically converts to uppercase
+- **"Book Em" Button**: Redesigned save buttons with consistent oval styling and photo count badges
+- **Books Page Fixes**: Fixed filter dropdown persistence, enhanced search functionality, improved time formatting
 - **Click-Outside Functionality**: Filter dropdown now properly closes when clicking outside
 - **Enhanced Error Handling**: Added null checks and improved data validation throughout
 - **UI/UX Enhancements**: Improved DetailsPrevious page with morphing buttons and better field sizing

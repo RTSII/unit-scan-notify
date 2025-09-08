@@ -20,33 +20,55 @@ const CameraCapture = () => {
     setCameraError('');
 
     try {
-      // Try different camera constraints with fallbacks
+      // Check if getUserMedia is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Camera API not available in this browser');
+      }
+
+      // First check for camera permissions explicitly
+      try {
+        const permissionStatus = await navigator.permissions.query({ name: 'camera' as PermissionName });
+        console.log('Camera permission status:', permissionStatus.state);
+      } catch (permErr) {
+        console.log('Permission query not supported, continuing...');
+      }
+
+      // Simplified constraints that work better on iOS
       const constraints = [
+        // Try rear camera first (environment) - what user wants
         {
-          video: {
-            facingMode: 'environment',
-            width: { ideal: 1280, max: 1920 },
-            height: { ideal: 720, max: 1080 },
-            frameRate: { ideal: 30 }
+          video: { 
+            facingMode: { exact: 'environment' }
           },
           audio: false
         },
+        // Fallback to rear camera with ideal (less strict)
         {
-          video: {
-            facingMode: 'environment',
+          video: { 
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: false
+        },
+        // Fallback to front camera if rear not available
+        {
+          video: { 
+            facingMode: { ideal: 'user' },
             width: { ideal: 640 },
             height: { ideal: 480 }
           },
           audio: false
         },
+        // Most basic constraint as last resort
         {
           video: {
-            facingMode: 'user',
             width: { ideal: 640 },
             height: { ideal: 480 }
           },
           audio: false
         },
+        // Ultimate fallback
         {
           video: true,
           audio: false
@@ -55,45 +77,108 @@ const CameraCapture = () => {
 
       let stream = null;
       let usingFrontCamera = false;
+      let successfulConstraint = null;
 
       for (let i = 0; i < constraints.length; i++) {
         const constraint = constraints[i];
         try {
-          console.log('Trying camera constraint:', constraint);
+          console.log(`Trying camera constraint ${i + 1}/${constraints.length}:`, JSON.stringify(constraint));
           stream = await navigator.mediaDevices.getUserMedia(constraint);
-
-          // Check if we're using front camera (user-facing)
-          if (constraint.video && typeof constraint.video === 'object' && constraint.video.facingMode === 'user') {
-            usingFrontCamera = true;
-          } else if (i >= 2) { // fallback constraints might be front camera
-            usingFrontCamera = true;
+          successfulConstraint = constraint;
+          
+          // Determine camera type based on successful constraint
+          if (constraint.video && typeof constraint.video === 'object') {
+            const facingMode = constraint.video.facingMode;
+            if (facingMode) {
+              if (typeof facingMode === 'string') {
+                usingFrontCamera = facingMode === 'user';
+              } else if (typeof facingMode === 'object') {
+                if ('exact' in facingMode && facingMode.exact) {
+                  usingFrontCamera = facingMode.exact === 'user';
+                } else if ('ideal' in facingMode && facingMode.ideal) {
+                  usingFrontCamera = facingMode.ideal === 'user';
+                }
+              }
+            }
           }
-
+          
+          console.log(`Camera constraint ${i + 1} succeeded`);
           break;
         } catch (err) {
-          console.log('Camera constraint failed:', err);
+          console.log(`Camera constraint ${i + 1} failed:`, err);
           continue;
         }
       }
 
       if (!stream) {
-        throw new Error('Unable to access camera with any constraints');
+        throw new Error('Unable to access camera with any constraints. Please ensure camera permissions are granted.');
+      }
+
+      console.log('Camera stream obtained:', stream.getTracks().length, 'tracks');
+      console.log('Using front camera:', usingFrontCamera);
+      console.log('Successful constraint:', JSON.stringify(successfulConstraint));
+
+      // Get video track info
+      const videoTrack = stream.getVideoTracks()[0];
+      if (videoTrack) {
+        const settings = videoTrack.getSettings();
+        console.log('Video track settings:', settings);
+        
+        // Try to determine camera facing from track settings
+        if ('facingMode' in settings && typeof settings.facingMode === 'string') {
+          usingFrontCamera = settings.facingMode === 'user';
+          console.log('Camera facing mode from track settings:', settings.facingMode);
+        }
       }
 
       setIsUsingFrontCamera(usingFrontCamera);
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-        console.log('Camera started successfully');
-        console.log('Video dimensions:', videoRef.current.videoWidth, 'x', videoRef.current.videoHeight);
-        console.log('Using front camera:', usingFrontCamera);
+        
+        // Add event listeners for better debugging
+        videoRef.current.onloadedmetadata = () => {
+          console.log('Video metadata loaded');
+          console.log('Video dimensions:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight);
+        };
+        
+        videoRef.current.oncanplay = () => {
+          console.log('Video can start playing');
+        };
+        
+        videoRef.current.onerror = (e) => {
+          console.error('Video element error:', e);
+        };
+
+        try {
+          await videoRef.current.play();
+          console.log('Camera started successfully');
+          console.log('Final video dimensions:', videoRef.current.videoWidth, 'x', videoRef.current.videoHeight);
+        } catch (playError) {
+          console.error('Error playing video:', playError);
+          throw new Error('Failed to start video playback');
+        }
       }
     } catch (error) {
       console.error('Error accessing camera:', error);
-      const errorMessage = 'Camera access denied. Please enable camera permissions in your browser settings.';
+      let errorMessage = 'Camera access failed. ';
+      
+      if (error instanceof Error) {
+        if (error.name === 'NotAllowedError') {
+          errorMessage += 'Please allow camera access when prompted and refresh the page.';
+        } else if (error.name === 'NotFoundError') {
+          errorMessage += 'No camera found on this device.';
+        } else if (error.name === 'NotSupportedError') {
+          errorMessage += 'Camera not supported in this browser.';
+        } else if (error.name === 'OverconstrainedError') {
+          errorMessage += 'Camera constraints too restrictive.';
+        } else {
+          errorMessage += error.message;
+        }
+      }
+      
       setCameraError(errorMessage);
-      alert(errorMessage);
+      console.log('Setting camera error:', errorMessage);
     }
   }, []);
 
