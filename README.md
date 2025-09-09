@@ -8,7 +8,10 @@
 
 ## 🚀 Recent Updates (2025)
 
-### ✅ **Latest Updates - September 7, 2025**
+### ✅ **Latest Updates - September 8, 2025**
+- **Texture Card Components**: Implemented custom TextureCard UI components for enhanced visual design
+- **Header Improvements**: Centered "Details" title with home button icon positioning in both Details forms
+- **UI Styling Updates**: Changed TextureCard background to black for improved contrast and aesthetics
 - **Enhanced Violation Forms**: Combined violation types with selectable options (items/trash, balcony/front)
 - **New Violation Type**: Added "Items left in Parking lot" violation category
 - **Improved Date/Time Entry**: Auto-formatting for MM/DD date and HH:MM time with AM/PM selector
@@ -18,35 +21,18 @@
 - **Click-Outside Functionality**: Filter dropdown now properly closes when clicking outside
 - **Enhanced Error Handling**: Added null checks and improved data validation throughout
 
-### ✅ **Latest Updates - September 8, 2025**
+### ✅ **Latest Updates - September 7, 2025**
+- **UI/UX Enhancements**: Improved DetailsPrevious page with morphing buttons and better field sizing
+- **Morphing Buttons**: Added animated Description and Photos buttons with exclusive expansion
+- **Field Optimization**: Adjusted Date, Time, and Unit field widths for better mobile experience
 - **Image Optimization**: Optimized SPR logo (`vicecity.png`) from 297KB to 58KB (80% reduction)
 - **Repository Cleanup**: Removed unused images and files, saving approximately 8.7MB
 - **Git Configuration**: Updated `.gitignore` to properly exclude unnecessary files
-- **Enhanced Violation Forms**: Combined violation types with selectable options (items/trash, balcony/front)
-- **New Violation Type**: Added "Items left in Parking lot" violation category
-- **Improved Date/Time Entry**: Auto-formatting for MM/DD date and HH:MM time with AM/PM selector
-- **Auto-Capitalization**: Unit field automatically converts to uppercase
-- **"Book Em" Button**: Redesigned save buttons with consistent oval styling and photo count badges
-- **Books Page Fixes**: Fixed filter dropdown persistence, enhanced search functionality, improved time formatting
 - **Camera Improvements**: Enhanced camera functionality with better iOS compatibility and proper rear camera priority
 - **No Mirroring for Rear Camera**: Rear camera feed and captured images are no longer mirrored for accurate violation documentation
 - **Improved Camera Constraints**: Simplified camera constraints that work better on iOS devices with multiple fallback options
 - **Enhanced Error Handling**: More detailed error messages for different types of camera access failures
 - **Better Debugging**: Additional console logs to help troubleshoot camera issues
-- **Image Optimization**: Optimized SPR logo (`vicecity.png`) from 297KB to 58KB (80% reduction)
-- **Repository Cleanup**: Removed unused images and files, saving approximately 8.7MB
-- **Git Configuration**: Updated `.gitignore` to properly exclude unnecessary files
-- **Enhanced Violation Forms**: Combined violation types with selectable options (items/trash, balcony/front)
-- **New Violation Type**: Added "Items left in Parking lot" violation category
-- **Improved Date/Time Entry**: Auto-formatting for MM/DD date and HH:MM time with AM/PM selector
-- **Auto-Capitalization**: Unit field automatically converts to uppercase
-- **"Book Em" Button**: Redesigned save buttons with consistent oval styling and photo count badges
-- **Books Page Fixes**: Fixed filter dropdown persistence, enhanced search functionality, improved time formatting
-- **Click-Outside Functionality**: Filter dropdown now properly closes when clicking outside
-- **Enhanced Error Handling**: Added null checks and improved data validation throughout
-- **UI/UX Enhancements**: Improved DetailsPrevious page with morphing buttons and better field sizing
-- **Morphing Buttons**: Added animated Description and Photos buttons with exclusive expansion
-- **Field Optimization**: Adjusted Date, Time, and Unit field widths for better mobile experience
 
 ### ✅ **Admin Panel & Database Management (January 2025)**
 - **Full Admin Dashboard**: Complete admin panel with team statistics, user activity tracking, and violation management
@@ -99,203 +85,35 @@
 - **Frontend**: React 18 + TypeScript
 - **Build Tool**: Vite with SWC compiler
 - **Styling**: Tailwind CSS + shadcn/ui components
-- **Database**: Supabase (PostgreSQL) with CLI management
-- **Authentication**: Supabase Auth with invite system
-- **State Management**: React Query + Context API
-- **Routing**: React Router DOM
-- **Icons**: Lucide React + Material Symbols
-- **Database Management**: Supabase CLI v2.39.2 with custom migration helpers
+- **UI Components**: Custom TextureCard components for enhanced visual design
+- **State Management**: React Hooks and Context API
+- **Routing**: React Router v6
+- **Backend**: Supabase (PostgreSQL, Authentication, Storage)
+- **Deployment**: Lovable.dev platform
 
-## 🛠️ Database Management
-
-### Quick Commands
-```bash
-# List all migrations
-npm run migrate:list
-
-# Create new migration
-npm run migrate:new "feature name"
-
-# View migration content
-node migrate.js show filename.sql
-
-# Supabase CLI access
-npm run supabase -- [command]
-```
-
-### Database Features
-- **12 Applied Migrations**: Complete schema with admin policies and user activity tracking
-- **Row Level Security**: Comprehensive RLS implementation
-- **Custom Views**: `user_activity_summary`, `recent_team_activity`, `team_performance_summary`
-- **Admin Functions**: `get_team_stats()` for dashboard metrics
-- **Migration System**: Professional migration management with templates
-
-📖 **Full Documentation**: See `DATABASE_MANAGEMENT.md` for complete database management guide.
-
-## Project Structure & Routing Logic
-
-### Core Application Files
-
-```
-src/
-├── main.tsx                 # App entry point with mobile optimizations
-├── App.tsx                  # Main app component with routing
-├── index.css               # Global styles with Vice City theme
-├── vite-env.d.ts           # Vite type definitions
-├── components/
-│   ├── ui/                 # shadcn/ui components
-│   ├── ViolationForm.tsx   # Main violation form component
-│   ├── CameraCapture.tsx   # Mobile camera integration
-│   ├── PhotoPreview.tsx    # Photo confirmation workflow
-│   └── Navigation.tsx      # Mobile navigation component
-├── pages/
-│   ├── Index.tsx           # Landing page with auth
-│   ├── Dashboard.tsx       # Main dashboard
-│   ├── Admin.tsx           # Admin panel with statistics
-│   ├── Books.tsx           # Violation archive with team visibility
-│   ├── Auth.tsx            # Authentication pages
-│   └── Settings.tsx        # User settings
-├── hooks/
-│   ├── useAuth.tsx         # Authentication hook (fixed)
-│   ├── useViolationForm.tsx # Form state management
-│   └── useCamera.tsx       # Camera functionality
-├── lib/
-│   ├── supabase.ts         # Supabase client configuration
-│   └── utils.ts            # Utility functions
-└── types/
-    └── violation.ts        # TypeScript type definitions
-```
-
-### Database Structure
-```
-supabase/
-├── config.toml             # Project configuration
-├── migrations/             # Database migrations (12 files)
-│   ├── 20250127000003_add_admin_violation_policies.sql
-│   ├── 20250127000004_add_user_activity_tracking.sql
-│   └── [other migrations]
-└── [generated files]
-```
-
-### Additional Files
-```
-├── migrate.js              # Custom migration helper
-├── DATABASE_MANAGEMENT.md  # Database documentation
-├── AUTHENTICATION_SETUP.md # Auth setup guide
-├── MOBILE_RESPONSIVE_IMPLEMENTATION.md # Mobile guide
-└── package.json            # Enhanced with DB scripts
-```
-
-## 🚀 Getting Started
+## 🛠️ Development Setup
 
 ### Prerequisites
-- Node.js 18+ 
-- npm or yarn
+- Node.js 18+
+- npm or bun package manager
 - Supabase account
 
 ### Installation
+```bash
+npm install
+```
 
-1. **Clone the repository**
-   ```bash
-   git clone [repository-url]
-   cd unit-scan-notify
-   ```
+### Environment Setup
+Create a `.env.local` file with your Supabase credentials:
+```env
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Environment Setup**
-   Create `.env.local`:
-   ```env
-   VITE_SUPABASE_URL=your_supabase_url
-   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-   ```
-
-4. **Database Setup**
-   - All migrations are already applied
-   - Admin user: `rob@ursllc.com` / `basedgod1`
-   - See `DATABASE_MANAGEMENT.md` for details
-
-5. **Start Development Server**
-   ```bash
-   npm run dev
-   ```
-
-### Admin Access
-- **Email**: `rob@ursllc.com`
-- **Password**: `basedgod1`
-- **Features**: Full admin dashboard with team statistics and user management
-
-## 📱 Mobile Usage
-
-### Supported Devices
-- **Primary**: iPhone 13, 14, 15, 16 series
-- **Browsers**: Safari (primary), Chrome
-- **Orientation**: Portrait optimized
-
-### Key Mobile Features
-- **Camera Integration**: Native camera access with photo confirmation
-- **Touch Optimization**: 44px minimum touch targets
-- **Safe Area Handling**: Proper notch and home indicator support
-- **Responsive Design**: Fluid layouts that adapt to screen sizes
-- **Performance**: Optimized for mobile performance and battery life
-
-## 🔐 Authentication & Security
-
-### User Management
-- **Invite-Only Registration**: Secure team member onboarding
-- **Role-Based Access**: Admin and user roles with appropriate permissions
-- **Row Level Security**: Database-level security for all tables
-- **Session Management**: Secure authentication with Supabase Auth
-
-### Admin Features
-- **User Activity Tracking**: Monitor team member actions and engagement
-- **Violation Management**: View and manage all team violations
-- **Performance Analytics**: Team statistics and productivity metrics
-- **Database Administration**: Professional migration and schema management
-
-## 🎨 Design System
-
-### Color Palette
-- **Primary Purple**: `#8b2fa0` (Vice purple)
-- **Accent Pink**: `#ff1493` (Hot pink)
-- **Neon Cyan**: `#00ffff` (Cyan)
-- **Electric Blue**: `#4169e1` (Royal blue)
-- **Sunset Orange**: `#ff6347` (Tomato)
-
-### Typography
-- **Font Family**: Work Sans
-- **Weights**: 300, 400, 500, 600, 700
-- **Effects**: Neon glow, text shadows, gradient text
-
-### Components
-- **shadcn/ui**: Modern, accessible component library
-- **Custom Components**: Vice City themed with neon effects
-- **Mobile Optimized**: Touch-friendly with proper spacing
-
-## 📊 Database Schema
-
-### Core Tables
-- **`profiles`**: User profiles with role management
-- **`violation_forms`**: Main violation data with photos
-- **`invites`**: User invitation system
-- **`user_activity`**: Activity tracking and analytics
-
-### Views & Functions
-- **`user_activity_summary`**: User statistics and metrics
-- **`recent_team_activity`**: 30-day activity overview
-- **`team_performance_summary`**: Overall team performance
-- **`get_team_stats()`**: Function for admin dashboard
-
-### Security
-- ✅ Row Level Security enabled on all tables
-- ✅ Role-based access control (admin/user)
-- ✅ Team transparency (all users see all violations)
-- ✅ Edit restrictions (users can only edit their own data)
-
-## 🚀 Deployment
+### Development Server
+```bash
+npm run dev
+```
 
 ### Production Build
 ```bash
@@ -347,7 +165,7 @@ For technical support or questions:
 
 **SPR Vice City** - Professional violation management for the digital age 🌴⚡
 
-**Version**: 2.0.0 (January 2025)  
+**Version**: 2.1.4 (September 2025)  
 **Database**: Supabase with CLI management  
 **Mobile**: iPhone 13+ optimized  
 **Admin**: Full dashboard with team analytics

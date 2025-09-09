@@ -19,7 +19,10 @@ import {
   Users,
   FileText,
   BarChart3,
-  Home
+  Home,
+  Trash2,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 
 interface Invite {
@@ -66,6 +69,24 @@ interface UserActivitySummary {
   last_violation_date: string | null;
 }
 
+interface SavedForm {
+  id: string;
+  user_id: string;
+  unit_number: string;
+  date: string;
+  time: string;
+  location: string;
+  description: string;
+  photos: string[];
+  status: string;
+  created_at: string;
+  profiles?: {
+    email: string;
+    full_name: string | null;
+    role: string;
+  } | null;
+}
+
 export default function Admin() {
   const { user, loading, profile } = useAuth();
   const navigate = useNavigate();
@@ -79,6 +100,13 @@ export default function Admin() {
   const [creating, setCreating] = useState(false);
   const [email, setEmail] = useState('');
   const [copiedTokens, setCopiedTokens] = useState<Set<string>>(new Set());
+  
+  // Violation forms state
+  const [violationForms, setViolationForms] = useState<SavedForm[]>([]);
+  const [thisWeekExpanded, setThisWeekExpanded] = useState(false);
+  const [thisMonthExpanded, setThisMonthExpanded] = useState(false);
+  const [allFormsExpanded, setAllFormsExpanded] = useState(false);
+  const [deletingFormId, setDeletingFormId] = useState<string | null>(null);
 
   // Show loading while checking auth or profile
   if (loading || (user && !profile)) {
@@ -101,6 +129,62 @@ export default function Admin() {
   if (profile && profile.role !== 'admin') {
     return <Navigate to="/dashboard" replace />;
   }
+
+  const fetchViolationForms = async () => {
+    try {
+      // Fetch violation forms with user profile information
+      let { data, error } = await supabase
+        .from('violation_forms')
+        .select(`
+          *,
+          profiles!violation_forms_user_id_fkey (
+            email,
+            full_name,
+            role
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      // If the join fails, fall back to separate queries
+      if (error || !data) {
+        console.log('Join query failed, falling back to separate queries:', error);
+
+        // Fetch violation forms
+        const { data: formsData, error: formsError } = await supabase
+          .from('violation_forms')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (formsError) throw formsError;
+
+        // Fetch all profiles
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('user_id, email, full_name, role');
+
+        if (profilesError) throw profilesError;
+
+        // Manually join the data
+        const formsWithProfiles = (formsData || []).map(form => ({
+          ...form,
+          profiles: profilesData?.find(profile => profile.user_id === form.user_id) || null
+        }));
+
+        setViolationForms(formsWithProfiles);
+      } else {
+        // Type assertion to handle the Supabase response
+        const formsWithProfiles = (data || []) as unknown as SavedForm[];
+        setViolationForms(formsWithProfiles);
+      }
+    } catch (error: any) {
+      console.error('Error fetching violation forms:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch violation forms",
+        variant: "destructive",
+      });
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -163,6 +247,9 @@ export default function Admin() {
       };
 
       setStats(stats);
+
+      // Fetch violation forms for display
+      await fetchViolationForms();
 
     } catch (error: any) {
       console.error('Admin data fetch error:', error);
@@ -236,6 +323,62 @@ export default function Admin() {
     }
   };
 
+  const deleteViolationForm = async (formId: string) => {
+    setDeletingFormId(formId);
+    try {
+      const { error } = await supabase
+        .from('violation_forms')
+        .delete()
+        .eq('id', formId);
+
+      if (error) throw error;
+
+      // Refresh the data after deletion
+      await fetchData();
+      
+      toast({
+        title: "Success",
+        description: "Violation form deleted successfully",
+      });
+    } catch (error: any) {
+      console.error('Error deleting violation form:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete violation form",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingFormId(null);
+    }
+  };
+
+  const getThisWeekForms = () => {
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    return violationForms.filter(form => new Date(form.created_at) >= weekAgo);
+  };
+
+  const getThisMonthForms = () => {
+    const now = new Date();
+    const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+    return violationForms.filter(form => new Date(form.created_at) >= monthAgo);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  // Get pending invitations (not used and not expired)
+  const getPendingInvites = () => {
+    return invites.filter(invite => 
+      !invite.used_at && new Date(invite.expires_at) > new Date()
+    );
+  };
+
   if (loadingData) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue flex items-center justify-center">
@@ -250,71 +393,223 @@ export default function Admin() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue p-4 pb-safe">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-vice-cyan/20">
-        <h1 className="text-2xl font-bold text-white">Admin Panel</h1>
+      <div className="flex items-center justify-between p-4 border-b border-vice-cyan/20 relative">
+        <div className="flex-1 flex justify-center">
+          <img
+            src="/Admin.png"
+            alt="Admin Panel"
+            className="h-16 w-auto"
+          />
+        </div>
         <Button
           onClick={() => navigate('/')}
           variant="ghost"
           size="sm"
-          className="text-white hover:bg-white/10 p-2"
+          className="text-white hover:bg-white/10 p-2 absolute right-4"
         >
           <Home className="w-5 h-5" />
         </Button>
       </div>
 
       <div className="max-w-6xl mx-auto space-y-6">
-        {/* Stats Overview */}
-        {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-            <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm">
-              <CardContent className="p-4 text-center">
-                <FileText className="w-8 h-8 text-vice-cyan mx-auto mb-2" />
-                <div className="text-2xl font-bold text-white">{stats.total_violations}</div>
-                <div className="text-sm text-gray-300">Total Violations</div>
-              </CardContent>
-            </Card>
+        {/* Violation Forms Section - Moved to top and centered title */}
+        <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm">
+          <CardHeader className="text-center">
+            <CardTitle className="text-white flex items-center justify-center gap-2">
+              <FileText className="w-5 h-5 text-vice-cyan" />
+              Violation Forms Management
+            </CardTitle>
+            <CardDescription className="text-gray-300">
+              Manage all team violation forms
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {/* This Week Violations */}
+              <div className="space-y-2">
+                <button
+                  onClick={() => setThisWeekExpanded(!thisWeekExpanded)}
+                  className="w-full flex items-center justify-between p-3 bg-black/20 rounded-lg border border-vice-cyan/20 hover:border-vice-pink/50 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-vice-pink" />
+                    <span className="text-white font-medium">This Week ({getThisWeekForms().length})</span>
+                  </div>
+                  {thisWeekExpanded ? (
+                    <ChevronUp className="w-5 h-5 text-vice-cyan" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-vice-cyan" />
+                  )}
+                </button>
+                
+                {thisWeekExpanded && (
+                  <div className="space-y-2 pl-4">
+                    {getThisWeekForms().map((form) => (
+                      <div 
+                        key={form.id} 
+                        className="flex items-center justify-between p-3 bg-black/40 rounded-lg border border-vice-cyan/30"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-sm font-medium text-white truncate">Unit {form.unit_number}</span>
+                            <span className="text-xs text-gray-400">•</span>
+                            <span className="text-xs text-vice-pink truncate">
+                              {form.profiles?.full_name || form.profiles?.email || 'Unknown User'}
+                            </span>
+                          </div>
+                          <div className="text-xs text-vice-cyan/70 truncate">{form.description}</div>
+                          <div className="text-xs text-gray-400 mt-1">
+                            {formatDate(form.created_at)} • {form.status}
+                          </div>
+                        </div>
+                        <Button
+                          onClick={() => deleteViolationForm(form.id)}
+                          disabled={deletingFormId === form.id}
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-400 hover:text-red-300 hover:bg-red-400/10 ml-2 flex-shrink-0"
+                        >
+                          {deletingFormId === form.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </div>
+                    ))}
+                    {getThisWeekForms().length === 0 && (
+                      <div className="text-gray-400 text-center py-2 text-sm">
+                        No violations this week
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
 
-            <Card className="bg-black/30 border-vice-pink/30 backdrop-blur-sm">
-              <CardContent className="p-4 text-center">
-                <BarChart3 className="w-8 h-8 text-vice-pink mx-auto mb-2" />
-                <div className="text-2xl font-bold text-white">{stats.this_month}</div>
-                <div className="text-sm text-gray-300">This Month</div>
-              </CardContent>
-            </Card>
+              {/* This Month Violations */}
+              <div className="space-y-2">
+                <button
+                  onClick={() => setThisMonthExpanded(!thisMonthExpanded)}
+                  className="w-full flex items-center justify-between p-3 bg-black/20 rounded-lg border border-vice-cyan/20 hover:border-vice-pink/50 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="w-5 h-5 text-vice-pink" />
+                    <span className="text-white font-medium">This Month ({getThisMonthForms().length})</span>
+                  </div>
+                  {thisMonthExpanded ? (
+                    <ChevronUp className="w-5 h-5 text-vice-cyan" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-vice-cyan" />
+                  )}
+                </button>
+                
+                {thisMonthExpanded && (
+                  <div className="space-y-2 pl-4">
+                    {getThisMonthForms().map((form) => (
+                      <div 
+                        key={form.id} 
+                        className="flex items-center justify-between p-3 bg-black/40 rounded-lg border border-vice-cyan/30"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-sm font-medium text-white truncate">Unit {form.unit_number}</span>
+                            <span className="text-xs text-gray-400">•</span>
+                            <span className="text-xs text-vice-pink truncate">
+                              {form.profiles?.full_name || form.profiles?.email || 'Unknown User'}
+                            </span>
+                          </div>
+                          <div className="text-xs text-vice-cyan/70 truncate">{form.description}</div>
+                          <div className="text-xs text-gray-400 mt-1">
+                            {formatDate(form.created_at)} • {form.status}
+                          </div>
+                        </div>
+                        <Button
+                          onClick={() => deleteViolationForm(form.id)}
+                          disabled={deletingFormId === form.id}
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-400 hover:text-red-300 hover:bg-red-400/10 ml-2 flex-shrink-0"
+                        >
+                          {deletingFormId === form.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </div>
+                    ))}
+                    {getThisMonthForms().length === 0 && (
+                      <div className="text-gray-400 text-center py-2 text-sm">
+                        No violations this month
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
 
-            <Card className="bg-black/30 border-purple-400/30 backdrop-blur-sm">
-              <CardContent className="p-4 text-center">
-                <BarChart3 className="w-8 h-8 text-purple-400 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-white">{stats.violations_this_week}</div>
-                <div className="text-sm text-gray-300">This Week</div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-black/30 border-yellow-400/30 backdrop-blur-sm">
-              <CardContent className="p-4 text-center">
-                <Clock className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-white">{stats.pending_violations}</div>
-                <div className="text-sm text-gray-300">Pending</div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-black/30 border-green-400/30 backdrop-blur-sm">
-              <CardContent className="p-4 text-center">
-                <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-white">{stats.completed_violations}</div>
-                <div className="text-sm text-gray-300">Completed</div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-black/30 border-blue-400/30 backdrop-blur-sm">
-              <CardContent className="p-4 text-center">
-                <Users className="w-8 h-8 text-blue-400 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-white">{stats.team_completion_rate}%</div>
-                <div className="text-sm text-gray-300">Completion Rate</div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+              {/* All Violations */}
+              <div className="space-y-2">
+                <button
+                  onClick={() => setAllFormsExpanded(!allFormsExpanded)}
+                  className="w-full flex items-center justify-between p-3 bg-black/20 rounded-lg border border-vice-cyan/20 hover:border-vice-pink/50 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-vice-pink" />
+                    <span className="text-white font-medium">All Violations ({violationForms.length})</span>
+                  </div>
+                  {allFormsExpanded ? (
+                    <ChevronUp className="w-5 h-5 text-vice-cyan" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-vice-cyan" />
+                  )}
+                </button>
+                
+                {allFormsExpanded && (
+                  <div className="space-y-2 pl-4">
+                    {violationForms.map((form) => (
+                      <div 
+                        key={form.id} 
+                        className="flex items-center justify-between p-3 bg-black/40 rounded-lg border border-vice-cyan/30"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-sm font-medium text-white truncate">Unit {form.unit_number}</span>
+                            <span className="text-xs text-gray-400">•</span>
+                            <span className="text-xs text-vice-pink truncate">
+                              {form.profiles?.full_name || form.profiles?.email || 'Unknown User'}
+                            </span>
+                          </div>
+                          <div className="text-xs text-vice-cyan/70 truncate">{form.description}</div>
+                          <div className="text-xs text-gray-400 mt-1">
+                            {formatDate(form.created_at)} • {form.status}
+                          </div>
+                        </div>
+                        <Button
+                          onClick={() => deleteViolationForm(form.id)}
+                          disabled={deletingFormId === form.id}
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-400 hover:text-red-300 hover:bg-red-400/10 ml-2 flex-shrink-0"
+                        >
+                          {deletingFormId === form.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </div>
+                    ))}
+                    {violationForms.length === 0 && (
+                      <div className="text-gray-400 text-center py-2 text-sm">
+                        No violations found
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Team Performance Overview */}
         {userActivity.length > 0 && (
@@ -429,75 +724,6 @@ export default function Admin() {
           </CardContent>
         </Card>
 
-        {/* Active Invites */}
-        <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="text-white">Active Invitations</CardTitle>
-            <CardDescription className="text-gray-300">
-              Manage pending invitations
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {invites.length === 0 ? (
-              <p className="text-gray-400 text-center py-4">No invitations found</p>
-            ) : (
-              <div className="space-y-3">
-                {invites.map((invite) => (
-                  <div
-                    key={invite.id}
-                    className="flex items-center justify-between p-3 bg-black/20 rounded-lg border border-vice-cyan/20"
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-white font-medium">{invite.email}</span>
-                        {invite.used_at ? (
-                          <Badge variant="secondary" className="bg-green-500/20 text-green-400 border-green-500/30">
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            Used
-                          </Badge>
-                        ) : new Date(invite.expires_at) < new Date() ? (
-                          <Badge variant="secondary" className="bg-red-500/20 text-red-400 border-red-500/30">
-                            <Clock className="w-3 h-3 mr-1" />
-                            Expired
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
-                            <Clock className="w-3 h-3 mr-1" />
-                            Pending
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="text-sm text-gray-400">
-                        Created: {new Date(invite.created_at).toLocaleDateString()}
-                        {invite.used_at && (
-                          <span className="ml-4">
-                            Used: {new Date(invite.used_at).toLocaleDateString()}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {!invite.used_at && new Date(invite.expires_at) > new Date() && (
-                      <Button
-                        onClick={() => copyInviteLink(invite.token)}
-                        variant="outline"
-                        size="sm"
-                        className="border-vice-cyan/30 text-vice-cyan hover:bg-vice-cyan/10"
-                      >
-                        {copiedTokens.has(invite.token) ? (
-                          <Check className="w-4 h-4" />
-                        ) : (
-                          <Copy className="w-4 h-4" />
-                        )}
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
         {/* User Management */}
         <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm">
           <CardHeader>
@@ -536,6 +762,56 @@ export default function Admin() {
                         {profile.email} • Joined: {new Date(profile.created_at).toLocaleDateString()}
                       </div>
                     </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Pending Invitations - Moved to bottom and renamed */}
+        <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="text-white">Pending Invitations</CardTitle>
+            <CardDescription className="text-gray-300">
+              Invitations sent but not yet activated
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {getPendingInvites().length === 0 ? (
+              <p className="text-gray-400 text-center py-4">No pending invitations found</p>
+            ) : (
+              <div className="space-y-3">
+                {getPendingInvites().map((invite) => (
+                  <div
+                    key={invite.id}
+                    className="flex items-center justify-between p-3 bg-black/20 rounded-lg border border-vice-cyan/20"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-white font-medium">{invite.email}</span>
+                        <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
+                          <Clock className="w-3 h-3 mr-1" />
+                          Pending
+                        </Badge>
+                      </div>
+                      <div className="text-sm text-gray-400">
+                        Created: {new Date(invite.created_at).toLocaleDateString()}
+                      </div>
+                    </div>
+
+                    <Button
+                      onClick={() => copyInviteLink(invite.token)}
+                      variant="outline"
+                      size="sm"
+                      className="border-vice-cyan/30 text-vice-cyan hover:bg-vice-cyan/10"
+                    >
+                      {copiedTokens.has(invite.token) ? (
+                        <Check className="w-4 h-4" />
+                      ) : (
+                        <Copy className="w-4 h-4" />
+                      )}
+                    </Button>
                   </div>
                 ))}
               </div>
