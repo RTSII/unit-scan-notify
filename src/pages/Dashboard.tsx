@@ -1,19 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Loader2, Camera, BookOpen, FileText, Download, Settings } from 'lucide-react';
+import { Loader2, Camera, BookOpen, FileText, Download, Settings, User, LogOut } from 'lucide-react';
 
 // Import the Siri Orb component
 import { SiriOrb } from '@/components/ui/siri-orb';
 
 // Import the background image properly
-import backgroundImage from '/2.jpeg';
+import backgroundImage from '/2.png';
 
 export default function Dashboard() {
-  const { user, loading, profile } = useAuth();
+  const { user, loading, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   // Debug logging
   useEffect(() => {
@@ -23,6 +25,33 @@ export default function Dashboard() {
     console.log('- Profile Role:', profile?.role);
     console.log('- Loading:', loading);
   }, [user, profile, loading]);
+
+  // Handle click outside for user menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    if (isUserMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isUserMenuOpen]);
+
+  // Handle sign out
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/auth');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   // Redirect if not authenticated
   if (!loading && !user) {
@@ -66,21 +95,21 @@ export default function Dashboard() {
   ];
 
   // Add Admin icon for admin users only
-  const menuItems = profile?.role === 'admin' 
+  const menuItems = profile?.role === 'admin'
     ? [
-        ...baseMenuItems,
-        {
-          icon: <Settings className="w-5 h-5 xs:w-6 xs:h-6" />,
-          onClick: () => navigate('/admin'),
-          label: 'Admin'
-        }
-      ]
+      ...baseMenuItems,
+      {
+        icon: <Settings className="w-5 h-5 xs:w-6 xs:h-6" />,
+        onClick: () => navigate('/admin'),
+        label: 'Admin'
+      }
+    ]
     : baseMenuItems;
 
   // Debug: Show current menu count
   console.log('Menu items count:', menuItems.length, 'Is admin:', profile?.role === 'admin');
 
-  // Responsive semi-circle arc configuration - 180 degrees above hamburger
+  // Responsive semi-circle arc configuration - 180 degrees around center orb
   const getButtonPosition = (index: number) => {
     // Responsive radius based on screen size
     const getRadius = () => {
@@ -94,16 +123,16 @@ export default function Dashboard() {
 
     // Dynamic angle calculation based on number of items
     const totalItems = menuItems.length;
-    const totalAngle = 120; // Total arc span in degrees
+    const totalAngle = 180; // Total arc span in degrees (semi-circle)
     const angleStep = totalAngle / (totalItems - 1);
-    const startAngle = 150; // Starting angle from horizontal
-    
-    const angle = startAngle - (index * angleStep);
+    const startAngle = 90; // Starting angle from horizontal (top)
+
+    const angle = startAngle + (index * angleStep);
 
     // Convert to radians
     const radians = (angle * Math.PI) / 180;
 
-    // Calculate x, y position (negative y because we want buttons above)
+    // Calculate x, y position
     const x = Math.cos(radians) * radius;
     const y = -Math.sin(radians) * radius; // negative for upward positioning
 
@@ -112,7 +141,7 @@ export default function Dashboard() {
 
   return (
     <div
-      className="dashboard-container bg-cover bg-center bg-gray-900"
+      className="dashboard-container bg-cover bg-center bg-gray-900 min-h-screen relative"
       style={{
         backgroundImage: `url(${backgroundImage})`,
         backgroundSize: 'cover',
@@ -123,17 +152,53 @@ export default function Dashboard() {
       {/* Background overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-vice-purple/20 to-black/60 z-10" />
 
+      {/* User Avatar with Sign Out - Top Right Corner */}
+      <div className="fixed top-4 right-4 z-50" ref={userMenuRef}>
+        <div className="relative">
+          <Button
+            variant="ghost"
+            onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+            className="relative h-10 w-10 rounded-full bg-vice-cyan/20 backdrop-blur-sm border-2 border-vice-pink/30 hover:border-vice-pink/60 transition-all duration-300"
+          >
+            <User className="h-5 w-5 text-vice-cyan" />
+          </Button>
+
+          {/* User Menu Dropdown */}
+          {isUserMenuOpen && (
+            <div className="absolute right-0 top-12 w-56 bg-black/90 backdrop-blur-sm border border-vice-cyan/30 rounded-lg shadow-xl z-50">
+              <div className="px-3 py-2 border-b border-vice-cyan/20">
+                <p className="text-sm font-medium text-vice-cyan">{profile?.full_name || 'User'}</p>
+                <p className="text-xs text-vice-pink/70">{user?.email}</p>
+                {profile?.role && (
+                  <p className="text-xs text-vice-purple capitalize mt-1">Role: {profile.role}</p>
+                )}
+              </div>
+              <button
+                onClick={() => {
+                  handleSignOut();
+                  setIsUserMenuOpen(false);
+                }}
+                className="w-full px-3 py-2 text-left text-vice-pink hover:bg-vice-pink/10 transition-colors duration-200 flex items-center"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign Out
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Debug info - remove this later */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="fixed top-4 right-4 z-50 bg-black/80 text-white p-2 rounded text-xs">
+        <div className="fixed top-4 left-4 z-50 bg-black/80 text-white p-2 rounded text-xs">
           <div>User: {user?.email}</div>
           <div>Role: {profile?.role || 'loading...'}</div>
           <div>Menu Items: {menuItems.length}</div>
         </div>
       )}
 
-      {/* Navigation Dock */}
-      <div className="fixed bottom-6 xs:bottom-8 left-1/2 transform -translate-x-1/2 z-50 pb-safe">
+      {/* Vertically Centered Navigation */}
+      <div className="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
         <div className="relative">
           {/* Arc Menu Buttons - Books, Capture, Details, Export, Admin (if admin) */}
           {menuItems.map((item, index) => {
@@ -151,8 +216,8 @@ export default function Dashboard() {
                   border-2 transition-all duration-500 ease-out shadow-lg group hover:scale-105
                   flex items-center justify-center no-select
                   w-12 h-12 xs:w-14 xs:h-14
-                  ${item.label === 'Admin' 
-                    ? 'bg-vice-pink/90 hover:bg-vice-pink border-vice-cyan/50' 
+                  ${item.label === 'Admin'
+                    ? 'bg-vice-pink/90 hover:bg-vice-pink border-vice-cyan/50'
                     : 'bg-vice-cyan/90 hover:bg-vice-cyan border-vice-pink/50'
                   }
                   ${isMenuOpen
@@ -162,10 +227,10 @@ export default function Dashboard() {
                 `}
                 style={{
                   left: '50%',
-                  bottom: '50%',
+                  top: '50%',
                   transform: isMenuOpen
-                    ? `translate(calc(-50% + ${position.x}px), calc(50% + ${position.y}px))`
-                    : 'translate(-50%, 50%)',
+                    ? `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px))`
+                    : 'translate(-50%, -50%)',
                   transitionDelay: isMenuOpen ? `${index * 80}ms` : `${(menuItems.length - 1 - index) * 80}ms`,
                   zIndex: 40
                 }}
@@ -177,9 +242,9 @@ export default function Dashboard() {
             );
           })}
 
-          {/* Siri Orb Button replacing the Hamburger Button */}
-          <div className="touch-target-lg rounded-full bg-transparent backdrop-blur-sm 
-                          transition-all duration-300 shadow-xl group relative z-50
+          {/* Siri Orb Button - Vertically Centered */}
+          <div className="relative touch-target-lg rounded-full bg-transparent backdrop-blur-sm
+                          transition-all duration-300 shadow-xl group
                           flex items-center justify-center no-select">
             <SiriOrb
               size={64}

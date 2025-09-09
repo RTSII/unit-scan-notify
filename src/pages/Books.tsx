@@ -14,7 +14,6 @@ import {
   Home,
   Search,
   Filter,
-  Printer,
   ChevronDown,
   ChevronUp,
   X
@@ -22,6 +21,14 @@ import {
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  AnimatePresence,
+  motion,
+  useAnimation,
+  useMotionValue,
+  useTransform,
+} from "framer-motion";
+import { useMediaQuery } from "@/components/ui/3d-carousel";
 
 interface SavedForm {
   id: string;
@@ -42,6 +49,212 @@ interface SavedForm {
   } | null;
 }
 
+/* Custom 3D Carousel component for violation notices (updated)
+   - Thumbnail height reduced to ~200px
+   - Placeholder "black screens" with glowing Vice City borders and colors
+   - Proper Vice City colors used for borders/text (neon cyan and hot pink)
+*/
+const ViolationCarousel = ({ forms, period }: { forms: SavedForm[], period: string }) => {
+  const [activeImg, setActiveImg] = useState<string | null>(null);
+  const [isCarouselActive, setIsCarouselActive] = useState(true);
+  const controls = useAnimation();
+  const isScreenSizeSm = useMediaQuery("(max-width: 640px)");
+
+  // Create carousel items from violation forms, or use placeholder items if no forms
+  const carouselItems = forms.length > 0
+    ? forms.map((form, index) => ({
+      id: form.id,
+      imageUrl: form.photos[0] || `https://picsum.photos/400/400?violation-${index}`,
+      date: new Date(form.date).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      }),
+      unit: form.unit_number,
+      description: form.description
+    }))
+    : [
+      // Placeholder items when no forms exist (use a sentinel 'placeholder' imageUrl)
+      {
+        id: 'placeholder-1',
+        imageUrl: 'placeholder',
+        date: 'No Data',
+        unit: 'N/A',
+        description: `No violations recorded for ${period.toLowerCase()}`
+      },
+      {
+        id: 'placeholder-2',
+        imageUrl: 'placeholder',
+        date: 'No Data',
+        unit: 'N/A',
+        description: `No violations recorded for ${period.toLowerCase()}`
+      },
+      {
+        id: 'placeholder-3',
+        imageUrl: 'placeholder',
+        date: 'No Data',
+        unit: 'N/A',
+        description: `No violations recorded for ${period.toLowerCase()}`
+      }
+    ];
+
+  // Reduced carousel dimensions to better suit 200px-high thumbnails
+  const cylinderWidth = isScreenSizeSm ? 800 : 1200;
+  const faceCount = carouselItems.length;
+  const faceWidth = cylinderWidth / faceCount;
+  const radius = cylinderWidth / (2 * Math.PI);
+  const rotation = useMotionValue(0);
+  const transform = useTransform(
+    rotation,
+    (value) => `rotate3d(0, 1, 0, ${value}deg)`
+  );
+
+  const handleClick = (imgUrl: string) => {
+    // prevent opening the modal for placeholders
+    if (imgUrl !== 'placeholder') {
+      setActiveImg(imgUrl);
+      setIsCarouselActive(false);
+      controls.stop();
+    }
+  };
+
+  const handleClose = () => {
+    setActiveImg(null);
+    setIsCarouselActive(true);
+  };
+
+  return (
+    <div className="w-full">
+      <motion.div layout className="relative">
+        <AnimatePresence mode="sync">
+          {activeImg && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0 }}
+              layoutId={`img-container-${activeImg}`}
+              layout="position"
+              onClick={handleClose}
+              className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50 m-5 md:m-36 lg:mx-[19rem] rounded-3xl"
+              style={{ willChange: "opacity" }}
+              transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
+            >
+              <motion.img
+                layoutId={`img-${activeImg}`}
+                src={activeImg}
+                className="max-w-full max-h-full rounded-lg shadow-lg"
+                initial={{ scale: 0.5 }}
+                animate={{ scale: 1 }}
+                transition={{
+                  delay: 0.5,
+                  duration: 0.5,
+                  ease: [0.25, 0.1, 0.25, 1],
+                }}
+                style={{
+                  willChange: "transform",
+                }}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Reduced height carousel container to match ~200px thumbnails */}
+        <div className="relative h-[200px] w-full overflow-hidden rounded-lg bg-black/20">
+          <div
+            className="flex h-full items-center justify-center bg-black/10"
+            style={{
+              perspective: "1000px",
+              transformStyle: "preserve-3d",
+              willChange: "transform",
+            }}
+          >
+            <motion.div
+              drag={isCarouselActive ? "x" : false}
+              className="relative flex h-full origin-center cursor-grab justify-center active:cursor-grabbing"
+              style={{
+                transform,
+                rotateY: rotation,
+                width: cylinderWidth,
+                transformStyle: "preserve-3d",
+              }}
+              onDrag={(_, info) =>
+                isCarouselActive &&
+                rotation.set(rotation.get() + info.offset.x * 0.05)
+              }
+              onDragEnd={(_, info) =>
+                isCarouselActive &&
+                controls.start({
+                  rotateY: rotation.get() + info.velocity.x * 0.05,
+                  transition: {
+                    type: "spring",
+                    stiffness: 100,
+                    damping: 30,
+                    mass: 0.1,
+                  },
+                })
+              }
+              animate={controls}
+            >
+              {carouselItems.map((item, i) => (
+                <motion.div
+                  key={`key-${item.imageUrl}-${i}`}
+                  className="absolute flex h-full origin-center items-center justify-center rounded-xl p-2"
+                  style={{
+                    width: `${faceWidth}px`,
+                    transform: `rotateY(${i * (360 / faceCount)
+                      }deg) translateZ(${radius}px)`,
+                  }}
+                  onClick={() => handleClick(item.imageUrl)}
+                >
+                  {item.imageUrl === 'placeholder' ? (
+                    // Black screen with glowing Vice City border (neon cyan + hot pink glow)
+                    <div className="w-full h-full rounded-xl bg-black border-2 border-[#ff1493] shadow-[0_0_12px_#ff1493,0_0_24px_#00ffff] flex items-center justify-center">
+                      <div className="text-center px-2">
+                        <div className="text-[#00ffff] text-xs font-bold mb-1 tracking-wider">NO DATA</div>
+                        <div className="text-[#ff1493] text-xs">No violations</div>
+                      </div>
+                    </div>
+                  ) : (
+                    <motion.img
+                      src={item.imageUrl}
+                      alt={`${item.unit} ${item.date}`}
+                      layoutId={`img-${item.imageUrl}`}
+                      className="pointer-events-none w-full h-full rounded-xl object-cover border-2 border-[#00ffff] shadow-[0_0_10px_#00ffff,0_0_20px_#ff1493]"
+                      initial={{ filter: "blur(4px)" }}
+                      layout="position"
+                      animate={{ filter: "blur(0px)" }}
+                      transition={{ duration: 0.15, ease: [0.32, 0.72, 0, 1] }}
+                    />
+                  )}
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+
+          {/* Overlay information for each item (using Vice City colors) */}
+          <div className="absolute bottom-4 left-4 right-4 bg-black/80 backdrop-blur-sm rounded-lg p-3">
+            {forms.length > 0 ? (
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                {carouselItems.slice(0, 2).map((item) => (
+                  <div key={item.id} className="text-center">
+                    <p className="text-[#ff1493] font-medium">Unit {item.unit}</p>
+                    <p className="text-[#00ffff] text-xs">{item.date}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center">
+                <p className="text-[#00ffff]/70 text-sm">No violations recorded for {period.toLowerCase()}</p>
+                <p className="text-[#ff1493]/50 text-xs mt-1">Complete forms from the Details tab to see them here</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
 const Books = () => {
   const [forms, setForms] = useState<SavedForm[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,27 +268,50 @@ const Books = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const filterRef = useRef<HTMLDivElement>(null);
+  const cardsContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchSavedForms();
   }, [user]);
 
-  // Click outside handler for filter dropdown
+  // Click outside handler for filter dropdown and card expansion
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      // Handle filter dropdown
       if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
         setFilterOpen(false);
       }
+
+      // Handle card expansion - collapse when clicking outside the cards container
+      if (cardsContainerRef.current && !cardsContainerRef.current.contains(event.target as Node)) {
+        setThisWeekExpanded(false);
+        setThisMonthExpanded(false);
+      }
     };
 
-    if (filterOpen) {
+    if (filterOpen || thisWeekExpanded || thisMonthExpanded) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [filterOpen]);
+  }, [filterOpen, thisWeekExpanded, thisMonthExpanded]);
+
+  // Handle single card expansion - only one can be open at a time
+  const handleWeekExpansion = (isExpanded: boolean) => {
+    if (isExpanded) {
+      setThisMonthExpanded(false); // Close month card when week opens
+    }
+    setThisWeekExpanded(isExpanded);
+  };
+
+  const handleMonthExpansion = (isExpanded: boolean) => {
+    if (isExpanded) {
+      setThisWeekExpanded(false); // Close week card when month opens
+    }
+    setThisMonthExpanded(isExpanded);
+  };
 
   const fetchSavedForms = async () => {
     if (!user) return;
@@ -161,8 +397,6 @@ const Books = () => {
 
   const filteredForms = applyFilters(forms);
 
-  // ... existing code ...
-
   const getThisWeekForms = () => {
     const now = new Date();
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -216,17 +450,14 @@ const Books = () => {
 
   return (
     <div className="min-h-dvh bg-gradient-to-br from-vice-purple via-black to-vice-blue">
-      {/* Header */}
+      {/* Header with centered Books.png image */}
       <div className="flex items-center justify-between p-4 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20">
-        <Button
-          onClick={() => navigate('/export')}
-          variant="ghost"
-          size="sm"
-          className="text-white hover:bg-vice-cyan/20 min-h-[44px] min-w-[44px]"
-        >
-          <Printer className="w-5 h-5" />
-        </Button>
-        <h1 className="text-xl sm:text-2xl font-bold vice-block-letters text-white text-center">Team Violations</h1>
+        <div></div> {/* Empty div for spacing */}
+        <img
+          src="/Books.png"
+          alt="Books"
+          className="h-10 w-auto object-contain"
+        />
         <Button
           onClick={() => navigate('/')}
           variant="ghost"
@@ -289,12 +520,13 @@ const Books = () => {
           </div>
         </div>
 
-        {/* Dashboard Stats */}
+        {/* Dashboard Stats - Vertically Stacked and Centered */}
         <div className="py-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-4xl mx-auto">
-            <Collapsible open={thisWeekExpanded} onOpenChange={setThisWeekExpanded}>
+          <div className="flex flex-col items-center gap-4 max-w-md mx-auto" ref={cardsContainerRef}>
+            {/* This Week Card */}
+            <Collapsible open={thisWeekExpanded} onOpenChange={handleWeekExpansion} className="w-full">
               <CollapsibleTrigger asChild>
-                <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm hover:border-vice-pink/50 transition-colors cursor-pointer">
+                <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm hover:border-vice-pink/50 transition-colors cursor-pointer w-full">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
@@ -311,34 +543,15 @@ const Books = () => {
                   </CardContent>
                 </Card>
               </CollapsibleTrigger>
-              <CollapsibleContent className="mt-2 space-y-2">
-                {getThisWeekForms().map((form) => (
-                  <Card key={form.id} className="bg-black/60 border-vice-cyan/20 backdrop-blur-sm">
-                    <CardContent className="p-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <p className="text-sm font-medium text-white truncate">Unit {form.unit_number}</p>
-                            <span className="text-xs text-gray-400">•</span>
-                            <p className="text-xs text-vice-pink truncate">
-                              {form.profiles?.full_name || form.profiles?.email || 'Unknown User'}
-                            </p>
-                          </div>
-                          <p className="text-xs text-vice-cyan/70 truncate">{form.description}</p>
-                        </div>
-                        <Badge className={`text-xs ml-2 flex-shrink-0 ${form.status === 'completed' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-vice-pink/20 text-vice-pink border-vice-pink/30'}`}>
-                          {form.status}
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+              <CollapsibleContent className="mt-4">
+                <ViolationCarousel forms={getThisWeekForms()} period="This Week" />
               </CollapsibleContent>
             </Collapsible>
 
-            <Collapsible open={thisMonthExpanded} onOpenChange={setThisMonthExpanded}>
+            {/* This Month Card */}
+            <Collapsible open={thisMonthExpanded} onOpenChange={handleMonthExpansion} className="w-full">
               <CollapsibleTrigger asChild>
-                <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm hover:border-vice-pink/50 transition-colors cursor-pointer">
+                <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm hover:border-vice-pink/50 transition-colors cursor-pointer w-full">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
@@ -355,34 +568,12 @@ const Books = () => {
                   </CardContent>
                 </Card>
               </CollapsibleTrigger>
-              <CollapsibleContent className="mt-2 space-y-2">
-                {getThisMonthForms().map((form) => (
-                  <Card key={form.id} className="bg-black/60 border-vice-cyan/20 backdrop-blur-sm">
-                    <CardContent className="p-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <p className="text-sm font-medium text-white truncate">Unit {form.unit_number}</p>
-                            <span className="text-xs text-gray-400">•</span>
-                            <p className="text-xs text-vice-pink truncate">
-                              {form.profiles?.full_name || form.profiles?.email || 'Unknown User'}
-                            </p>
-                          </div>
-                          <p className="text-xs text-vice-cyan/70 truncate">{form.description}</p>
-                        </div>
-                        <Badge className={`text-xs ml-2 flex-shrink-0 ${form.status === 'completed' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-vice-pink/20 text-vice-pink border-vice-pink/30'}`}>
-                          {form.status}
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+              <CollapsibleContent className="mt-4">
+                <ViolationCarousel forms={getThisMonthForms()} period="This Month" />
               </CollapsibleContent>
             </Collapsible>
           </div>
         </div>
-
-        {/* Full Library Button */}
         <div className="flex justify-center py-6">
           <Button
             onClick={() => setShowFullLibrary(true)}

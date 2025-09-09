@@ -21,12 +21,13 @@
 - **Click-Outside Functionality**: Filter dropdown now properly closes when clicking outside
 - **Enhanced Error Handling**: Added null checks and improved data validation throughout
 
-### ✅ **Latest Updates - September 7, 2025**
-- **UI/UX Enhancements**: Improved DetailsPrevious page with morphing buttons and better field sizing
-- **Morphing Buttons**: Added animated Description and Photos buttons with exclusive expansion
-- **Field Optimization**: Adjusted Date, Time, and Unit field widths for better mobile experience
-- **Image Optimization**: Optimized SPR logo (`vicecity.png`) from 297KB to 58KB (80% reduction)
-- **Repository Cleanup**: Removed unused images and files, saving approximately 8.7MB
+### ✅ **Latest Updates - September 9, 2025**
+- **Dashboard Redesign**: Vertically centered Siri Orb as the primary navigation hub with 4-button arc menu
+- **User Avatar Integration**: Added user avatar in top-right corner with sign-out functionality
+- **Enhanced 3D Carousel**: Improved Books.tsx carousel with Vice City styled thumbnails and optimized sizing
+- **Mobile Responsiveness**: All new dashboard elements fully responsive across all device sizes
+- **Background Update**: Switched dashboard background from 2.jpeg to 2.png for better quality
+- **Single Card Expansion**: Only one card expands at a time in Books.tsx with click-outside collapse functionality
 - **Git Configuration**: Updated `.gitignore` to properly exclude unnecessary files
 - **Camera Improvements**: Enhanced camera functionality with better iOS compatibility and proper rear camera priority
 - **No Mirroring for Rear Camera**: Rear camera feed and captured images are no longer mirrored for accurate violation documentation
