@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.1.5] - 2025-09-09
+
+### 🚀 **FEATURE RELEASE - Dashboard Redesign & Enhanced Navigation**
+
+This release focuses on a complete redesign of the dashboard with a vertically centered Siri Orb navigation hub and enhanced Books page with improved 3D carousel functionality.
+
+### ✨ **Added**
+- **Dashboard Redesign**: Vertically centered Siri Orb as the primary navigation hub
+- **User Avatar Integration**: Added user avatar in top-right corner with sign-out functionality
+- **3D Carousel Enhancements**: Improved Books.tsx carousel with Vice City styled thumbnails and optimized sizing
+- **Single Card Expansion**: Only one card expands at a time in Books.tsx with click-outside collapse functionality
+
+### 🎨 **Changed**
+- **Navigation Layout**: Moved Siri Orb from bottom to center of screen for better visual balance
+- **Button Arc Configuration**: Changed 4-button menu from bottom arc to semi-circle around centered orb
+- **Vice City Styling**: Enhanced all new UI elements with authentic Vice City color palette
+- **Background Update**: Switched dashboard background from 2.jpeg to 2.png for better quality
+- **Thumbnail Design**: Changed carousel thumbnails to black screens with glowing Vice City borders
+
+### 🔧 **Fixed**
+- **Mobile Responsiveness**: Ensured all new dashboard elements work across all device sizes
+- **Click-Outside Handling**: Improved click-outside detection for user menu and expanded cards
+- **Performance Optimization**: Optimized carousel container sizing for better mobile performance
+
+
+## [2.1.4] - 2025-09-08
+
+
 ## [2.1.4] - 2025-09-08
 
 ### 🚀 **FEATURE RELEASE - UI Enhancement & Texture Components**
