@@ -125,9 +125,9 @@ export default function Dashboard() {
     const totalItems = menuItems.length;
     const totalAngle = 180; // Total arc span in degrees (semi-circle)
     const angleStep = totalAngle / (totalItems - 1);
-    const startAngle = 90; // Starting angle from horizontal (top)
+    const startAngle = 180; // Starting angle from horizontal (top)
 
-    const angle = startAngle + (index * angleStep);
+    const angle = startAngle - (index * angleStep);
 
     // Convert to radians
     const radians = (angle * Math.PI) / 180;
