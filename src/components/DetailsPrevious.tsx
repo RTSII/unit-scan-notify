@@ -1,26 +1,28 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { ChevronDown, ChevronUp, Camera, Plus, Loader2, X, Home } from "lucide-react";
+import { supabase } from '../integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { Home, Camera, X, ArrowLeftIcon } from 'lucide-react';
+import { TextureCard, TextureCardContent } from '../components/ui/texture-card';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Checkbox } from '../components/ui/checkbox';
+import { toast } from 'sonner';
 import {
-  TextureCard,
-  TextureCardContent,
-} from "@/components/ui/texture-card";
-import { PostgrestError } from '@supabase/supabase-js';
+  MorphingPopover,
+  MorphingPopoverTrigger,
+  MorphingPopoverContent,
+} from '../components/core/morphing-popover';
+import { motion } from 'motion/react';
+import type { PostgrestError } from '@supabase/supabase-js';
 
 interface ViolationFormData {
-  id?: string;
+  unit_number: string;
   date: string;
-  unit: string;
   time: string;
   ampm: string;
+  description: string;
   violationTypes: {
     itemsTrashOutside: boolean;
     balconyItems: boolean;
@@ -28,19 +30,20 @@ interface ViolationFormData {
   };
   itemsTrashChoice: string;
   balconyChoice: string;
-  description: string;
 }
 
-const DetailsPrevious = () => {
-  const { id } = useParams();
+export default function DetailsPrevious() {
   const navigate = useNavigate();
+  const { id } = useParams();
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [formData, setFormData] = useState<ViolationFormData>({
+    unit_number: '',
     date: '',
-    unit: '',
     time: '',
     ampm: 'AM',
+    description: '',
     violationTypes: {
       itemsTrashOutside: false,
       balconyItems: false,
@@ -48,41 +51,64 @@ const DetailsPrevious = () => {
     },
     itemsTrashChoice: '',
     balconyChoice: '',
-    description: '',
   });
-  const [selectedImages, setSelectedImages] = useState<string[]>([]);
-  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
-  const [isPhotosExpanded, setIsPhotosExpanded] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [existingPhotos, setExistingPhotos] = useState<string[]>([]);
 
-  // Format time input to ensure MM:HH format
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [existingPhotos, setExistingPhotos] = useState<string[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isUnitValid, setIsUnitValid] = useState<boolean | null>(null);
+
+  // Date formatting function
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+
+    if (value.length >= 2) {
+      value = value.substring(0, 2) + '/' + value.substring(2, 4);
+    }
+
+    setFormData(prev => ({ ...prev, date: value }));
+  };
+
+  // Time formatting function
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/\D/g, '');
-    
-    if (value.length > 4) {
-      value = value.slice(0, 4);
+    let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+
+    if (value.length >= 2) {
+      value = value.substring(0, 2) + ':' + value.substring(2, 4);
     }
-    
-    if (value.length >= 3) {
-      const hours = value.slice(0, 2);
-      const minutes = value.slice(2, 4);
-      value = `${hours}:${minutes}`;
-    } else if (value.length >= 2) {
-      const hours = value.slice(0, 2);
-      value = hours;
-    }
-    
+
     setFormData(prev => ({ ...prev, time: value }));
   };
 
-  // Auto-capitalize unit input
-  const handleUnitChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toUpperCase();
-    setFormData(prev => ({ ...prev, unit: value }));
+  // Unit validation and formatting
+  const handleUnitChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toUpperCase().slice(0, 3);
+    setFormData(prev => ({ ...prev, unit_number: value }));
+
+    if (value.length === 3) {
+      try {
+        const { data, error } = await supabase
+          .from('valid_units')
+          .select('unit_number')
+          .eq('unit_number', value)
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error checking unit validity:', error);
+          setIsUnitValid(null);
+        } else {
+          setIsUnitValid(!!data);
+        }
+      } catch (error) {
+        console.error('Error validating unit:', error);
+        setIsUnitValid(null);
+      }
+    } else {
+      setIsUnitValid(null);
+    }
   };
 
-  const handleViolationTypeChange = (type: keyof typeof formData.violationTypes, checked: boolean) => {
+  const handleViolationTypeChange = (type: keyof ViolationFormData['violationTypes'], checked: boolean) => {
     setFormData(prev => ({
       ...prev,
       violationTypes: {
@@ -93,27 +119,16 @@ const DetailsPrevious = () => {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
+    const files = Array.from(e.target.files || []);
 
-    const newImages: string[] = [];
-    let processedCount = 0;
-
-    Array.from(files).forEach(file => {
-      if (file && file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          if (event.target?.result) {
-            newImages.push(event.target.result as string);
-            processedCount++;
-            
-            if (processedCount === files.length) {
-              setSelectedImages(prev => [...prev, ...newImages]);
-            }
-          }
-        };
-        reader.readAsDataURL(file);
-      }
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setSelectedImages(prev => [...prev, event.target!.result as string]);
+        }
+      };
+      reader.readAsDataURL(file);
     });
   };
 
@@ -121,90 +136,205 @@ const DetailsPrevious = () => {
     setSelectedImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  const renderPhotoGrid = () => {
-    const allImages = [...existingPhotos, ...selectedImages];
-    
-    if (allImages.length === 0) {
-      return (
-        <div className="text-center py-8 text-vice-cyan/60">
-          <Camera className="w-8 h-8 mx-auto mb-2" />
-          <p className="text-sm">No photos added yet</p>
-        </div>
-      );
-    }
+  // Description Popover Component
+  const DescriptionPopover = () => {
+    const [tempDescription, setTempDescription] = useState(formData.description);
+    const [isOpen, setIsOpen] = useState(false);
+
+    const handleSave = () => {
+      setFormData(prev => ({ ...prev, description: tempDescription }));
+      setIsOpen(false);
+    };
+
+    const handleBack = () => {
+      setTempDescription(formData.description);
+      setIsOpen(false);
+    };
 
     return (
-      <div className="grid grid-cols-3 gap-2">
-        {allImages.map((image, index) => (
-          <div key={index} className="relative group aspect-square">
-            <img 
-              src={image} 
-              alt={`Violation ${index + 1}`} 
-              className="w-full h-full object-cover rounded-lg border border-vice-cyan/20"
+      <MorphingPopover open={isOpen} onOpenChange={setIsOpen}>
+        <MorphingPopoverTrigger asChild>
+          <button
+            type="button"
+            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-full transition-all duration-300 ease-in-out min-h-[44px] min-w-[120px] transform-gpu ${formData.description.trim() || isOpen
+              ? 'bg-vice-pink text-white shadow-lg shadow-vice-pink/30 scale-105'
+              : 'bg-black/40 border border-vice-cyan/30 text-vice-cyan hover:bg-vice-pink/20 hover:shadow-md hover:shadow-vice-pink/20'
+              }`}
+          >
+            <div className="w-2 h-2 rounded-full bg-white"></div>
+            <span className="font-medium text-sm">Description</span>
+          </button>
+        </MorphingPopoverTrigger>
+        <MorphingPopoverContent className="w-80 p-0 bg-black/90 border-vice-cyan/30">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 space-y-4"
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-vice-cyan font-medium">Add Description</h3>
+            </div>
+            <textarea
+              value={tempDescription}
+              onChange={(e) => setTempDescription(e.target.value)}
+              placeholder="Enter violation details..."
+              className="w-full h-32 p-3 bg-black/40 border border-vice-cyan/30 text-white placeholder:text-white/60 rounded-lg resize-none focus:outline-none focus:border-vice-pink"
             />
-            <button
-              type="button"
-              onClick={() => removeImage(index - existingPhotos.length)}
-              className="absolute -top-2 -right-2 bg-vice-pink rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-              aria-label={`Remove photo ${index + 1}`}
-            >
-              <X className="w-3 h-3 text-white" />
-            </button>
-          </div>
-        ))}
-        
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className="aspect-square border-2 border-dashed border-vice-cyan/30 rounded-lg flex items-center justify-center hover:border-vice-cyan/50 transition-colors"
-          aria-label="Add photo"
-        >
-          <Plus className="w-6 h-6 text-vice-cyan/60" />
-        </button>
-      </div>
+            <div className="flex gap-2 justify-end">
+              <Button
+                onClick={handleBack}
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-white/10"
+              >
+                <ArrowLeftIcon className="w-4 h-4 mr-1" />
+                Back
+              </Button>
+              <Button
+                onClick={handleSave}
+                size="sm"
+                className="bg-vice-pink hover:bg-vice-pink/80 text-white"
+              >
+                Save
+              </Button>
+            </div>
+          </motion.div>
+        </MorphingPopoverContent>
+      </MorphingPopover>
     );
   };
 
+  // Photos Popover Component
+  const PhotosPopover = () => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    const handleDone = () => {
+      setIsOpen(false);
+    };
+
+    return (
+      <MorphingPopover open={isOpen} onOpenChange={setIsOpen}>
+        <MorphingPopoverTrigger asChild>
+          <button
+            type="button"
+            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-full transition-all duration-300 ease-in-out min-h-[44px] min-w-[120px] transform-gpu ${selectedImages.length > 0 || isOpen
+              ? 'bg-vice-pink text-white shadow-lg shadow-vice-pink/30 scale-105'
+              : 'bg-black/40 border border-vice-cyan/30 text-vice-cyan hover:bg-vice-pink/20 hover:shadow-md hover:shadow-vice-pink/20'
+              }`}
+          >
+            <Camera className="w-4 h-4" />
+            <span className="font-medium text-sm">
+              Photos ({selectedImages.length})
+            </span>
+          </button>
+        </MorphingPopoverTrigger>
+        <MorphingPopoverContent className="w-80 p-0 bg-black/90 border-vice-cyan/30">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 space-y-4"
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-vice-cyan font-medium">Attach Photos</h3>
+              <Button
+                onClick={() => setIsOpen(false)}
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-white/10 p-1"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFileChange}
+              className="hidden"
+            />
+
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full bg-vice-cyan hover:bg-vice-cyan/80 text-black"
+            >
+              <Camera className="w-4 h-4 mr-2" />
+              Select Photos
+            </Button>
+
+            {selectedImages.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-white text-sm font-medium">Selected Photos ({selectedImages.length})</h4>
+                <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
+                  {selectedImages.map((image, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={image}
+                        alt={`Selected ${index + 1}`}
+                        className="w-full h-20 object-cover rounded border border-vice-cyan/30"
+                      />
+                      <button
+                        onClick={() => removeImage(index)}
+                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end">
+              <Button
+                onClick={handleDone}
+                size="sm"
+                className="bg-vice-pink hover:bg-vice-pink/80 text-white"
+              >
+                Done
+              </Button>
+            </div>
+          </motion.div>
+        </MorphingPopoverContent>
+      </MorphingPopover>
+    );
+  };
+
+  const selectedViolations = Object.entries(formData.violationTypes)
+    .filter(([_, isSelected]) => isSelected)
+    .map(([type, _]) => {
+      switch (type) {
+        case 'itemsTrashOutside':
+          return formData.itemsTrashChoice ? `Items/trash left outside unit (${formData.itemsTrashChoice})` : 'Items/trash left outside unit';
+        case 'balconyItems':
+          return formData.balconyChoice ? `Items left on ${formData.balconyChoice} railing` : 'Items left on balcony/front railing';
+        case 'parkingLotItems':
+          return 'Items left in Parking lot';
+        default:
+          return '';
+      }
+    })
+    .filter(Boolean);
+
   const handleSaveForm = async () => {
-    if (!user) return;
-    
-    // Validation: Check if Unit is filled and at least one violation is selected OR description is filled
-    const hasViolations = Object.values(formData.violationTypes).some(violation => violation);
-    const hasDescription = formData.description.trim().length > 0;
-    
-    if (!formData.unit.trim()) {
-      toast.error('Unit number is required');
+    if (!user) {
+      toast.error('You must be logged in to save forms');
       return;
     }
-    
-    if (!hasViolations && !hasDescription) {
-      toast.error('Please select at least one violation type or add a description');
+
+    if (!isFormValid()) {
+      toast.error('Please fill in all required fields');
       return;
     }
-    
+
     setIsSaving(true);
-    
     try {
-      // Get violation types as an array of selected options
-      const selectedViolations = [];
-      if (formData.violationTypes.itemsTrashOutside) {
-        const choice = formData.itemsTrashChoice || 'items';
-        selectedViolations.push(`${choice === 'items' ? 'Items' : 'Trash'} left outside Unit`);
-      }
-      if (formData.violationTypes.balconyItems) {
-        const location = formData.balconyChoice || 'balcony';
-        selectedViolations.push(`Items left on ${location} railing`);
-      }
-      if (formData.violationTypes.parkingLotItems) {
-        selectedViolations.push('Items left in Parking lot');
-      }
-      
-      // Combine existing and new photos
       const allPhotos = [...existingPhotos, ...selectedImages];
-      
+
       const formDataToSave = {
         user_id: user.id,
-        unit_number: formData.unit,
+        unit_number: formData.unit_number,
         date: formData.date,
         time: `${formData.time} ${formData.ampm}`,
         location: selectedViolations.join(', '),
@@ -212,7 +342,7 @@ const DetailsPrevious = () => {
         photos: allPhotos,
         status: 'saved'
       };
-      
+
       let error: PostgrestError | null = null;
       if (id) {
         // Update existing record
@@ -228,9 +358,9 @@ const DetailsPrevious = () => {
           .insert(formDataToSave);
         error = result.error;
       }
-      
+
       if (error) throw error;
-      
+
       toast.success(id ? 'Form updated successfully!' : 'Form saved successfully!');
       navigate('/books');
     } catch (error) {
@@ -242,7 +372,9 @@ const DetailsPrevious = () => {
   };
 
   const isFormValid = () => {
-    return formData.unit.trim() && 
+    return formData.unit_number.trim() &&
+      formData.unit_number.length === 3 &&
+      isUnitValid !== false &&
       (Object.values(formData.violationTypes).some(v => v) || formData.description.trim());
   };
 
@@ -254,54 +386,39 @@ const DetailsPrevious = () => {
           .select('*')
           .eq('id', id)
           .single();
-        
+
         if (error) {
           console.error('Error fetching form data:', error);
           toast.error('Failed to load form data');
           return;
         }
-        
+
         if (data) {
-          // Parse time string to separate time and AM/PM
-          const timeParts = data.time.split(' ');
-          const time = timeParts[0] || '';
-          const ampm = timeParts[1] || 'AM';
-          
-          // Parse location string to determine violation types
-          const violationTypes = {
-            itemsTrashOutside: data.location.includes('Items left outside Unit') || data.location.includes('Trash left outside Unit'),
-            balconyItems: data.location.includes('Items left on balcony railing') || data.location.includes('Items left on front railing'),
-            parkingLotItems: data.location.includes('Items left in Parking lot'),
-          };
-          
-          // Extract choices from location string
-          let itemsTrashChoice = '';
-          let balconyChoice = '';
-          
-          if (violationTypes.itemsTrashOutside) {
-            itemsTrashChoice = data.location.includes('Trash left outside Unit') ? 'trash' : 'items';
-          }
-          
-          if (violationTypes.balconyItems) {
-            balconyChoice = data.location.includes('Items left on front railing') ? 'front' : 'balcony';
-          }
-          
+          const timeMatch = data.time?.match(/^(\d{1,2}:\d{2})\s*(AM|PM)$/i);
+          const time = timeMatch ? timeMatch[1] : '';
+          const ampm = timeMatch ? timeMatch[2].toUpperCase() : 'AM';
+
           setFormData({
-            date: data.date,
-            unit: data.unit_number,
-            time,
-            ampm,
-            violationTypes,
-            itemsTrashChoice,
-            balconyChoice,
-            description: data.description,
+            unit_number: data.unit_number || '',
+            date: data.date || '',
+            time: time,
+            ampm: ampm,
+            description: data.description || '',
+            violationTypes: {
+              itemsTrashOutside: data.location?.includes('Items/trash left outside unit') || false,
+              balconyItems: data.location?.includes('balcony') || data.location?.includes('front') || false,
+              parkingLotItems: data.location?.includes('Parking lot') || false,
+            },
+            itemsTrashChoice: data.location?.includes('(items)') ? 'items' : data.location?.includes('(trash)') ? 'trash' : '',
+            balconyChoice: data.location?.includes('balcony') ? 'balcony' : data.location?.includes('front') ? 'front' : '',
           });
-          
-          // Set existing photos
-          setExistingPhotos(data.photos || []);
+
+          if (data.photos) {
+            setExistingPhotos(data.photos);
+          }
         }
       };
-      
+
       fetchFormData();
     }
   }, [id]);
@@ -332,9 +449,11 @@ const DetailsPrevious = () => {
                   <Label className="text-vice-cyan font-medium text-sm text-center block">Date</Label>
                   <Input
                     value={formData.date}
-                    onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                    onChange={handleDateChange}
                     placeholder="MM/DD"
                     maxLength={5}
+                    inputMode="numeric"
+                    pattern="[0-9/]*"
                     className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11 text-center"
                   />
                 </div>
@@ -346,6 +465,8 @@ const DetailsPrevious = () => {
                       onChange={handleTimeChange}
                       placeholder="HH:MM"
                       maxLength={5}
+                      inputMode="numeric"
+                      pattern="[0-9:]*"
                       className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11 flex-1 text-center min-w-[80px]"
                     />
                     <select
@@ -360,12 +481,25 @@ const DetailsPrevious = () => {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-vice-cyan font-medium text-sm text-center block">Unit</Label>
-                  <Input
-                    value={formData.unit}
-                    onChange={handleUnitChange}
-                    placeholder="Unit #"
-                    className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11 text-center w-16 mx-auto"
-                  />
+                  <div className="relative">
+                    <Input
+                      value={formData.unit_number}
+                      onChange={handleUnitChange}
+                      placeholder="A1B"
+                      maxLength={3}
+                      className={`bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11 text-center w-20 mx-auto ${isUnitValid === false ? 'border-red-500' : isUnitValid === true ? 'border-green-500' : ''
+                        }`}
+                    />
+                    {isUnitValid !== null && (
+                      <div className="absolute -right-6 top-1/2 transform -translate-y-1/2">
+                        {isUnitValid ? (
+                          <span className="text-green-500 text-sm">✓</span>
+                        ) : (
+                          <span className="text-red-500 text-sm">✗</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -385,7 +519,7 @@ const DetailsPrevious = () => {
                         }}
                         className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink min-w-[20px] min-h-[20px]"
                       />
-                      <Label className="text-white cursor-pointer text-sm leading-tight flex-1">Items/Trash left outside Unit</Label>
+                      <Label className="text-white cursor-pointer text-sm leading-tight flex-1">Items/trash left outside unit</Label>
                     </div>
 
                     {formData.violationTypes.itemsTrashOutside && (
@@ -414,7 +548,7 @@ const DetailsPrevious = () => {
                     )}
                   </div>
 
-                  {/* Balcony/Front railing items */}
+                  {/* Combined Balcony/Front items */}
                   <div className="space-y-2">
                     <div className="flex items-center space-x-3 p-3 rounded-lg border border-vice-cyan/20 bg-black/20 min-h-[44px]">
                       <Checkbox
@@ -468,117 +602,29 @@ const DetailsPrevious = () => {
 
               {/* Morphing Description and Photos Buttons - Combined Row */}
               <div className="flex gap-3 justify-center">
-                {/* Description Button */}
-                <button
-                  type="button"
-                  className={`flex items-center justify-center gap-2 px-4 py-3 rounded-full transition-all duration-300 ease-in-out min-h-[44px] min-w-[120px] transform-gpu ${isDescriptionExpanded
-                    ? 'bg-vice-pink text-white shadow-lg shadow-vice-pink/30 scale-105'
-                    : 'bg-black/40 border border-vice-cyan/30 text-vice-cyan hover:bg-vice-pink/20 hover:shadow-md hover:shadow-vice-pink/20'
-                    }`}
-                  onClick={() => {
-                    setIsDescriptionExpanded(!isDescriptionExpanded);
-                    // Close photos when opening description for exclusive expansion
-                    if (!isDescriptionExpanded) setIsPhotosExpanded(false);
-                  }}
-                  aria-expanded={isDescriptionExpanded}
-                  aria-label={isDescriptionExpanded ? "Collapse description section" : "Expand description section"}
-                >
-                  <div className="w-2 h-2 rounded-full bg-white"></div>
-                  <span className="font-medium text-sm">Description</span>
-                  {isDescriptionExpanded ? (
-                    <ChevronUp className="w-4 h-4 transition-transform duration-300" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 transition-transform duration-300" />
-                  )}
-                </button>
-
-                {/* Photos Button */}
-                <button
-                  type="button"
-                  className={`flex items-center justify-center gap-2 px-4 py-3 rounded-full transition-all duration-300 ease-in-out min-h-[44px] min-w-[120px] transform-gpu ${isPhotosExpanded
-                    ? 'bg-vice-pink text-white shadow-lg shadow-vice-pink/30 scale-105'
-                    : 'bg-black/40 border border-vice-cyan/30 text-vice-cyan hover:bg-vice-pink/20 hover:shadow-md hover:shadow-vice-pink/20'
-                    }`}
-                  onClick={() => {
-                    setIsPhotosExpanded(!isPhotosExpanded);
-                    // Close description when opening photos for exclusive expansion
-                    if (!isPhotosExpanded) setIsDescriptionExpanded(false);
-                  }}
-                  aria-expanded={isPhotosExpanded}
-                  aria-label={isPhotosExpanded ? "Collapse photos section" : "Expand photos section"}
-                >
-                  <Camera className="w-4 h-4" />
-                  <span className="font-medium text-sm">
-                    Photos ({selectedImages.length})
-                  </span>
-                  {isPhotosExpanded ? (
-                    <ChevronUp className="w-4 h-4 transition-transform duration-300" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 transition-transform duration-300" />
-                  )}
-                </button>
+                <DescriptionPopover />
+                <PhotosPopover />
               </div>
-
-              {/* Expanded Description Content with enhanced animation */}
-              {isDescriptionExpanded && (
-                <div className="mt-3 animate-in slide-in-from-top-2 duration-300 fade-in">
-                  <Textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Enter additional details..."
-                    className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 min-h-[100px] resize-none transition-all duration-300"
-                  />
-                </div>
-              )}
-
-              {/* Expanded Photos Content with enhanced animation */}
-              {isPhotosExpanded && (
-                <div className="mt-3 animate-in slide-in-from-top-2 duration-300 fade-in">
-                  {renderPhotoGrid()}
-                </div>
-              )}
             </TextureCardContent>
           </TextureCard>
         </div>
       </div>
 
-      {/* Fixed Bottom Save Button */}
-      <div className="p-4 border-t border-vice-cyan/20 bg-black/20">
-        <Button
-          onClick={handleSaveForm}
-          disabled={isSaving || !isFormValid()}
-          className="bg-vice-pink hover:bg-vice-pink/80 text-white font-semibold text-base px-8 py-3 disabled:opacity-50 disabled:cursor-not-allowed rounded-full flex items-center justify-center gap-2 min-h-[48px] mx-auto"
-        >
-          {isSaving ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin mr-2" />
-              Saving...
-            </>
-          ) : (
-            <>
-              <Plus className="w-5 h-5" />
-              Book Em
-              {selectedImages.length > 0 && (
-                <span className="bg-white/20 rounded-full px-2 py-1 text-xs ml-1">
-                  {selectedImages.length}
-                </span>
-              )}
-            </>
-          )}
-        </Button>
+      {/* Fixed Bottom Button */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black via-black/80 to-transparent">
+        <div className="max-w-md mx-auto">
+          <Button
+            onClick={handleSaveForm}
+            disabled={!isFormValid() || isSaving}
+            className={`w-full h-14 text-lg font-bold rounded-xl transition-all duration-300 ${isFormValid() && !isSaving
+              ? 'bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink shadow-lg shadow-vice-pink/30 text-white'
+              : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+              }`}
+          >
+            {isSaving ? 'Saving...' : 'Book Em'}
+          </Button>
+        </div>
       </div>
-
-      {/* Hidden file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        multiple
-        onChange={handleFileChange}
-        className="hidden"
-      />
     </div>
   );
-};
-
-export default DetailsPrevious;
+}

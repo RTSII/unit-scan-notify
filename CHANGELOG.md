@@ -6,6 +6,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.1.6] - 2025-01-XX
+
+### 🚀 **FEATURE RELEASE - Enhanced Form Interactions & Mobile UX**
+
+This release introduces morphing popover components for Description and Photos sections, auto-formatting for date/time inputs, and improved unit validation with visual feedback.
+
+### ✨ **Added**
+- **Morphing Popover Components**: Replaced static Description and Photos sections with interactive morphing popovers
+- **Auto-Formatting Inputs**: Date field automatically formats as MM/DD, Time field formats as HH:MM
+- **Mobile Keyboard Optimization**: Date and Time inputs trigger numeric keyboard on mobile devices
+- **Unit Validation System**: Real-time unit validation with visual feedback (green checkmark/red X)
+- **Enhanced Photo Management**: Improved photo selection and preview within morphing popover
+- **Interactive Description Field**: Textarea-based description input with Back/Save functionality
+
+### 🎨 **Changed**
+- **Form Field Structure**: Updated unit field to use `unit_number` consistently across the application
+- **Input Validation**: Enhanced form validation to include unit validity checks
+- **Mobile UX**: Improved touch interactions and visual feedback for mobile users
+- **Component Architecture**: Refactored DetailsPrevious.tsx with cleaner component structure
+
+### 🔧 **Fixed**
+- **Import Path Issues**: Corrected useAuth import path from '@/hooks/useAuth'
+- **Component Dependencies**: Fixed morphing-popover import path to use core components
+- **Type Safety**: Improved TypeScript type definitions for form data structure
+- **State Management**: Cleaned up unused state variables and imports
+
+
 ## [2.1.5] - 2025-09-09
 
 ### 🚀 **FEATURE RELEASE - Dashboard Redesign & Enhanced Navigation**
