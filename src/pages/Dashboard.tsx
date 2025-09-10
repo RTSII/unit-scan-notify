@@ -109,12 +109,32 @@ export default function Dashboard() {
   // Debug: Show current menu count
   console.log('Menu items count:', menuItems.length, 'Is admin:', profile?.role === 'admin');
 
-  // Vertically expanding button configuration
+  // Responsive semi-circle arc configuration - 180 degrees around center orb
   const getButtonPosition = (index: number) => {
-    const verticalSpacing = 68; // 56px button height + 12px gap
-    const initialOffset = 72; // 32px orb radius + 12px gap + 28px button radius
-    const x = 0;
-    const y = -(initialOffset + (index * verticalSpacing)); // negative for upward positioning
+    // Responsive radius based on screen size
+    const getRadius = () => {
+      if (window.innerWidth <= 375) return 100; // iPhone SE
+      if (window.innerWidth <= 390) return 110; // iPhone 13/14/15
+      if (window.innerWidth <= 428) return 120; // iPhone Pro Max
+      return 130; // Larger screens
+    };
+
+    const radius = getRadius();
+
+    // Dynamic angle calculation based on number of items
+    const totalItems = menuItems.length;
+    const totalAngle = 180; // Total arc span in degrees (semi-circle)
+    const angleStep = totalAngle / (totalItems > 1 ? totalItems - 1 : 1);
+    const startAngle = 270; // Starting angle from horizontal (top)
+
+    const angle = startAngle - (index * angleStep);
+
+    // Convert to radians
+    const radians = (angle * Math.PI) / 180;
+
+    // Calculate x, y position
+    const x = Math.cos(radians) * radius;
+    const y = -Math.sin(radians) * radius; // negative for upward positioning
 
     return { x, y };
   };
