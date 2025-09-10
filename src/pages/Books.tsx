@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+// Temporarily use direct relative imports
+import { Button } from "../../components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { Badge } from "../../components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+// import { useToast } from "@/hooks/use-toast";
 import {
   BookOpen,
   Calendar,
@@ -19,8 +20,8 @@ import {
   X
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Input } from "@/components/ui/input";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Input } from "../../components/ui/input";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../../components/ui/collapsible";
 import {
   AnimatePresence,
   motion,
@@ -29,6 +30,7 @@ import {
   useTransform,
 } from "framer-motion";
 import { useMediaQuery } from "@/components/ui/3d-carousel";
+export { useMediaQuery };
 
 interface SavedForm {
   id: string;
@@ -98,8 +100,8 @@ const ViolationCarousel = ({ forms, period }: { forms: SavedForm[], period: stri
       }
     ];
 
-  // Reduced carousel dimensions to better suit 200px-high thumbnails
-  const cylinderWidth = isScreenSizeSm ? 800 : 1200;
+  // Reduced carousel dimensions for smaller thumbnails with proper padding
+  const cylinderWidth = isScreenSizeSm ? 600 : 900;
   const faceCount = carouselItems.length;
   const faceWidth = cylinderWidth / faceCount;
   const radius = cylinderWidth / (2 * Math.PI);
@@ -158,8 +160,8 @@ const ViolationCarousel = ({ forms, period }: { forms: SavedForm[], period: stri
           )}
         </AnimatePresence>
 
-        {/* Reduced height carousel container to match ~200px thumbnails */}
-        <div className="relative h-[200px] w-full overflow-hidden rounded-lg bg-black/20">
+        {/* Reduced height carousel container with smaller thumbnails */}
+        <div className="relative h-[140px] w-full overflow-hidden rounded-lg bg-black/20">
           <div
             className="flex h-full items-center justify-center bg-black/10"
             style={{
@@ -198,7 +200,7 @@ const ViolationCarousel = ({ forms, period }: { forms: SavedForm[], period: stri
               {carouselItems.map((item, i) => (
                 <motion.div
                   key={`key-${item.imageUrl}-${i}`}
-                  className="absolute flex h-full origin-center items-center justify-center rounded-xl p-2"
+                  className="absolute flex h-full origin-center items-center justify-center rounded-xl p-4"
                   style={{
                     width: `${faceWidth}px`,
                     transform: `rotateY(${i * (360 / faceCount)
@@ -207,11 +209,11 @@ const ViolationCarousel = ({ forms, period }: { forms: SavedForm[], period: stri
                   onClick={() => handleClick(item.imageUrl)}
                 >
                   {item.imageUrl === 'placeholder' ? (
-                    // Black screen with glowing Vice City border (neon cyan + hot pink glow)
-                    <div className="w-full h-full rounded-xl bg-black border-2 border-[#ff1493] shadow-[0_0_12px_#ff1493,0_0_24px_#00ffff] flex items-center justify-center">
-                      <div className="text-center px-2">
-                        <div className="text-[#00ffff] text-xs font-bold mb-1 tracking-wider">NO DATA</div>
-                        <div className="text-[#ff1493] text-xs">No violations</div>
+                    // Smaller black screen with glowing Vice City border and proper padding
+                    <div className="w-3/4 h-3/4 rounded-lg bg-black border border-[#ff1493] shadow-[0_0_8px_#ff1493,0_0_16px_#00ffff] flex items-center justify-center">
+                      <div className="text-center px-1">
+                        <div className="text-[#00ffff] text-[10px] font-bold mb-1 tracking-wider">NO DATA</div>
+                        <div className="text-[#ff1493] text-[8px]">No violations</div>
                       </div>
                     </div>
                   ) : (
@@ -219,7 +221,7 @@ const ViolationCarousel = ({ forms, period }: { forms: SavedForm[], period: stri
                       src={item.imageUrl}
                       alt={`${item.unit} ${item.date}`}
                       layoutId={`img-${item.imageUrl}`}
-                      className="pointer-events-none w-full h-full rounded-xl object-cover border-2 border-[#00ffff] shadow-[0_0_10px_#00ffff,0_0_20px_#ff1493]"
+                      className="pointer-events-none w-3/4 h-3/4 rounded-lg object-cover border border-[#00ffff] shadow-[0_0_6px_#00ffff,0_0_12px_#ff1493]"
                       initial={{ filter: "blur(4px)" }}
                       layout="position"
                       animate={{ filter: "blur(0px)" }}
@@ -265,7 +267,7 @@ const Books = () => {
   const [thisMonthExpanded, setThisMonthExpanded] = useState(false);
   const [showFullLibrary, setShowFullLibrary] = useState(false);
   const { user } = useAuth();
-  const { toast } = useToast();
+  // const { toast } = useToast();
   const navigate = useNavigate();
   const filterRef = useRef<HTMLDivElement>(null);
   const cardsContainerRef = useRef<HTMLDivElement>(null);

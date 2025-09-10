@@ -5,6 +5,7 @@ import {
   useAnimation,
   useMotionValue,
   useTransform,
+  Transition,
 } from "framer-motion"
 
 export const useIsomorphicLayoutEffect =
@@ -75,7 +76,7 @@ const keywords = [
 
 const duration = 0.15
 const transition = { duration, ease: [0.32, 0.72, 0, 1], filter: "blur(4px)" }
-const transitionOverlay = { duration: 0.5, ease: [0.32, 0.72, 0, 1] }
+const transitionOverlay: Transition = { duration: 0.5, ease: "easeOut" };
 
 const Carousel = memo(
   ({
@@ -156,7 +157,7 @@ const Carousel = memo(
                 initial={{ filter: "blur(4px)" }}
                 layout="position"
                 animate={{ filter: "blur(0px)" }}
-                transition={transition}
+                transition={{ duration: 0.15, ease: "easeOut" }}
               />
             </motion.div>
           ))}

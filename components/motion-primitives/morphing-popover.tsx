@@ -16,11 +16,11 @@ import {
   Transition,
   Variants,
 } from 'motion/react';
-import useClickOutside from '@/hooks/useClickOutside';
+import { useClickOutside } from '@/hooks/useClickOutside';
 import { cn } from '@/lib/utils';
 
-const TRANSITION = {
-  type: 'spring',
+const TRANSITION: Transition = {
+  type: 'spring' as const,
   bounce: 0.1,
   duration: 0.4,
 };
@@ -178,8 +178,7 @@ function MorphingPopoverContent({
       'MorphingPopoverContent must be used within MorphingPopover'
     );
 
-  const ref = useRef<HTMLDivElement>(null);
-  useClickOutside(ref, context.close);
+  const ref = useClickOutside<HTMLDivElement>(context.close);
 
   useEffect(() => {
     if (!context.isOpen) return;

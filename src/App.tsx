@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from '@/hooks/useAuth';
-import { Toaster } from '@/components/ui/toaster';
-import { Toaster as SonnerToaster } from '@/components/ui/sonner';
+// Temporarily disabled: import { Toaster } from '@/components/ui/toaster';
+// Temporarily disabled: import { Toaster as SonnerToaster } from '@/components/ui/sonner';
 
 // Import pages
 import Dashboard from '@/pages/Dashboard';
@@ -32,8 +32,8 @@ function App() {
           </Routes>
         </div>
       </Router>
-      <Toaster />
-      <SonnerToaster />
+      {/* <Toaster /> */}
+      {/* <SonnerToaster /> */}
     </AuthProvider>
   );
 }
