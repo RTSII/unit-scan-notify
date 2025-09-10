@@ -77,27 +77,27 @@ const ViolationCarousel = ({ forms, period }: { forms: SavedForm[], period: stri
     }))
     : [
       // Placeholder items when no forms exist (use a sentinel 'placeholder' imageUrl)
-      {
-        id: 'placeholder-1',
-        imageUrl: 'placeholder',
-        date: 'No Data',
-        unit: 'N/A',
-        description: `No violations recorded for ${period.toLowerCase()}`
-      },
-      {
-        id: 'placeholder-2',
-        imageUrl: 'placeholder',
-        date: 'No Data',
-        unit: 'N/A',
-        description: `No violations recorded for ${period.toLowerCase()}`
-      },
-      {
-        id: 'placeholder-3',
-        imageUrl: 'placeholder',
-        date: 'No Data',
-        unit: 'N/A',
-        description: `No violations recorded for ${period.toLowerCase()}`
-      }
+        {
+          id: 'placeholder-1',
+          imageUrl: 'placeholder',
+          date: '',
+          unit: '',
+          description: ''
+        },
+        {
+          id: 'placeholder-2',
+          imageUrl: 'placeholder',
+          date: '',
+          unit: '',
+          description: ''
+        },
+        {
+          id: 'placeholder-3',
+          imageUrl: 'placeholder',
+          date: '',
+          unit: '',
+          description: ''
+        }
     ];
 
   // Reduced carousel dimensions for smaller thumbnails with proper padding
@@ -208,14 +208,10 @@ const ViolationCarousel = ({ forms, period }: { forms: SavedForm[], period: stri
                   }}
                   onClick={() => handleClick(item.imageUrl)}
                 >
-                  {item.imageUrl === 'placeholder' ? (
-                    // Smaller black screen with glowing Vice City border and proper padding
-                    <div className="w-3/4 h-3/4 rounded-lg bg-black border border-[#ff1493] shadow-[0_0_8px_#ff1493,0_0_16px_#00ffff] flex items-center justify-center">
-                      <div className="text-center px-1">
-                        <div className="text-[#00ffff] text-[10px] font-bold mb-1 tracking-wider">NO DATA</div>
-                        <div className="text-[#ff1493] text-[8px]">No violations</div>
-                      </div>
-                    </div>
+                   {item.imageUrl === 'placeholder' ? (
+                     // Smaller black screen with glowing Vice City border and proper padding
+                     <div className="w-3/4 h-3/4 rounded-lg bg-black border border-[#ff1493] shadow-[0_0_8px_#ff1493,0_0_16px_#00ffff]">
+                     </div>
                   ) : (
                     <motion.img
                       src={item.imageUrl}
@@ -234,8 +230,8 @@ const ViolationCarousel = ({ forms, period }: { forms: SavedForm[], period: stri
           </div>
 
           {/* Overlay information for each item (using Vice City colors) */}
-          <div className="absolute bottom-4 left-4 right-4 bg-black/80 backdrop-blur-sm rounded-lg p-3">
-            {forms.length > 0 ? (
+          {forms.length > 0 && (
+            <div className="absolute bottom-4 left-4 right-4 bg-black/80 backdrop-blur-sm rounded-lg p-3">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 {carouselItems.slice(0, 2).map((item) => (
                   <div key={item.id} className="text-center">
@@ -244,13 +240,8 @@ const ViolationCarousel = ({ forms, period }: { forms: SavedForm[], period: stri
                   </div>
                 ))}
               </div>
-            ) : (
-              <div className="text-center">
-                <p className="text-[#00ffff]/70 text-sm">No violations recorded for {period.toLowerCase()}</p>
-                <p className="text-[#ff1493]/50 text-xs mt-1">Complete forms from the Details tab to see them here</p>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </motion.div>
     </div>
@@ -453,12 +444,12 @@ const Books = () => {
   return (
     <div className="min-h-dvh bg-gradient-to-br from-vice-purple via-black to-vice-blue">
       {/* Header with centered Books.png image */}
-      <div className="flex items-center justify-between p-4 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20">
+      <div className="flex items-center justify-between p-6 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20">
         <div></div> {/* Empty div for spacing */}
         <img
           src="/Books.png"
           alt="Books"
-          className="h-10 w-auto object-contain"
+          className="h-24 w-auto object-contain"
         />
         <Button
           onClick={() => navigate('/')}
@@ -590,13 +581,10 @@ const Books = () => {
 
         {/* Forms Display */}
         <div className="space-y-6">
-          {filteredForms.length === 0 ? (
+          {filteredForms.length === 0 && forms.length > 0 ? (
             <div className="text-center py-8">
               <p className="text-vice-cyan/70">
-                {forms.length === 0
-                  ? 'No team violations found. Complete and save forms from the Details tab to see them here.'
-                  : 'Try adjusting your search terms or filter settings.'
-                }
+                Try adjusting your search terms or filter settings.
               </p>
             </div>
           ) : (
@@ -686,9 +674,6 @@ const Books = () => {
               {forms.length === 0 ? (
                 <div className="text-center py-8">
                   <BookOpen className="w-12 h-12 text-vice-cyan mx-auto mb-4 opacity-50" />
-                  <p className="text-vice-cyan/70">
-                    No team violations found. Complete and save forms from the Details tab to see them here.
-                  </p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
