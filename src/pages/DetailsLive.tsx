@@ -1,17 +1,17 @@
 import { useState, useEffect } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "../hooks/useAuth";
 import { Loader2, Power, Plus, Home } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { supabase } from "@/integrations/supabase/client";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Textarea } from "../components/ui/textarea";
+import { Checkbox } from "../components/ui/checkbox";
+import { supabase } from "../integrations/supabase/client";
 import { toast } from "sonner";
 import {
   TextureCard,
   TextureCardContent,
-} from "@/components/ui/texture-card";
+} from "../components/ui/texture-card";
 
 const DetailsLive = () => {
   const { user, loading } = useAuth();

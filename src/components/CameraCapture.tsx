@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "./ui/button";
 import { Power, Home, Settings, Camera, X, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 

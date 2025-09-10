@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 // Temporarily use direct relative imports
-import { Button } from "../../components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
-import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
-// import { useToast } from "@/hooks/use-toast";
+import { Button } from "../components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
+import { useAuth } from "../hooks/useAuth";
+import { supabase } from "../integrations/supabase/client";
+import { useToast } from "../hooks/use-toast";
 import {
   BookOpen,
   Calendar,
@@ -20,8 +20,8 @@ import {
   X
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Input } from "../../components/ui/input";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../../components/ui/collapsible";
+import { Input } from "../components/ui/input";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../components/ui/collapsible";
 import {
   AnimatePresence,
   motion,
@@ -29,7 +29,7 @@ import {
   useMotionValue,
   useTransform,
 } from "framer-motion";
-import { useMediaQuery } from "@/components/ui/3d-carousel";
+import { useMediaQuery } from "../components/ui/3d-carousel";
 export { useMediaQuery };
 
 interface SavedForm {
@@ -267,7 +267,7 @@ const Books = () => {
   const [thisMonthExpanded, setThisMonthExpanded] = useState(false);
   const [showFullLibrary, setShowFullLibrary] = useState(false);
   const { user } = useAuth();
-  // const { toast } = useToast();
+  const { toast } = useToast();
   const navigate = useNavigate();
   const filterRef = useRef<HTMLDivElement>(null);
   const cardsContainerRef = useRef<HTMLDivElement>(null);

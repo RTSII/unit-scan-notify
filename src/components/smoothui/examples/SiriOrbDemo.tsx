@@ -1,9 +1,9 @@
 import { useState } from "react"
 import { Settings } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
+import { Button } from "../../ui/button"
 
-import { SiriOrb } from "@/components/ui/siri-orb"
+import { SiriOrb } from "../../ui/siri-orb"
 
 const SiriOrbDemo: React.FC = () => {
   const [selectedSize, setSelectedSize] = useState<string>("192px")

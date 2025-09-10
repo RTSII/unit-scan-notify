@@ -1,7 +1,7 @@
 import { Navigate, useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "../hooks/useAuth";
 import { Loader2, Home } from "lucide-react";
-import DetailsPrevious from "@/components/DetailsPrevious";
+import DetailsPrevious from "../components/DetailsPrevious";
 
 const DetailsPreviousPage = () => {
   const { user, loading } = useAuth();

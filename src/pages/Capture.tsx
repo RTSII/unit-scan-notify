@@ -1,7 +1,7 @@
 import { Navigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "../hooks/useAuth";
 import { Loader2 } from "lucide-react";
-import CameraCapture from "@/components/CameraCapture";
+import CameraCapture from "../components/CameraCapture";
 
 const Capture = () => {
   const { user, loading } = useAuth();

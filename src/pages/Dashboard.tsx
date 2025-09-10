@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '../hooks/useAuth';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { Button } from '../components/ui/button';
 import { Loader2, Camera, BookOpen, FileText, Download, Settings, User, LogOut } from 'lucide-react';
 
 // Import the Siri Orb component
-import { SiriOrb } from '@/components/ui/siri-orb';
+import { SiriOrb } from '../components/ui/siri-orb';
 
 // Import the background image properly
 import backgroundImage from '/2.png';
