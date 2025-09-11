@@ -5,7 +5,7 @@ import { Button } from '../components/ui/button';
 import { Loader2, Camera, BookOpen, FileText, Download, Settings, User, LogOut } from 'lucide-react';
 
 // Import the Siri Orb component
-import { SiriOrb } from '../components/ui/siri-orb';
+import { SiriOrb } from '@/components/ui/siri-orb';
 
 // Import the background image properly
 import backgroundImage from '/2.png';
@@ -121,13 +121,12 @@ export default function Dashboard() {
 
     const radius = getRadius();
 
-    // Dynamic angle calculation based on number of items
-    const totalItems = menuItems.length;
+.length;
     const totalAngle = 180; // Total arc span in degrees (semi-circle)
     const angleStep = totalAngle / (totalItems > 1 ? totalItems - 1 : 1);
-    const startAngle = 270; // Starting angle from horizontal (top)
+    const startAngle = 180; // Start arc from the left
 
-    const angle = startAngle - (index * angleStep);
+    const angle = startAngle - (index * angleStep); // Sweep clockwise to form an upward arc
 
     // Convert to radians
     const radians = (angle * Math.PI) / 180;

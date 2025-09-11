@@ -27,3 +27,5 @@ dist-ssr
 # Additional files to ignore
 bun.lockb
 .bolt/
+.gemini/
+gha-creds-*.json
