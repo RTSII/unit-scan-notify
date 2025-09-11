@@ -123,7 +123,7 @@ export default function Dashboard() {
     const totalItems = menuItems.length;
     const totalAngle = 180; // Total arc span in degrees (semi-circle)
     const angleStep = totalAngle / (totalItems > 1 ? totalItems - 1 : 1);
-    const startAngle = 225; // Start arc from top-left above orb (225° = 10:30 position)
+    const startAngle = 180; // Start arc from directly above orb (180° = 12 o'clock position)
 
     const angle = startAngle - (index * angleStep); // Sweep clockwise to form an upward arc above orb
 
