@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Home, Camera, X, ArrowLeftIcon } from 'lucide-react';
+import newViolationImage from '../assets/new-violation.png';
 import { TextureCard, TextureCardContent } from '../components/ui/texture-card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -151,7 +152,11 @@ export default function DetailsPrevious() {
             <span className="font-medium text-sm">Description</span>
           </button>
         </MorphingPopoverTrigger>
-        <MorphingPopoverContent className="w-80 p-0 bg-black/90 border-vice-cyan/30">
+        <MorphingPopoverContent 
+          className="w-80 p-0 bg-black/90 border-vice-cyan/30"
+          side="bottom"
+          align="center"
+        >
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -214,7 +219,11 @@ export default function DetailsPrevious() {
             </span>
           </button>
         </MorphingPopoverTrigger>
-        <MorphingPopoverContent className="w-80 p-0 bg-black/90 border-vice-cyan/30">
+        <MorphingPopoverContent 
+          className="w-80 p-0 bg-black/90 border-vice-cyan/30"
+          side="bottom"
+          align="center"
+        >
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -413,7 +422,13 @@ export default function DetailsPrevious() {
     <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue text-white flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20 relative">
-        <h1 className="text-xl font-bold">Details</h1>
+        <div className="flex flex-col items-center gap-2">
+          <img 
+            src={newViolationImage} 
+            alt="New Violation" 
+            className="h-12 w-auto"
+          />
+        </div>
         <Button
           variant="ghost"
           size="sm"
