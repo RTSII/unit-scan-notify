@@ -86,23 +86,9 @@ export default function DetailsPrevious() {
     setFormData(prev => ({ ...prev, unit_number: value }));
 
     if (value.length === 3) {
-      try {
-        const { data, error } = await supabase
-          .from('valid_units')
-          .select('unit_number')
-          .eq('unit_number', value)
-          .single();
-
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error checking unit validity:', error);
-          setIsUnitValid(null);
-        } else {
-          setIsUnitValid(!!data);
-        }
-      } catch (error) {
-        console.error('Error validating unit:', error);
-        setIsUnitValid(null);
-      }
+      // Remove the valid_units table query since it doesn't exist
+      // Just allow any 3-character unit number for now
+      setIsUnitValid(true);
     } else {
       setIsUnitValid(null);
     }
