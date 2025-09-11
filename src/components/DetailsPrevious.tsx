@@ -606,24 +606,22 @@ export default function DetailsPrevious() {
                 <DescriptionPopover />
                 <PhotosPopover />
               </div>
+
+              {/* Book Em Button */}
+              <div className="flex justify-center pt-4">
+                <Button
+                  onClick={handleSaveForm}
+                  disabled={!isFormValid() || isSaving}
+                  className={`flex items-center justify-center gap-2 px-6 py-3 rounded-full transition-all duration-300 ease-in-out min-h-[44px] min-w-[120px] transform-gpu font-medium text-sm ${isFormValid() && !isSaving
+                    ? 'bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink shadow-lg shadow-vice-pink/30 text-white scale-105'
+                    : 'bg-gray-600/40 border border-gray-500/30 text-gray-400 cursor-not-allowed'
+                    }`}
+                >
+                  {isSaving ? 'Saving...' : 'Book Em'}
+                </Button>
+              </div>
             </TextureCardContent>
           </TextureCard>
-        </div>
-      </div>
-
-      {/* Fixed Bottom Button */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black via-black/80 to-transparent">
-        <div className="max-w-md mx-auto">
-          <Button
-            onClick={handleSaveForm}
-            disabled={!isFormValid() || isSaving}
-            className={`w-full h-14 text-lg font-bold rounded-xl transition-all duration-300 ${isFormValid() && !isSaving
-              ? 'bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink shadow-lg shadow-vice-pink/30 text-white'
-              : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-              }`}
-          >
-            {isSaving ? 'Saving...' : 'Book Em'}
-          </Button>
         </div>
       </div>
     </div>
