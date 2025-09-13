@@ -108,27 +108,12 @@ export default function Admin() {
   const [allFormsExpanded, setAllFormsExpanded] = useState(false);
   const [deletingFormId, setDeletingFormId] = useState<string | null>(null);
 
-  // Show loading while checking auth or profile
-  if (loading || (user && !profile)) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-vice-pink mx-auto mb-4" />
-          <p className="text-white">Loading admin panel...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Redirect if not authenticated
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
-
-  // Redirect if not admin
-  if (profile && profile.role !== 'admin') {
-    return <Navigate to="/dashboard" replace />;
-  }
+  // All useEffect hooks must be called before any conditional returns
+  useEffect(() => {
+    if (profile?.role === 'admin') {
+      fetchData();
+    }
+  }, [profile]);
 
   const fetchViolationForms = async () => {
     try {
@@ -263,12 +248,6 @@ export default function Admin() {
     }
   };
 
-  useEffect(() => {
-    if (profile?.role === 'admin') {
-      fetchData();
-    }
-  }, [profile]);
-
   const createInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
@@ -378,6 +357,28 @@ export default function Admin() {
       !invite.used_at && new Date(invite.expires_at) > new Date()
     );
   };
+
+  // Show loading while checking auth or profile
+  if (loading || (user && !profile)) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-vice-pink mx-auto mb-4" />
+          <p className="text-white">Loading admin panel...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect if not authenticated
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  // Redirect if not admin
+  if (profile && profile.role !== 'admin') {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   if (loadingData) {
     return (
