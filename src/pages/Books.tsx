@@ -449,7 +449,7 @@ const Books = () => {
         <img
           src="/Books.png"
           alt="Books"
-          className="h-24 w-auto object-contain"
+          className="h-24 w-auto object-contain mx-auto"
         />
         <Button
           onClick={() => navigate('/')}
