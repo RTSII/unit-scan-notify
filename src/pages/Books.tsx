@@ -444,21 +444,24 @@ const Books = () => {
   return (
     <div className="min-h-dvh bg-gradient-to-br from-vice-purple via-black to-vice-blue">
       {/* Header with centered Books.png image */}
-      <div className="flex items-center justify-between p-6 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20">
-        <div></div> {/* Empty div for spacing */}
-        <img
-          src="/Books.png"
-          alt="Books"
-          className="h-24 w-auto object-contain mx-auto"
-        />
-        <Button
-          onClick={() => navigate('/')}
-          variant="ghost"
-          size="sm"
-          className="text-white hover:bg-vice-cyan/20 min-h-[44px] min-w-[44px]"
-        >
-          <Home className="w-5 h-5" />
-        </Button>
+      <div className="relative flex items-center p-6 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20">
+        <div className="absolute left-1/2 transform -translate-x-1/2">
+          <img
+            src="/Books.png"
+            alt="Books"
+            className="h-24 w-auto object-contain"
+          />
+        </div>
+        <div className="ml-auto">
+          <Button
+            onClick={() => navigate('/')}
+            variant="ghost"
+            size="sm"
+            className="text-white hover:bg-vice-cyan/20 min-h-[44px] min-w-[44px]"
+          >
+            <Home className="w-5 h-5" />
+          </Button>
+        </div>
       </div>
 
       {/* Main Content Container */}
