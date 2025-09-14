@@ -20,10 +20,16 @@ import {
   FileText,
   BarChart3,
   Home,
-  Trash2,
-  ChevronDown,
-  ChevronUp
+  Trash2
 } from 'lucide-react';
+import {
+  AnimatePresence,
+  motion,
+  useAnimation,
+  useMotionValue,
+  useTransform,
+} from "framer-motion";
+import { useMediaQuery } from '../components/ui/3d-carousel';
 
 interface Invite {
   id: string;
@@ -103,9 +109,6 @@ export default function Admin() {
   
   // Violation forms state
   const [violationForms, setViolationForms] = useState<SavedForm[]>([]);
-  const [thisWeekExpanded, setThisWeekExpanded] = useState(false);
-  const [thisMonthExpanded, setThisMonthExpanded] = useState(false);
-  const [allFormsExpanded, setAllFormsExpanded] = useState(false);
   const [deletingFormId, setDeletingFormId] = useState<string | null>(null);
 
   // All useEffect hooks must be called before any conditional returns
@@ -358,6 +361,196 @@ export default function Admin() {
     );
   };
 
+  // 3D Carousel component for violation forms
+  const ViolationCarousel = ({ forms, period }: { forms: SavedForm[], period: string }) => {
+    const [activeImg, setActiveImg] = useState<string | null>(null);
+    const [isCarouselActive, setIsCarouselActive] = useState(true);
+    const controls = useAnimation();
+    const isScreenSizeSm = useMediaQuery("(max-width: 640px)");
+
+    // Create carousel items from violation forms, or use placeholder items if no forms
+    const carouselItems = forms.length > 0
+      ? forms.map((form, index) => ({
+        id: form.id,
+        imageUrl: form.photos[0] || `https://picsum.photos/400/400?violation-${index}`,
+        date: new Date(form.date).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        }),
+        unit: form.unit_number,
+        description: form.description
+      }))
+      : [
+        // Placeholder items when no forms exist
+        {
+          id: 'placeholder-1',
+          imageUrl: 'placeholder',
+          date: '',
+          unit: '',
+          description: ''
+        },
+        {
+          id: 'placeholder-2',
+          imageUrl: 'placeholder',
+          date: '',
+          unit: '',
+          description: ''
+        },
+        {
+          id: 'placeholder-3',
+          imageUrl: 'placeholder',
+          date: '',
+          unit: '',
+          description: ''
+        }
+      ];
+
+    // Carousel dimensions optimized for admin view
+    const cylinderWidth = isScreenSizeSm ? 500 : 800;
+    const faceCount = carouselItems.length;
+    const faceWidth = cylinderWidth / faceCount;
+    const radius = cylinderWidth / (2 * Math.PI);
+    const rotation = useMotionValue(0);
+    const transform = useTransform(
+      rotation,
+      (value) => `rotate3d(0, 1, 0, ${value}deg)`
+    );
+
+    const handleClick = (imgUrl: string) => {
+      // prevent opening the modal for placeholders
+      if (imgUrl !== 'placeholder') {
+        setActiveImg(imgUrl);
+        setIsCarouselActive(false);
+        controls.stop();
+      }
+    };
+
+    const handleClose = () => {
+      setActiveImg(null);
+      setIsCarouselActive(true);
+    };
+
+    return (
+      <div className="w-full">
+        <motion.div layout className="relative">
+          <AnimatePresence mode="sync">
+            {activeImg && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0 }}
+                layoutId={`img-container-${activeImg}`}
+                layout="position"
+                onClick={handleClose}
+                className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 m-5 md:m-36 lg:mx-[19rem] rounded-3xl"
+                style={{ willChange: "opacity" }}
+                transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
+              >
+                <motion.img
+                  layoutId={`img-${activeImg}`}
+                  src={activeImg}
+                  className="max-w-full max-h-full rounded-lg shadow-lg"
+                  initial={{ scale: 0.5 }}
+                  animate={{ scale: 1 }}
+                  transition={{
+                    delay: 0.5,
+                    duration: 0.5,
+                    ease: [0.25, 0.1, 0.25, 1],
+                  }}
+                  style={{
+                    willChange: "transform",
+                  }}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Carousel container with Vice City styling */}
+          <div className="relative h-[180px] w-full overflow-hidden rounded-lg bg-black/30 border border-vice-cyan/30">
+            <div
+              className="flex h-full items-center justify-center bg-black/20"
+              style={{
+                perspective: "1000px",
+                transformStyle: "preserve-3d",
+                willChange: "transform",
+              }}
+            >
+              <motion.div
+                drag={isCarouselActive ? "x" : false}
+                className="relative flex h-full origin-center cursor-grab justify-center active:cursor-grabbing"
+                style={{
+                  transform,
+                  rotateY: rotation,
+                  width: cylinderWidth,
+                  transformStyle: "preserve-3d",
+                }}
+                onDrag={(_, info) =>
+                  isCarouselActive &&
+                  rotation.set(rotation.get() + info.offset.x * 0.05)
+                }
+                onDragEnd={(_, info) =>
+                  isCarouselActive &&
+                  controls.start({
+                    rotateY: rotation.get() + info.velocity.x * 0.05,
+                    transition: {
+                      type: "spring",
+                      stiffness: 100,
+                      damping: 30,
+                      mass: 0.1,
+                    },
+                  })
+                }
+                animate={controls}
+              >
+                {carouselItems.map((item, i) => (
+                  <motion.div
+                    key={`key-${item.imageUrl}-${i}`}
+                    className="absolute flex h-full origin-center items-center justify-center rounded-xl p-3"
+                    style={{
+                      width: `${faceWidth}px`,
+                      transform: `rotateY(${i * (360 / faceCount)
+                        }deg) translateZ(${radius}px)`,
+                    }}
+                    onClick={() => handleClick(item.imageUrl)}
+                  >
+                    {item.imageUrl === 'placeholder' ? (
+                      // Placeholder with Vice City styling
+                      <div className="w-full h-3/4 rounded-lg bg-black border border-vice-pink shadow-[0_0_8px_#ff1493,0_0_16px_#00ffff] flex items-center justify-center">
+                        <div className="text-vice-cyan text-xs text-center opacity-60">No Data</div>
+                      </div>
+                    ) : (
+                      <motion.img
+                        src={item.imageUrl}
+                        alt={`${item.unit} ${item.date}`}
+                        layoutId={`img-${item.imageUrl}`}
+                        className="pointer-events-none w-full h-3/4 rounded-lg object-cover border border-vice-cyan shadow-[0_0_6px_#00ffff,0_0_12px_#ff1493]"
+                        initial={{ filter: "blur(4px)" }}
+                        layout="position"
+                        animate={{ filter: "blur(0px)" }}
+                        transition={{ duration: 0.15, ease: [0.32, 0.72, 0, 1] }}
+                      />
+                    )}
+                  </motion.div>
+                ))}
+              </motion.div>
+            </div>
+
+            {/* Info overlay */}
+            {forms.length > 0 && (
+              <div className="absolute bottom-2 left-2 right-2 bg-black/80 backdrop-blur-sm rounded-md p-2">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-vice-pink font-medium">{period}</span>
+                  <span className="text-vice-cyan">{forms.length} forms</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </motion.div>
+      </div>
+    );
+  };
+
   // Show loading while checking auth or profile
   if (loading || (user && !profile)) {
     return (
@@ -425,188 +618,31 @@ export default function Admin() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {/* This Week Violations */}
-              <div className="space-y-2">
-                <button
-                  onClick={() => setThisWeekExpanded(!thisWeekExpanded)}
-                  className="w-full flex items-center justify-between p-3 bg-black/20 rounded-lg border border-vice-cyan/20 hover:border-vice-pink/50 transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-vice-pink" />
-                    <span className="text-white font-medium">This Week ({getThisWeekForms().length})</span>
-                  </div>
-                  {thisWeekExpanded ? (
-                    <ChevronUp className="w-5 h-5 text-vice-cyan" />
-                  ) : (
-                    <ChevronDown className="w-5 h-5 text-vice-cyan" />
-                  )}
-                </button>
-                
-                {thisWeekExpanded && (
-                  <div className="space-y-2 pl-4">
-                    {getThisWeekForms().map((form) => (
-                      <div 
-                        key={form.id} 
-                        className="flex items-center justify-between p-3 bg-black/40 rounded-lg border border-vice-cyan/30"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm font-medium text-white truncate">Unit {form.unit_number}</span>
-                            <span className="text-xs text-gray-400">•</span>
-                            <span className="text-xs text-vice-pink truncate">
-                              {form.profiles?.full_name || form.profiles?.email || 'Unknown User'}
-                            </span>
-                          </div>
-                          <div className="text-xs text-vice-cyan/70 truncate">{form.description}</div>
-                          <div className="text-xs text-gray-400 mt-1">
-                            {formatDate(form.created_at)} • {form.status}
-                          </div>
-                        </div>
-                        <Button
-                          onClick={() => deleteViolationForm(form.id)}
-                          disabled={deletingFormId === form.id}
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-400 hover:text-red-300 hover:bg-red-400/10 ml-2 flex-shrink-0"
-                        >
-                          {deletingFormId === form.id ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Trash2 className="w-4 h-4" />
-                          )}
-                        </Button>
-                      </div>
-                    ))}
-                    {getThisWeekForms().length === 0 && (
-                      <div className="text-gray-400 text-center py-2 text-sm">
-                        No violations this week
-                      </div>
-                    )}
-                  </div>
-                )}
+            <div className="space-y-6">
+              {/* This Week Carousel */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock className="w-5 h-5 text-vice-pink" />
+                  <span className="text-white font-medium">This Week ({getThisWeekForms().length})</span>
+                </div>
+                <ViolationCarousel forms={getThisWeekForms()} period="This Week" />
               </div>
 
-              {/* This Month Violations */}
-              <div className="space-y-2">
-                <button
-                  onClick={() => setThisMonthExpanded(!thisMonthExpanded)}
-                  className="w-full flex items-center justify-between p-3 bg-black/20 rounded-lg border border-vice-cyan/20 hover:border-vice-pink/50 transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5 text-vice-pink" />
-                    <span className="text-white font-medium">This Month ({getThisMonthForms().length})</span>
-                  </div>
-                  {thisMonthExpanded ? (
-                    <ChevronUp className="w-5 h-5 text-vice-cyan" />
-                  ) : (
-                    <ChevronDown className="w-5 h-5 text-vice-cyan" />
-                  )}
-                </button>
-                
-                {thisMonthExpanded && (
-                  <div className="space-y-2 pl-4">
-                    {getThisMonthForms().map((form) => (
-                      <div 
-                        key={form.id} 
-                        className="flex items-center justify-between p-3 bg-black/40 rounded-lg border border-vice-cyan/30"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm font-medium text-white truncate">Unit {form.unit_number}</span>
-                            <span className="text-xs text-gray-400">•</span>
-                            <span className="text-xs text-vice-pink truncate">
-                              {form.profiles?.full_name || form.profiles?.email || 'Unknown User'}
-                            </span>
-                          </div>
-                          <div className="text-xs text-vice-cyan/70 truncate">{form.description}</div>
-                          <div className="text-xs text-gray-400 mt-1">
-                            {formatDate(form.created_at)} • {form.status}
-                          </div>
-                        </div>
-                        <Button
-                          onClick={() => deleteViolationForm(form.id)}
-                          disabled={deletingFormId === form.id}
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-400 hover:text-red-300 hover:bg-red-400/10 ml-2 flex-shrink-0"
-                        >
-                          {deletingFormId === form.id ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Trash2 className="w-4 h-4" />
-                          )}
-                        </Button>
-                      </div>
-                    ))}
-                    {getThisMonthForms().length === 0 && (
-                      <div className="text-gray-400 text-center py-2 text-sm">
-                        No violations this month
-                      </div>
-                    )}
-                  </div>
-                )}
+              {/* This Month Carousel */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <BarChart3 className="w-5 h-5 text-vice-pink" />
+                  <span className="text-white font-medium">This Month ({getThisMonthForms().length})</span>
+                </div>
+                <ViolationCarousel forms={getThisMonthForms()} period="This Month" />
               </div>
 
-              {/* All Violations */}
-              <div className="space-y-2">
-                <button
-                  onClick={() => setAllFormsExpanded(!allFormsExpanded)}
-                  className="w-full flex items-center justify-between p-3 bg-black/20 rounded-lg border border-vice-cyan/20 hover:border-vice-pink/50 transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-vice-pink" />
-                    <span className="text-white font-medium">All Violations ({violationForms.length})</span>
-                  </div>
-                  {allFormsExpanded ? (
-                    <ChevronUp className="w-5 h-5 text-vice-cyan" />
-                  ) : (
-                    <ChevronDown className="w-5 h-5 text-vice-cyan" />
-                  )}
-                </button>
-                
-                {allFormsExpanded && (
-                  <div className="space-y-2 pl-4">
-                    {violationForms.map((form) => (
-                      <div 
-                        key={form.id} 
-                        className="flex items-center justify-between p-3 bg-black/40 rounded-lg border border-vice-cyan/30"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm font-medium text-white truncate">Unit {form.unit_number}</span>
-                            <span className="text-xs text-gray-400">•</span>
-                            <span className="text-xs text-vice-pink truncate">
-                              {form.profiles?.full_name || form.profiles?.email || 'Unknown User'}
-                            </span>
-                          </div>
-                          <div className="text-xs text-vice-cyan/70 truncate">{form.description}</div>
-                          <div className="text-xs text-gray-400 mt-1">
-                            {formatDate(form.created_at)} • {form.status}
-                          </div>
-                        </div>
-                        <Button
-                          onClick={() => deleteViolationForm(form.id)}
-                          disabled={deletingFormId === form.id}
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-400 hover:text-red-300 hover:bg-red-400/10 ml-2 flex-shrink-0"
-                        >
-                          {deletingFormId === form.id ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Trash2 className="w-4 h-4" />
-                          )}
-                        </Button>
-                      </div>
-                    ))}
-                    {violationForms.length === 0 && (
-                      <div className="text-gray-400 text-center py-2 text-sm">
-                        No violations found
-                      </div>
-                    )}
-                  </div>
-                )}
+              {/* All Forms Carousel */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <FileText className="w-5 h-5 text-vice-pink" />
+                  <span className="text-white font-medium">All Forms ({violationForms.length})</span>
+                </div>
               </div>
             </div>
           </CardContent>
