@@ -109,6 +109,9 @@ export default function Admin() {
   
   // Violation forms state
   const [violationForms, setViolationForms] = useState<SavedForm[]>([]);
+  const [thisWeekExpanded, setThisWeekExpanded] = useState(false);
+  const [thisMonthExpanded, setThisMonthExpanded] = useState(false);
+  const [allFormsExpanded, setAllFormsExpanded] = useState(false);
   const [deletingFormId, setDeletingFormId] = useState<string | null>(null);
 
   // All useEffect hooks must be called before any conditional returns
@@ -606,47 +609,137 @@ export default function Admin() {
       </div>
 
       <div className="max-w-6xl mx-auto space-y-6">
-        {/* Violation Forms Section - Moved to top and centered title */}
-        <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm">
-          <CardHeader className="text-center">
-            <CardTitle className="text-white flex items-center justify-center gap-2">
-              <FileText className="w-5 h-5 text-vice-cyan" />
-              Violation Forms Management
-            </CardTitle>
-            <CardDescription className="text-gray-300">
-              Manage all team violation forms
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              {/* This Week Carousel */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <Clock className="w-5 h-5 text-vice-pink" />
-                  <span className="text-white font-medium">This Week ({getThisWeekForms().length})</span>
-                </div>
-                <ViolationCarousel forms={getThisWeekForms()} period="This Week" />
+        {/* Violation Forms Section with Dropdown Style */}
+        <div className="space-y-4">
+          {/* This Week Dropdown */}
+          <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm overflow-hidden">
+            <button
+              onClick={() => {
+                setThisWeekExpanded(!thisWeekExpanded);
+                if (!thisWeekExpanded) {
+                  setThisMonthExpanded(false);
+                  setAllFormsExpanded(false);
+                }
+              }}
+              className="w-full p-4 flex items-center justify-between hover:bg-black/20 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Clock className="w-5 h-5 text-vice-pink" />
+                <span className="text-white font-medium text-lg">This Week ({getThisWeekForms().length})</span>
               </div>
+              <motion.div
+                animate={{ rotate: thisWeekExpanded ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <svg className="w-5 h-5 text-vice-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </motion.div>
+            </button>
+            
+            <AnimatePresence>
+              {thisWeekExpanded && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-4 pt-0">
+                    <ViolationCarousel forms={getThisWeekForms()} period="This Week" />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </Card>
 
-              {/* This Month Carousel */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <BarChart3 className="w-5 h-5 text-vice-pink" />
-                  <span className="text-white font-medium">This Month ({getThisMonthForms().length})</span>
-                </div>
-                <ViolationCarousel forms={getThisMonthForms()} period="This Month" />
+          {/* This Month Dropdown */}
+          <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm overflow-hidden">
+            <button
+              onClick={() => {
+                setThisMonthExpanded(!thisMonthExpanded);
+                if (!thisMonthExpanded) {
+                  setThisWeekExpanded(false);
+                  setAllFormsExpanded(false);
+                }
+              }}
+              className="w-full p-4 flex items-center justify-between hover:bg-black/20 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <BarChart3 className="w-5 h-5 text-vice-pink" />
+                <span className="text-white font-medium text-lg">This Month ({getThisMonthForms().length})</span>
               </div>
+              <motion.div
+                animate={{ rotate: thisMonthExpanded ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <svg className="w-5 h-5 text-vice-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </motion.div>
+            </button>
+            
+            <AnimatePresence>
+              {thisMonthExpanded && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-4 pt-0">
+                    <ViolationCarousel forms={getThisMonthForms()} period="This Month" />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </Card>
 
-              {/* All Forms Carousel */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <FileText className="w-5 h-5 text-vice-pink" />
-                  <span className="text-white font-medium">All Forms ({violationForms.length})</span>
-                </div>
+          {/* All Forms Dropdown */}
+          <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm overflow-hidden">
+            <button
+              onClick={() => {
+                setAllFormsExpanded(!allFormsExpanded);
+                if (!allFormsExpanded) {
+                  setThisWeekExpanded(false);
+                  setThisMonthExpanded(false);
+                }
+              }}
+              className="w-full p-4 flex items-center justify-between hover:bg-black/20 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <FileText className="w-5 h-5 text-vice-pink" />
+                <span className="text-white font-medium text-lg">All Forms ({violationForms.length})</span>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+              <motion.div
+                animate={{ rotate: allFormsExpanded ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <svg className="w-5 h-5 text-vice-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </motion.div>
+            </button>
+            
+            <AnimatePresence>
+              {allFormsExpanded && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-4 pt-0">
+                    <ViolationCarousel forms={violationForms.slice(0, 12)} period="All Forms" />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </Card>
+        </div>
 
         {/* Team Performance Overview */}
         {userActivity.length > 0 && (
