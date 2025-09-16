@@ -72,6 +72,21 @@ const keywords = [
   "lights",
   "downtown",
   "bridge",
+  "ocean",
+  "forest",
+  "mountain",
+  "desert",
+  "river",
+  "lake",
+  "field",
+  "beach",
+  "urban",
+  "nature",
+  "landscape",
+  "modern",
+  "classic",
+  "vintage",
+  "abstract",
 ]
 
 const duration = 0.15
@@ -91,9 +106,9 @@ const Carousel = memo(
     isCarouselActive: boolean
   }) => {
     const isScreenSizeSm = useMediaQuery("(max-width: 640px)")
-    const cylinderWidth = isScreenSizeSm ? 1100 : 1800
+    const cylinderWidth = isScreenSizeSm ? 1400 : 2400
     const faceCount = cards.length
-    const faceWidth = cylinderWidth / faceCount
+    const faceWidth = Math.max(cylinderWidth / faceCount, isScreenSizeSm ? 120 : 160)
     const radius = cylinderWidth / (2 * Math.PI)
     const rotation = useMotionValue(0)
     const transform = useTransform(
@@ -140,9 +155,10 @@ const Carousel = memo(
           {cards.map((imgUrl, i) => (
             <motion.div
               key={`key-${imgUrl}-${i}`}
-              className="absolute flex h-full origin-center items-center justify-center rounded-xl bg-mauve-dark-2 p-2"
+              className="absolute flex origin-center items-center justify-center cursor-pointer hover:scale-105 transition-transform duration-200"
               style={{
                 width: `${faceWidth}px`,
+                height: `${faceWidth}px`,
                 transform: `rotateY(${
                   i * (360 / faceCount)
                 }deg) translateZ(${radius}px)`,
@@ -153,7 +169,7 @@ const Carousel = memo(
                 src={imgUrl}
                 alt={`keyword_${i} ${imgUrl}`}
                 layoutId={`img-${imgUrl}`}
-                className="pointer-events-none  w-full rounded-xl object-cover aspect-square"
+                className="pointer-events-none w-full h-full rounded-lg object-cover shadow-lg border border-white/20"
                 initial={{ filter: "blur(4px)" }}
                 layout="position"
                 animate={{ filter: "blur(0px)" }}
@@ -193,6 +209,19 @@ function ThreeDPhotoCarousel() {
     setIsCarouselActive(true)
   }
 
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && activeImg) {
+        handleClose()
+      }
+    }
+
+    if (activeImg) {
+      document.addEventListener('keydown', handleEscape)
+      return () => document.removeEventListener('keydown', handleEscape)
+    }
+  }, [activeImg])
+
   return (
     <motion.div layout className="relative">
       <AnimatePresence mode="sync">
@@ -204,24 +233,25 @@ function ThreeDPhotoCarousel() {
             layoutId={`img-container-${activeImg}`}
             layout="position"
             onClick={handleClose}
-            className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50 m-5 md:m-36 lg:mx-[19rem] rounded-3xl"
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 cursor-pointer"
             style={{ willChange: "opacity" }}
             transition={transitionOverlay}
           >
             <motion.img
               layoutId={`img-${activeImg}`}
               src={activeImg}
-              className="max-w-full max-h-full rounded-lg shadow-lg"
-              initial={{ scale: 0.5 }} // Start with a smaller scale
-              animate={{ scale: 1 }} // Animate to full scale
+              className="max-w-[90vw] max-h-[90vh] rounded-xl shadow-2xl border border-white/30"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
               transition={{
-                delay: 0.5,
-                duration: 0.5,
+                duration: 0.3,
                 ease: [0.25, 0.1, 0.25, 1],
-              }} // Clean ease-out curve
+              }}
               style={{
                 willChange: "transform",
               }}
+              onClick={(e) => e.stopPropagation()}
             />
           </motion.div>
         )}
