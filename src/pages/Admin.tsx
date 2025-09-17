@@ -20,7 +20,9 @@ import {
   FileText,
   BarChart3,
   Home,
-  Trash2
+  Trash2,
+  User,
+  ChevronDown
 } from 'lucide-react';
 import {
   AnimatePresence,
@@ -114,12 +116,53 @@ export default function Admin() {
   const [allFormsExpanded, setAllFormsExpanded] = useState(false);
   const [deletingFormId, setDeletingFormId] = useState<string | null>(null);
 
+  // Profile card state
+  const [profileExpanded, setProfileExpanded] = useState(false);
+  const [activeUsers, setActiveUsers] = useState<{[key: string]: any}>({});
+
   // All useEffect hooks must be called before any conditional returns
   useEffect(() => {
     if (profile?.role === 'admin') {
       fetchData();
     }
   }, [profile]);
+
+  // Set up real-time presence tracking
+  useEffect(() => {
+    if (!user || profile?.role !== 'admin') return;
+
+    const channel = supabase.channel('admin_presence');
+    
+    // Subscribe to presence changes
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const newState = channel.presenceState();
+        setActiveUsers(newState);
+      })
+      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+        console.log('User joined:', key, newPresences);
+      })
+      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+        console.log('User left:', key, leftPresences);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          // Track current user presence
+          const userPresence = {
+            user_id: user.id,
+            name: profile?.full_name || user.email || 'Unknown',
+            role: profile?.role || 'user',
+            online_at: new Date().toISOString(),
+          };
+          
+          await channel.track(userPresence);
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, profile]);
 
   const fetchViolationForms = async () => {
     try {
@@ -609,6 +652,90 @@ export default function Admin() {
       </div>
 
       <div className="max-w-6xl mx-auto space-y-6">
+        {/* Profile Card with Active Users */}
+        <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm overflow-hidden">
+          <button
+            onClick={() => setProfileExpanded(!profileExpanded)}
+            className="w-full p-4 flex items-center justify-between hover:bg-black/20 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-vice-purple to-vice-pink rounded-full flex items-center justify-center">
+                <User className="w-5 h-5 text-white" />
+              </div>
+              <div className="text-left">
+                <div className="text-white font-medium">
+                  {profile?.full_name || user?.email || 'Admin'}
+                </div>
+                <div className="text-sm text-vice-cyan">
+                  {profile?.role || 'admin'}
+                </div>
+              </div>
+            </div>
+            <motion.div
+              animate={{ rotate: profileExpanded ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ChevronDown className="w-5 h-5 text-vice-cyan" />
+            </motion.div>
+          </button>
+          
+          <AnimatePresence>
+            {profileExpanded && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="overflow-hidden"
+              >
+                <div className="p-4 pt-0">
+                  <div className="bg-black/40 rounded-lg p-4 border border-vice-cyan/20">
+                    <h4 className="text-white font-medium mb-3 flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      Active Users
+                    </h4>
+                    <div className="space-y-2">
+                      {Object.keys(activeUsers).length === 0 ? (
+                        <div className="text-gray-400 text-sm">No other users currently active</div>
+                      ) : (
+                        Object.entries(activeUsers).map(([key, presences]) => 
+                          presences.map((presence: any, index: number) => {
+                            // Don't show current user in the list
+                            if (presence.user_id === user?.id) return null;
+                            
+                            return (
+                              <div key={`${key}-${index}`} className="flex items-center justify-between p-2 bg-black/20 rounded border border-white/10">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 bg-gradient-to-br from-vice-cyan to-vice-blue rounded-full flex items-center justify-center">
+                                    <span className="text-white font-bold text-xs">
+                                      {presence.name.charAt(0).toUpperCase()}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <div className="text-white font-medium text-sm">
+                                      {presence.name}
+                                    </div>
+                                    <div className="text-xs text-vice-cyan">
+                                      {presence.role}
+                                    </div>
+                                  </div>
+                                </div>
+                                <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs">
+                                  Active
+                                </Badge>
+                              </div>
+                            );
+                          })
+                        )
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </Card>
+
         {/* Violation Forms Section with Dropdown Style */}
         <div className="space-y-4">
           {/* This Week Dropdown */}
