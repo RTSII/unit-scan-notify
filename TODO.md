@@ -4,6 +4,12 @@
 **Date**: September 7, 2025
 **Version**: 2.1.0
 
+### ✅ **Recently Completed (September 16, 2025)**
+- [x] Extracted Admin-style 3D carousel into shared component `ViolationCarousel3D`
+- [x] Added canonical UI spec `UI_3D_CAROUSEL_SPEC.md` and linked from `README.md`
+- [x] Updated `MOBILE_RESPONSIVE_IMPLEMENTATION.md` with Admin-style carousel details
+- [x] Logged changes in `CHANGELOG.md` (v2.1.7)
+
 ### ✅ **Recently Completed (January 28, 2025)**
 - [x] **Enhanced Violation Forms**: Combined violation types with selectable options (items/trash, balcony/front)
 - [x] **New Violation Type**: Added "Items left in Parking lot" violation category

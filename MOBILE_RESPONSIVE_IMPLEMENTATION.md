@@ -42,11 +42,19 @@ This document outlines the comprehensive mobile optimizations implemented for iP
 
 ### 5. Component-Specific Mobile Optimizations
 
-#### Books Page (`src/pages/Books.tsx`)
-- **3D Carousel Responsiveness**: Adjusts cylinder width (800px mobile, 1200px desktop) for optimal viewing
-- **Thumbnail Sizing**: Carousel height optimized to 200px for better mobile performance and visibility
-- **Card Expansion Logic**: Single card expansion with click-outside collapse functionality
-- **Touch-Friendly Interactions**: Smooth drag interactions and proper touch targets for carousel navigation
+#### 3D Carousel (Admin-style) — Books & Admin
+- **Canonical Spec**: See `UI_3D_CAROUSEL_SPEC.md` (Admin-style is the reference implementation)
+- **Container Height**: `h-[140px]` with `overflow-hidden` and `rounded-xl` for tight containment
+- **Density & Sizing**:
+  - `targetFaces`: 16 (mobile ≤640px), 22 (desktop)
+  - `cylinderWidth`: 1100 (mobile), 1800 (desktop)
+  - `maxThumb`: 64 (mobile), 80 (desktop)
+  - `faceWidth = min(maxThumb, cylinderWidth / targetFaces)`
+  - Per-face padding: `p-0.5 sm:p-1` for subtle spacing
+- **Thumbnail Shape & Effects**: `aspect-square`, `rounded-2xl`, `ring-1 ring-vice-cyan/40`, neon shadow
+- **Overlay**: In-thumb neon cyan labels (stacked) — `Unit {unit}` and `{date}` at bottom-left
+- **Interactions**: Drag with momentum spring; unique `layoutId` per face; modal preview when tapped
+- **Sections UX**: Only one section expanded at a time; click-outside collapses all (Admin reference)
 
 #### Camera Component (`src/components/CameraCapture.tsx`)
 - **Rear Camera Priority**: Automatically attempts to use rear camera (environment) first for accurate violation documentation

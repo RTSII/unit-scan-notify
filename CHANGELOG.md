@@ -1,3 +1,20 @@
+
+## [2.1.7] - 2025-09-16
+
+### ✨ Documentation & UI Consistency
+- Added `UI_3D_CAROUSEL_SPEC.md` as the canonical Admin-style 3D carousel visual/behavioral spec and integration guide
+- Updated `README.md` to reference the new spec
+- Updated `MOBILE_RESPONSIVE_IMPLEMENTATION.md` with Admin-style carousel details and cross-reference
+
+### 🎨 UI Alignment
+- Standardized the 3D carousel implementation across `src/pages/Admin.tsx` and `src/pages/Books.tsx`:
+  - Dense, square, rounded thumbnails with subtle spacing
+  - In-thumbnail neon cyan overlay (Unit and Date)
+  - Densification to maintain continuous, well-populated ring feel
+  - 140px high track container with `overflow-hidden`
+  - Unique `layoutId` per face for smooth modal transitions
+  - Only-one-open-at-a-time behavior for collapsible sections; click-outside collapse
+
 # SPR Vice City - Changelog
 
 All notable changes to the SPR Vice City project will be documented in this file.

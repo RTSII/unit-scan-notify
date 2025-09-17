@@ -137,6 +137,7 @@ VITE_SUPABASE_ANON_KEY=your_production_supabase_anon_key
 - **`DATABASE_MANAGEMENT.md`**: Complete database management guide
 - **`AUTHENTICATION_SETUP.md`**: Authentication setup and user management
 - **`MOBILE_RESPONSIVE_IMPLEMENTATION.md`**: Mobile optimization guide
+- **`UI_3D_CAROUSEL_SPEC.md`**: Admin-style 3D carousel visual/behavioral spec and integration guide
 
 ## 🤝 Contributing
 
