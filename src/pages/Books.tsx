@@ -19,18 +19,6 @@ import {
   ChevronUp,
   X
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { Input } from "../components/ui/input";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../components/ui/collapsible";
-import {
-  AnimatePresence,
-  motion,
-  useAnimation,
-  useMotionValue,
-  useTransform,
-} from "framer-motion";
-import { useMediaQuery } from "../components/ui/3d-carousel";
-export { useMediaQuery };
 
 interface SavedForm {
   id: string;
@@ -50,203 +38,6 @@ interface SavedForm {
     role: string;
   } | null;
 }
-
-/* Custom 3D Carousel component for violation notices (updated)
-   - Thumbnail height reduced to ~200px
-   - Placeholder "black screens" with glowing Vice City borders and colors
-   - Proper Vice City colors used for borders/text (neon cyan and hot pink)
-*/
-const ViolationCarousel = ({ forms, period }: { forms: SavedForm[], period: string }) => {
-  const [activeImg, setActiveImg] = useState<string | null>(null);
-  const [isCarouselActive, setIsCarouselActive] = useState(true);
-  const controls = useAnimation();
-  const isScreenSizeSm = useMediaQuery("(max-width: 640px)");
-
-  // Create carousel items from violation forms, or use placeholder items if no forms
-  const carouselItems = forms.length > 0
-    ? forms.map((form, index) => ({
-      id: form.id,
-      imageUrl: form.photos[0] || `https://picsum.photos/400/400?violation-${index}`,
-      date: new Date(form.date).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      }),
-      unit: form.unit_number,
-      description: form.description
-    }))
-    : [
-      // Placeholder items when no forms exist (use a sentinel 'placeholder' imageUrl)
-        {
-          id: 'placeholder-1',
-          imageUrl: 'placeholder',
-          date: '',
-          unit: '',
-          description: ''
-        },
-        {
-          id: 'placeholder-2',
-          imageUrl: 'placeholder',
-          date: '',
-          unit: '',
-          description: ''
-        },
-        {
-          id: 'placeholder-3',
-          imageUrl: 'placeholder',
-          date: '',
-          unit: '',
-          description: ''
-        }
-    ];
-
-  // Reduced carousel dimensions for smaller thumbnails with proper padding
-  const cylinderWidth = isScreenSizeSm ? 600 : 900;
-  const faceCount = carouselItems.length;
-  const faceWidth = cylinderWidth / faceCount;
-  const radius = cylinderWidth / (2 * Math.PI);
-  const rotation = useMotionValue(0);
-  const transform = useTransform(
-    rotation,
-    (value) => `rotate3d(0, 1, 0, ${value}deg)`
-  );
-
-  const handleClick = (imgUrl: string) => {
-    // prevent opening the modal for placeholders
-    if (imgUrl !== 'placeholder') {
-      setActiveImg(imgUrl);
-      setIsCarouselActive(false);
-      controls.stop();
-    }
-  };
-
-  const handleClose = () => {
-    setActiveImg(null);
-    setIsCarouselActive(true);
-  };
-
-  return (
-    <div className="w-full">
-      <motion.div layout className="relative">
-        <AnimatePresence mode="sync">
-          {activeImg && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0 }}
-              layoutId={`img-container-${activeImg}`}
-              layout="position"
-              onClick={handleClose}
-              className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50 m-5 md:m-36 lg:mx-[19rem] rounded-3xl"
-              style={{ willChange: "opacity" }}
-              transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
-            >
-              <motion.img
-                layoutId={`img-${activeImg}`}
-                src={activeImg}
-                className="max-w-full max-h-full rounded-lg shadow-lg"
-                initial={{ scale: 0.5 }}
-                animate={{ scale: 1 }}
-                transition={{
-                  delay: 0.5,
-                  duration: 0.5,
-                  ease: [0.25, 0.1, 0.25, 1],
-                }}
-                style={{
-                  willChange: "transform",
-                }}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Reduced height carousel container with smaller thumbnails */}
-        <div className="relative h-[140px] w-full overflow-hidden rounded-lg bg-black/20">
-          <div
-            className="flex h-full items-center justify-center bg-black/10"
-            style={{
-              perspective: "1000px",
-              transformStyle: "preserve-3d",
-              willChange: "transform",
-            }}
-          >
-            <motion.div
-              drag={isCarouselActive ? "x" : false}
-              className="relative flex h-full origin-center cursor-grab justify-center active:cursor-grabbing"
-              style={{
-                transform,
-                rotateY: rotation,
-                width: cylinderWidth,
-                transformStyle: "preserve-3d",
-              }}
-              onDrag={(_, info) =>
-                isCarouselActive &&
-                rotation.set(rotation.get() + info.offset.x * 0.05)
-              }
-              onDragEnd={(_, info) =>
-                isCarouselActive &&
-                controls.start({
-                  rotateY: rotation.get() + info.velocity.x * 0.05,
-                  transition: {
-                    type: "spring",
-                    stiffness: 100,
-                    damping: 30,
-                    mass: 0.1,
-                  },
-                })
-              }
-              animate={controls}
-            >
-              {carouselItems.map((item, i) => (
-                <motion.div
-                  key={`key-${item.imageUrl}-${i}`}
-                  className="absolute flex h-full origin-center items-center justify-center rounded-xl p-4"
-                  style={{
-                    width: `${faceWidth}px`,
-                    transform: `rotateY(${i * (360 / faceCount)
-                      }deg) translateZ(${radius}px)`,
-                  }}
-                  onClick={() => handleClick(item.imageUrl)}
-                >
-                   {item.imageUrl === 'placeholder' ? (
-                     // Smaller black screen with glowing Vice City border and proper padding
-                     <div className="w-3/4 h-3/4 rounded-lg bg-black border border-[#ff1493] shadow-[0_0_8px_#ff1493,0_0_16px_#00ffff]">
-                     </div>
-                  ) : (
-                    <motion.img
-                      src={item.imageUrl}
-                      alt={`${item.unit} ${item.date}`}
-                      layoutId={`img-${item.imageUrl}`}
-                      className="pointer-events-none w-3/4 h-3/4 rounded-lg object-cover border border-[#00ffff] shadow-[0_0_6px_#00ffff,0_0_12px_#ff1493]"
-                      initial={{ filter: "blur(4px)" }}
-                      layout="position"
-                      animate={{ filter: "blur(0px)" }}
-                      transition={{ duration: 0.15, ease: [0.32, 0.72, 0, 1] }}
-                    />
-                  )}
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-
-          {/* Overlay information for each item (using Vice City colors) */}
-          {forms.length > 0 && (
-            <div className="absolute bottom-4 left-4 right-4 bg-black/80 backdrop-blur-sm rounded-lg p-3">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                {carouselItems.slice(0, 2).map((item) => (
-                  <div key={item.id} className="text-center">
-                    <p className="text-[#ff1493] font-medium">Unit {item.unit}</p>
-                    <p className="text-[#00ffff] text-xs">{item.date}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </motion.div>
-    </div>
-  );
-};
 
 const Books = () => {
   const [forms, setForms] = useState<SavedForm[]>([]);
@@ -540,7 +331,7 @@ const Books = () => {
                 </Card>
               </CollapsibleTrigger>
               <CollapsibleContent className="mt-4">
-                <ViolationCarousel forms={getThisWeekForms()} period="This Week" />
+                <ViolationCarousel3D forms={getThisWeekForms()} />
               </CollapsibleContent>
             </Collapsible>
 
@@ -565,7 +356,7 @@ const Books = () => {
                 </Card>
               </CollapsibleTrigger>
               <CollapsibleContent className="mt-4">
-                <ViolationCarousel forms={getThisMonthForms()} period="This Month" />
+                <ViolationCarousel3D forms={getThisMonthForms()} />
               </CollapsibleContent>
             </Collapsible>
           </div>
