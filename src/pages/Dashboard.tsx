@@ -176,7 +176,7 @@ export default function Dashboard() {
                   handleSignOut();
                   setIsUserMenuOpen(false);
                 }}
-                className="w-full px-3 py-2 text-left text-vice-pink hover:bg-vice-pink/10 transition-colors duration-200 flex items-center"
+                className="w-full px-3 py-2 text-vice-pink hover:bg-vice-pink/10 transition-colors duration-200 flex items-center justify-center text-center"
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 Sign Out
@@ -186,14 +186,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Debug info - remove this later */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="fixed top-4 left-4 z-50 bg-black/80 text-white p-2 rounded text-xs">
-          <div>User: {user?.email}</div>
-          <div>Role: {profile?.role || 'loading...'}</div>
-          <div>Menu Items: {menuItems.length}</div>
-        </div>
-      )}
 
       {/* Vertically Centered Navigation */}
       <div className="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
