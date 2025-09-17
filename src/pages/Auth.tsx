@@ -250,15 +250,7 @@ export default function Auth() {
                   Continue with Google
                 </Button>
 
-                <div className="text-center pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsSignUp(!isSignUp)}
-                    className="text-white hover:text-vice-pink text-sm transition-colors"
-                  >
-                    {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
-                  </button>
-                </div>
+                
               </CardContent>
             </Card>
           </div>
