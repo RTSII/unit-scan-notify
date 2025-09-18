@@ -318,7 +318,7 @@ export default function Admin() {
             role
           )
         `)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }).limit(1000);
 
       // If the join fails, fall back to separate queries
       if (error || !data) {
@@ -328,7 +328,7 @@ export default function Admin() {
         const { data: formsData, error: formsError } = await supabase
           .from('violation_forms')
           .select('*')
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false }).limit(1000);
 
         if (formsError) throw formsError;
 
@@ -367,7 +367,7 @@ export default function Admin() {
       const { data: invitesData, error: invitesError } = await supabase
         .from('invites')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }).limit(1000);
 
       if (invitesError) throw invitesError;
       setInvites(invitesData || []);
@@ -376,7 +376,7 @@ export default function Admin() {
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }).limit(1000);
 
       if (profilesError) throw profilesError;
       setProfiles(profilesData || []);
