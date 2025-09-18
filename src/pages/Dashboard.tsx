@@ -2,7 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
-import { Loader2, Camera, BookOpen, FileText, Download, Settings, User, LogOut } from 'lucide-react';
+import { Loader2, Camera, BookOpen, FileText, Download, Settings, User, LogOut, ChevronDown } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '../integrations/supabase/client';
 
 import { SiriOrb } from '../components/ui/siri-orb';
 
@@ -14,7 +16,40 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [profileExpanded, setProfileExpanded] = useState(false);
+  const [activeUsers, setActiveUsers] = useState<Record<string, any[]>>({});
   const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Subscribe to presence for active users
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase.channel('admin-presence')
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        setActiveUsers(state);
+      })
+      .on('presence', { event: 'join' }, ({ newPresences }) => {
+        console.log('New user joined:', newPresences);
+      })
+      .on('presence', { event: 'leave' }, ({ leftPresences }) => {
+        console.log('User left:', leftPresences);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({
+            user_id: user.id,
+            name: profile?.full_name || user.email || 'User',
+            role: profile?.role || 'user',
+            online_at: new Date().toISOString(),
+          });
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, profile]);
 
   // Debug logging
   useEffect(() => {
@@ -30,6 +65,7 @@ export default function Dashboard() {
     const handleClickOutside = (event: MouseEvent) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
         setIsUserMenuOpen(false);
+        setProfileExpanded(false);
       }
     };
 
@@ -163,14 +199,90 @@ export default function Dashboard() {
 
           {/* User Menu Dropdown */}
           {isUserMenuOpen && (
-            <div className="absolute right-0 top-12 w-56 bg-black/90 backdrop-blur-sm border border-vice-cyan/30 rounded-lg shadow-xl z-50">
+            <div className="absolute right-0 top-12 w-80 bg-black/90 backdrop-blur-sm border border-vice-cyan/30 rounded-lg shadow-xl z-50">
               <div className="px-3 py-2 border-b border-vice-cyan/20">
-                <p className="text-sm font-medium text-vice-cyan">{profile?.full_name || 'User'}</p>
-                <p className="text-xs text-vice-pink/70">{user?.email}</p>
-                {profile?.role && (
-                  <p className="text-xs text-vice-purple capitalize mt-1">Role: {profile.role}</p>
-                )}
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-vice-purple to-vice-pink rounded-full flex items-center justify-center">
+                    <User className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-left flex-1">
+                    <div className="text-white font-medium">
+                      {profile?.full_name || user?.email || 'User'}
+                    </div>
+                    <div className="text-sm text-vice-cyan">
+                      {profile?.role || 'user'}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setProfileExpanded(!profileExpanded)}
+                    className="p-1 hover:bg-vice-cyan/20 rounded transition-colors"
+                  >
+                    <motion.div
+                      animate={{ rotate: profileExpanded ? 180 : 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <ChevronDown className="w-4 h-4 text-vice-cyan" />
+                    </motion.div>
+                  </button>
+                </div>
               </div>
+              
+              <AnimatePresence>
+                {profileExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden border-b border-vice-cyan/20"
+                  >
+                    <div className="p-3">
+                      <div className="bg-black/40 rounded-lg p-3 border border-vice-cyan/20">
+                        <h4 className="text-white font-medium mb-3 flex items-center gap-2 text-sm">
+                          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                          Active Users
+                        </h4>
+                        <div className="space-y-2 max-h-40 overflow-y-auto">
+                          {Object.keys(activeUsers).length === 0 ? (
+                            <div className="text-gray-400 text-xs">No other users currently active</div>
+                          ) : (
+                            Object.entries(activeUsers).map(([key, presences]) => 
+                              presences.map((presence: any, index: number) => {
+                                // Don't show current user in the list
+                                if (presence.user_id === user?.id) return null;
+                                
+                                return (
+                                  <div key={`${key}-${index}`} className="flex items-center justify-between p-2 bg-black/20 rounded border border-white/10">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-6 h-6 bg-gradient-to-br from-vice-cyan to-vice-blue rounded-full flex items-center justify-center">
+                                        <span className="text-white font-bold text-xs">
+                                          {presence.name.charAt(0).toUpperCase()}
+                                        </span>
+                                      </div>
+                                      <div>
+                                        <div className="text-white font-medium text-xs">
+                                          {presence.name}
+                                        </div>
+                                        <div className="text-xs text-vice-cyan">
+                                          {presence.role}
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="bg-green-500/20 text-green-400 border-green-500/30 text-xs px-2 py-1 rounded">
+                                      Active
+                                    </div>
+                                  </div>
+                                );
+                              })
+                            )
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              
               <button
                 onClick={() => {
                   handleSignOut();
