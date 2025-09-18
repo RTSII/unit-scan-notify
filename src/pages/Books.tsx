@@ -23,10 +23,6 @@ import {
   ChevronUp,
   X
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { Input } from "../components/ui/input";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../components/ui/collapsible";
-import { ViolationCarousel3D } from "../components/ViolationCarousel";
 
 interface SavedForm {
   id: string;

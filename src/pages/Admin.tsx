@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../integrations/supabase/client';
@@ -26,12 +26,10 @@ import {
 } from 'lucide-react';
 import {
   AnimatePresence,
-  motion,
-  useAnimation,
-  useMotionValue,
-  useTransform,
+  motion
 } from "framer-motion";
-import { useMediaQuery } from '../components/ui/3d-carousel';
+import { ViolationCarousel3D } from '../components/ViolationCarousel';
+import { CircularGallery, GalleryItem } from '../components/ui/circular-gallery';
 
 interface Invite {
   id: string;
@@ -111,14 +109,13 @@ export default function Admin() {
   
   // Violation forms state
   const [violationForms, setViolationForms] = useState<SavedForm[]>([]);
-  const [thisWeekExpanded, setThisWeekExpanded] = useState(false);
-  const [thisMonthExpanded, setThisMonthExpanded] = useState(false);
-  const [allFormsExpanded, setAllFormsExpanded] = useState(false);
+  const [activeSection, setActiveSection] = useState<'week' | 'month' | 'all' | null>(null);
   const [deletingFormId, setDeletingFormId] = useState<string | null>(null);
 
   // Profile card state
   const [profileExpanded, setProfileExpanded] = useState(false);
   const [activeUsers, setActiveUsers] = useState<{[key: string]: any}>({});
+  const sectionsTopRef = useRef<HTMLDivElement>(null);
 
   // All useEffect hooks must be called before any conditional returns
   useEffect(() => {
@@ -154,6 +151,143 @@ export default function Admin() {
             role: profile?.role || 'user',
             online_at: new Date().toISOString(),
           };
+
+          await channel.track(userPresence);
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, profile]);
+
+  // Scroll to the violations stack when a section is toggled
+  useEffect(() => {
+    if (activeSection && sectionsTopRef.current) {
+      sectionsTopRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [activeSection]);
+
+  const renderSection = (type: 'week' | 'month' | 'all') => {
+    const isActive = activeSection === type;
+    const toggle = () => setActiveSection(prev => (prev === type ? null : type));
+    if (type === 'week') {
+      return (
+        <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm overflow-hidden">
+          <button
+            onClick={toggle}
+            className="w-full p-4 flex items-center justify-between hover:bg-black/20 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Clock className="w-5 h-5 text-vice-pink" />
+              <span className="text-white font-medium text-lg">This Week ({getThisWeekForms().length})</span>
+            </div>
+            <motion.div
+              animate={{ rotate: isActive ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <svg className="w-5 h-5 text-vice-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </motion.div>
+          </button>
+          <AnimatePresence>
+            {isActive && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="overflow-hidden"
+              >
+                <div className="p-4 pt-0">
+                  <ViolationCarousel3D forms={getThisWeekForms()} />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </Card>
+      );
+    }
+    if (type === 'month') {
+      return (
+        <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm overflow-hidden">
+          <button
+            onClick={toggle}
+            className="w-full p-4 flex items-center justify-between hover:bg-black/20 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <BarChart3 className="w-5 h-5 text-vice-pink" />
+              <span className="text-white font-medium text-lg">This Month ({getThisMonthForms().length})</span>
+            </div>
+            <motion.div
+              animate={{ rotate: isActive ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <svg className="w-5 h-5 text-vice-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </motion.div>
+          </button>
+          <AnimatePresence>
+            {isActive && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="overflow-hidden"
+              >
+                <div className="p-4 pt-0">
+                  <ViolationCarousel3D forms={getThisMonthForms()} />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </Card>
+      );
+    }
+    // all
+    return (
+      <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm overflow-hidden">
+        <button
+          onClick={toggle}
+          className="w-full p-4 flex items-center justify-between hover:bg-black/20 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <FileText className="w-5 h-5 text-vice-pink" />
+            <span className="text-white font-medium text-lg">All Forms ({violationForms.length})</span>
+          </div>
+          <motion.div
+            animate={{ rotate: isActive ? 180 : 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <svg className="w-5 h-5 text-vice-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </motion.div>
+        </button>
+        <AnimatePresence>
+          {isActive && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="p-4 pt-0">
+                {/* Full-screen circular gallery in dark mode */}
+                <div className="w-full h-[calc(100dvh-160px)] bg-black/60 rounded-lg overflow-hidden">
+                  <CircularGallery items={mapToGalleryItems(violationForms.slice(0, 24))} className="text-white" />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </Card>
+    );
+  };
           
           await channel.track(userPresence);
         }
@@ -163,6 +297,13 @@ export default function Admin() {
       supabase.removeChannel(channel);
     };
   }, [user, profile]);
+
+  // When a section becomes active, scroll the stack into view (under header)
+  useEffect(() => {
+    if (activeSection && sectionsTopRef.current) {
+      sectionsTopRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [activeSection]);
 
   const fetchViolationForms = async () => {
     try {
@@ -388,7 +529,7 @@ export default function Admin() {
 
   const getThisMonthForms = () => {
     const now = new Date();
-    const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     return violationForms.filter(form => new Date(form.created_at) >= monthAgo);
   };
 
@@ -407,194 +548,26 @@ export default function Admin() {
     );
   };
 
-  // 3D Carousel component for violation forms
-  const ViolationCarousel = ({ forms, period }: { forms: SavedForm[], period: string }) => {
-    const [activeImg, setActiveImg] = useState<string | null>(null);
-    const [isCarouselActive, setIsCarouselActive] = useState(true);
-    const controls = useAnimation();
-    const isScreenSizeSm = useMediaQuery("(max-width: 640px)");
-
-    // Create carousel items from violation forms, or use placeholder items if no forms
-    const carouselItems = forms.length > 0
-      ? forms.map((form, index) => ({
-        id: form.id,
-        imageUrl: form.photos[0] || `https://picsum.photos/400/400?violation-${index}`,
-        date: new Date(form.date).toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric'
-        }),
-        unit: form.unit_number,
-        description: form.description
-      }))
-      : [
-        // Placeholder items when no forms exist
-        {
-          id: 'placeholder-1',
-          imageUrl: 'placeholder',
-          date: '',
-          unit: '',
-          description: ''
-        },
-        {
-          id: 'placeholder-2',
-          imageUrl: 'placeholder',
-          date: '',
-          unit: '',
-          description: ''
-        },
-        {
-          id: 'placeholder-3',
-          imageUrl: 'placeholder',
-          date: '',
-          unit: '',
-          description: ''
-        }
-      ];
-
-    // Carousel dimensions optimized for admin view
-    const cylinderWidth = isScreenSizeSm ? 500 : 800;
-    const faceCount = carouselItems.length;
-    const faceWidth = cylinderWidth / faceCount;
-    const radius = cylinderWidth / (2 * Math.PI);
-    const rotation = useMotionValue(0);
-    const transform = useTransform(
-      rotation,
-      (value) => `rotate3d(0, 1, 0, ${value}deg)`
-    );
-
-    const handleClick = (imgUrl: string) => {
-      // prevent opening the modal for placeholders
-      if (imgUrl !== 'placeholder') {
-        setActiveImg(imgUrl);
-        setIsCarouselActive(false);
-        controls.stop();
-      }
-    };
-
-    const handleClose = () => {
-      setActiveImg(null);
-      setIsCarouselActive(true);
-    };
-
-    return (
-      <div className="w-full">
-        <motion.div layout className="relative">
-          <AnimatePresence mode="sync">
-            {activeImg && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0 }}
-                layoutId={`img-container-${activeImg}`}
-                layout="position"
-                onClick={handleClose}
-                className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 m-5 md:m-36 lg:mx-[19rem] rounded-3xl"
-                style={{ willChange: "opacity" }}
-                transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
-              >
-                <motion.img
-                  layoutId={`img-${activeImg}`}
-                  src={activeImg}
-                  className="max-w-full max-h-full rounded-lg shadow-lg"
-                  initial={{ scale: 0.5 }}
-                  animate={{ scale: 1 }}
-                  transition={{
-                    delay: 0.5,
-                    duration: 0.5,
-                    ease: [0.25, 0.1, 0.25, 1],
-                  }}
-                  style={{
-                    willChange: "transform",
-                  }}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Carousel container with Vice City styling */}
-          <div className="relative h-[180px] w-full overflow-hidden rounded-lg bg-black/30 border border-vice-cyan/30">
-            <div
-              className="flex h-full items-center justify-center bg-black/20"
-              style={{
-                perspective: "1000px",
-                transformStyle: "preserve-3d",
-                willChange: "transform",
-              }}
-            >
-              <motion.div
-                drag={isCarouselActive ? "x" : false}
-                className="relative flex h-full origin-center cursor-grab justify-center active:cursor-grabbing"
-                style={{
-                  transform,
-                  rotateY: rotation,
-                  width: cylinderWidth,
-                  transformStyle: "preserve-3d",
-                }}
-                onDrag={(_, info) =>
-                  isCarouselActive &&
-                  rotation.set(rotation.get() + info.offset.x * 0.05)
-                }
-                onDragEnd={(_, info) =>
-                  isCarouselActive &&
-                  controls.start({
-                    rotateY: rotation.get() + info.velocity.x * 0.05,
-                    transition: {
-                      type: "spring",
-                      stiffness: 100,
-                      damping: 30,
-                      mass: 0.1,
-                    },
-                  })
-                }
-                animate={controls}
-              >
-                {carouselItems.map((item, i) => (
-                  <motion.div
-                    key={`key-${item.imageUrl}-${i}`}
-                    className="absolute flex h-full origin-center items-center justify-center rounded-xl p-3"
-                    style={{
-                      width: `${faceWidth}px`,
-                      transform: `rotateY(${i * (360 / faceCount)
-                        }deg) translateZ(${radius}px)`,
-                    }}
-                    onClick={() => handleClick(item.imageUrl)}
-                  >
-                    {item.imageUrl === 'placeholder' ? (
-                      // Placeholder with Vice City styling
-                      <div className="w-full h-3/4 rounded-lg bg-black border border-vice-pink shadow-[0_0_8px_#ff1493,0_0_16px_#00ffff] flex items-center justify-center">
-                        <div className="text-vice-cyan text-xs text-center opacity-60">No Data</div>
-                      </div>
-                    ) : (
-                      <motion.img
-                        src={item.imageUrl}
-                        alt={`${item.unit} ${item.date}`}
-                        layoutId={`img-${item.imageUrl}`}
-                        className="pointer-events-none w-full h-3/4 rounded-lg object-cover border border-vice-cyan shadow-[0_0_6px_#00ffff,0_0_12px_#ff1493]"
-                        initial={{ filter: "blur(4px)" }}
-                        layout="position"
-                        animate={{ filter: "blur(0px)" }}
-                        transition={{ duration: 0.15, ease: [0.32, 0.72, 0, 1] }}
-                      />
-                    )}
-                  </motion.div>
-                ))}
-              </motion.div>
-            </div>
-
-            {/* Info overlay */}
-            {forms.length > 0 && (
-              <div className="absolute bottom-2 left-2 right-2 bg-black/80 backdrop-blur-sm rounded-md p-2">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-vice-pink font-medium">{period}</span>
-                  <span className="text-vice-cyan">{forms.length} forms</span>
-                </div>
-              </div>
-            )}
-          </div>
-        </motion.div>
-      </div>
-    );
+  // Reuse ViolationCarousel3D from Books.tsx implementation
+  const mapToGalleryItems = (forms: SavedForm[]): GalleryItem[] => {
+    const fallbacks = [
+      'https://images.unsplash.com/photo-1541707519942-08fd2f6480ba?q=80&w=900&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1526095179574-86e545346ae6?q=80&w=900&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1662841238473-f4b137e123cb?q=80&w=900&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1589648751789-c8ecb7a88bd5?q=80&w=900&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1659540181281-1d89d6112832?q=80&w=900&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1595792419466-23cec2476fa6?q=80&w=900&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1689799513565-44d2bc09d75b?q=80&w=900&auto=format&fit=crop',
+    ];
+    return (forms || []).map((f, idx) => ({
+      common: `Unit ${f.unit_number}`,
+      binomial: f.location || formatDate(f.date),
+      photo: {
+        url: f.photos?.[0] || fallbacks[idx % fallbacks.length],
+        text: f.description || 'Violation photo',
+        by: f.profiles?.full_name || f.profiles?.email || 'Unknown User',
+      },
+    }));
   };
 
   // Show loading while checking auth or profile
@@ -736,136 +709,17 @@ export default function Admin() {
           </AnimatePresence>
         </Card>
 
-        {/* Violation Forms Section with Dropdown Style */}
+        {/* Violation Forms Section with Dropdown Style - Active section floats to top */}
         <div className="space-y-4">
-          {/* This Week Dropdown */}
-          <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm overflow-hidden">
-            <button
-              onClick={() => {
-                setThisWeekExpanded(!thisWeekExpanded);
-                if (!thisWeekExpanded) {
-                  setThisMonthExpanded(false);
-                  setAllFormsExpanded(false);
-                }
-              }}
-              className="w-full p-4 flex items-center justify-between hover:bg-black/20 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <Clock className="w-5 h-5 text-vice-pink" />
-                <span className="text-white font-medium text-lg">This Week ({getThisWeekForms().length})</span>
-              </div>
-              <motion.div
-                animate={{ rotate: thisWeekExpanded ? 180 : 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <svg className="w-5 h-5 text-vice-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </motion.div>
-            </button>
-            
-            <AnimatePresence>
-              {thisWeekExpanded && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3, ease: "easeInOut" }}
-                  className="overflow-hidden"
-                >
-                  <div className="p-4 pt-0">
-                    <ViolationCarousel forms={getThisWeekForms()} period="This Week" />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </Card>
-
-          {/* This Month Dropdown */}
-          <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm overflow-hidden">
-            <button
-              onClick={() => {
-                setThisMonthExpanded(!thisMonthExpanded);
-                if (!thisMonthExpanded) {
-                  setThisWeekExpanded(false);
-                  setAllFormsExpanded(false);
-                }
-              }}
-              className="w-full p-4 flex items-center justify-between hover:bg-black/20 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <BarChart3 className="w-5 h-5 text-vice-pink" />
-                <span className="text-white font-medium text-lg">This Month ({getThisMonthForms().length})</span>
-              </div>
-              <motion.div
-                animate={{ rotate: thisMonthExpanded ? 180 : 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <svg className="w-5 h-5 text-vice-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </motion.div>
-            </button>
-            
-            <AnimatePresence>
-              {thisMonthExpanded && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3, ease: "easeInOut" }}
-                  className="overflow-hidden"
-                >
-                  <div className="p-4 pt-0">
-                    <ViolationCarousel forms={getThisMonthForms()} period="This Month" />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </Card>
-
-          {/* All Forms Dropdown */}
-          <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm overflow-hidden">
-            <button
-              onClick={() => {
-                setAllFormsExpanded(!allFormsExpanded);
-                if (!allFormsExpanded) {
-                  setThisWeekExpanded(false);
-                  setThisMonthExpanded(false);
-                }
-              }}
-              className="w-full p-4 flex items-center justify-between hover:bg-black/20 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <FileText className="w-5 h-5 text-vice-pink" />
-                <span className="text-white font-medium text-lg">All Forms ({violationForms.length})</span>
-              </div>
-              <motion.div
-                animate={{ rotate: allFormsExpanded ? 180 : 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <svg className="w-5 h-5 text-vice-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </motion.div>
-            </button>
-            
-            <AnimatePresence>
-              {allFormsExpanded && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3, ease: "easeInOut" }}
-                  className="overflow-hidden"
-                >
-                  <div className="p-4 pt-0">
-                    <ViolationCarousel forms={violationForms.slice(0, 12)} period="All Forms" />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </Card>
+          {(
+            activeSection
+              ? [activeSection, 'week', 'month', 'all'].filter(
+                  (s, idx, arr) => s !== null && arr.indexOf(s as any) === idx
+                ).filter((s) => s !== activeSection).unshift && ['week','month','all'] && [activeSection, ...(['week','month','all'] as const).filter(s => s !== activeSection)]
+              : (['week','month','all'] as const)
+          ).map((section) => (
+            <div key={section}>{renderSection(section as 'week'|'month'|'all')}</div>
+          ))}
         </div>
 
         {/* Team Performance Overview */}
