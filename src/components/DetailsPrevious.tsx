@@ -445,7 +445,7 @@ export default function DetailsPrevious() {
       {/* Form Content */}
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 space-y-6 max-w-md mx-auto pb-24">
-          <TextureCard className="bg-black">
+          <TextureCard className="bg-black border border-vice-cyan/20">
             <TextureCardContent className="space-y-6">
               {/* Date, Time, Unit Fields */}
               <div className="grid grid-cols-3 gap-3">
@@ -463,7 +463,7 @@ export default function DetailsPrevious() {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-vice-cyan font-medium text-sm text-center block">Time</Label>
-                  <div className="flex gap-1 justify-center">
+                  <div className="flex gap-2 justify-center">
                     <Input
                       value={formData.time}
                       onChange={handleTimeChange}
@@ -471,12 +471,12 @@ export default function DetailsPrevious() {
                       maxLength={5}
                       inputMode="numeric"
                       pattern="[0-9:]*"
-                      className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11 flex-1 text-center min-w-[80px]"
+                      className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11 flex-1 text-center min-w-[70px]"
                     />
                     <select
                       value={formData.ampm}
                       onChange={(e) => setFormData(prev => ({ ...prev, ampm: e.target.value }))}
-                      className="bg-black/40 border border-vice-cyan/30 text-white text-base h-11 px-2 rounded-md min-w-[60px]"
+                      className="bg-black/40 border border-vice-cyan/30 text-white text-sm h-11 px-1 rounded-md min-w-[50px] text-center"
                     >
                       <option value="AM">AM</option>
                       <option value="PM">PM</option>
