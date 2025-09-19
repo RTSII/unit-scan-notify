@@ -597,7 +597,7 @@ export default function Admin() {
       <div className="flex items-center justify-between p-4 border-b border-vice-cyan/20 relative">
         <div className="flex-1 flex justify-center">
           <img
-            src="/admin_zoomed.png"
+            src="/Admin.png"
             alt="Admin Panel"
             className="h-16 w-auto"
           />
