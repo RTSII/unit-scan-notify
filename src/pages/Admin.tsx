@@ -599,7 +599,7 @@ export default function Admin() {
           <img
             src="/Admin.png"
             alt="Admin Panel"
-            className="h-16 w-auto"
+            className="h-28 w-auto border border-vice-cyan/30 rounded-lg shadow-[0_0_20px_rgba(0,255,255,0.3)] backdrop-blur-sm"
           />
         </div>
         <Button
