@@ -127,6 +127,9 @@ VITE_SUPABASE_URL=your_production_supabase_url
 VITE_SUPABASE_ANON_KEY=your_production_supabase_anon_key
 ```
 
+### Note
+A dev-only toolbar toggle is available for testing purposes. See the `TOOLBAR_INTEGRATION.md` documentation for more information.
+
 ### Hosting
 - **Primary**: Lovable.dev platform
 - **Alternative**: Vercel, Netlify, or any static hosting
@@ -138,6 +141,7 @@ VITE_SUPABASE_ANON_KEY=your_production_supabase_anon_key
 - **`AUTHENTICATION_SETUP.md`**: Authentication setup and user management
 - **`MOBILE_RESPONSIVE_IMPLEMENTATION.md`**: Mobile optimization guide
 - **`UI_3D_CAROUSEL_SPEC.md`**: Admin-style 3D carousel visual/behavioral spec and integration guide
+- **`TOOLBAR_INTEGRATION.md`**: 21st.dev toolbar integration, usage, dev-only toggle, and troubleshooting
 
 ## 🤝 Contributing
 

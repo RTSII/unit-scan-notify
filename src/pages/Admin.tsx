@@ -277,7 +277,10 @@ export default function Admin() {
               className="overflow-hidden"
             >
               <div className="p-4 pt-0">
-                <ViolationCarousel3D forms={violationForms} />
+                {/* Circular gallery with fixed height to create vertical padding */}
+                <div className="w-full h-[360px] bg-black/60 rounded-lg overflow-hidden">
+                  <CircularGallery items={mapToGalleryItems(violationForms.slice(0, 24))} className="text-white" />
+                </div>
               </div>
             </motion.div>
           )}
@@ -285,13 +288,6 @@ export default function Admin() {
       </Card>
     );
   };
-
-  // When a section becomes active, scroll the stack into view (under header)
-  useEffect(() => {
-    if (activeSection && sectionsTopRef.current) {
-      sectionsTopRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, [activeSection]);
 
   const fetchViolationForms = async () => {
     try {
@@ -531,7 +527,7 @@ export default function Admin() {
 
   // Get pending invitations (not used and not expired)
   const getPendingInvites = () => {
-    return invites.filter(invite => 
+    return invites.filter(invite =>
       !invite.used_at && new Date(invite.expires_at) > new Date()
     );
   };
@@ -547,9 +543,17 @@ export default function Admin() {
       'https://images.unsplash.com/photo-1595792419466-23cec2476fa6?q=80&w=900&auto=format&fit=crop',
       'https://images.unsplash.com/photo-1689799513565-44d2bc09d75b?q=80&w=900&auto=format&fit=crop',
     ];
+    const formatShort = (dateString: string) => {
+      const d = new Date(dateString);
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${mm}-${dd}`;
+    };
     return (forms || []).map((f, idx) => ({
-      common: `Unit ${f.unit_number}`,
-      binomial: f.location || formatDate(f.date),
+      // common will be used as Unit label line (second line)
+      common: f.unit_number || '—',
+      // binomial will be used as Date label line (top line)
+      binomial: f.date ? formatShort(f.date) : '—',
       photo: {
         url: f.photos?.[0] || fallbacks[idx % fallbacks.length],
         text: f.description || 'Violation photo',
