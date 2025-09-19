@@ -594,19 +594,19 @@ export default function Admin() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue p-4 pb-safe">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-vice-cyan/20 relative">
-        <div className="flex-1 flex justify-center">
+      <div className="flex items-center justify-between h-20 px-4 border-b border-vice-cyan/20 relative">
+        <div className="flex-1 h-full flex items-center justify-center">
           <img
             src="/Admin.png"
             alt="Admin Panel"
-            className="h-12 w-auto"
+            className="h-3/4 w-auto"
           />
         </div>
         <Button
           onClick={() => navigate('/')}
           variant="ghost"
           size="sm"
-          className="text-white hover:bg-white/10 p-2 absolute right-4"
+          className="text-white hover:bg-white/10 p-2 absolute right-4 top-1/2 -translate-y-1/2"
         >
           <Home className="w-5 h-5" />
         </Button>
