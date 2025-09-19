@@ -43,14 +43,19 @@ export const ViolationCarousel3D: React.FC<{ forms: FormLike[] }> = ({ forms }) 
 
   const targetFaces = isScreenSizeSm ? 16 : 22;
   const cylinderWidth = isScreenSizeSm ? 1100 : 1800;
-  const maxThumb = isScreenSizeSm ? 64 : 80;
+  const maxThumb = isScreenSizeSm ? 50 : 64; // Reduced from 64/80 to 50/64
 
   const displayItems = useMemo(() => {
     if (baseItems.length >= targetFaces) return baseItems;
     const fillers = Array.from({ length: targetFaces - baseItems.length }, (_, idx) => {
       const src = baseItems[idx % baseItems.length];
       if (!src || src.imageUrl === "placeholder") {
-        return { id: `placeholder-${idx + 2}`, imageUrl: "placeholder", date: "", unit: "" } as CarouselItem;
+        return { 
+          id: `placeholder-${idx + 2}`, 
+          imageUrl: "placeholder", 
+          date: new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' }),
+          unit: `${String.fromCharCode(65 + (idx % 26))}${Math.floor(idx / 26) + 1}`
+        } as CarouselItem;
       }
       return { ...src, id: `${src.id}-dup-${idx}` } as CarouselItem;
     });
@@ -108,7 +113,7 @@ export const ViolationCarousel3D: React.FC<{ forms: FormLike[] }> = ({ forms }) 
           )}
         </AnimatePresence>
 
-        <div className="relative h-[140px] w-full overflow-hidden rounded-xl bg-black/20">
+        <div className="relative h-[120px] w-full overflow-hidden rounded-xl bg-black/20 py-2">
           <div
             className="flex h-full items-center justify-center bg-black/10"
             style={{ perspective: "1000px", transformStyle: "preserve-3d", willChange: "transform" }}
@@ -120,7 +125,10 @@ export const ViolationCarousel3D: React.FC<{ forms: FormLike[] }> = ({ forms }) 
               onDrag={(_, info) => isCarouselActive && rotation.set(rotation.get() + info.offset.x * 0.05)}
               onDragEnd={(_, info) =>
                 isCarouselActive &&
-                controls.start({ rotateY: rotation.get() + info.velocity.x * 0.05, transition: { type: "spring", stiffness: 100, damping: 30, mass: 0.1 } })
+                controls.start({ 
+                  rotateY: rotation.get() + info.velocity.x * 0.1, 
+                  transition: { type: "spring", stiffness: 100, damping: 30, mass: 0.1 } 
+                })
               }
               animate={controls}
             >
@@ -132,7 +140,17 @@ export const ViolationCarousel3D: React.FC<{ forms: FormLike[] }> = ({ forms }) 
                   onClick={() => handleClick(item.imageUrl, i)}
                 >
                   {item.imageUrl === "placeholder" ? (
-                    <div className="w-full rounded-2xl bg-black/70 ring-1 ring-vice-pink/50 shadow-[0_0_6px_#ff149380,0_0_10px_#00ffff60] aspect-square" />
+                    <div className="w-full rounded-2xl bg-gray-800 ring-2 ring-vice-cyan/60 shadow-[0_0_8px_#00ffff60,0_0_16px_#00ffff40] aspect-square">
+                      {/* Neon cyan overlay for placeholder */}
+                      <div className="absolute top-1 right-1 flex flex-col items-end gap-0.5">
+                        <div className="text-[10px] sm:text-xs text-vice-cyan/90 drop-shadow-[0_0_2px_#00ffff]">
+                          {item.date}
+                        </div>
+                        <div className="text-[10px] sm:text-xs font-semibold text-vice-cyan drop-shadow-[0_0_2px_#00ffff]">
+                          {item.unit}
+                        </div>
+                      </div>
+                    </div>
                   ) : (
                     <div className="relative w-full aspect-square">
                       <motion.img
@@ -145,9 +163,14 @@ export const ViolationCarousel3D: React.FC<{ forms: FormLike[] }> = ({ forms }) 
                         animate={{ filter: "blur(0px)" }}
                         transition={{ duration: 0.15, ease: [0.32, 0.72, 0, 1] }}
                       />
-                      <div className="absolute inset-x-1 bottom-1 flex flex-col items-start gap-0.5">
-                        <span className="text-[10px] sm:text-xs font-semibold text-vice-cyan drop-shadow-[0_0_2px_#00ffff]">Unit {item.unit}</span>
-                        <span className="text-[10px] sm:text-xs text-vice-cyan/90 drop-shadow-[0_0_2px_#00ffff]">{item.date}</span>
+                      {/* Neon cyan overlay - moved to upper right */}
+                      <div className="absolute top-1 right-1 flex flex-col items-end gap-0.5">
+                        <div className="text-[10px] sm:text-xs text-vice-cyan/90 drop-shadow-[0_0_2px_#00ffff]">
+                          {item.date}
+                        </div>
+                        <div className="text-[10px] sm:text-xs font-semibold text-vice-cyan drop-shadow-[0_0_2px_#00ffff]">
+                          {item.unit}
+                        </div>
                       </div>
                     </div>
                   )}

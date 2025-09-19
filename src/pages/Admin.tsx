@@ -277,10 +277,7 @@ export default function Admin() {
               className="overflow-hidden"
             >
               <div className="p-4 pt-0">
-                {/* Full-screen circular gallery in dark mode */}
-                <div className="w-full h-[calc(100dvh-160px)] bg-black/60 rounded-lg overflow-hidden">
-                  <CircularGallery items={mapToGalleryItems(violationForms.slice(0, 24))} className="text-white" />
-                </div>
+                <ViolationCarousel3D forms={violationForms} />
               </div>
             </motion.div>
           )}
