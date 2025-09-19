@@ -288,15 +288,6 @@ export default function Admin() {
       </Card>
     );
   };
-          
-          await channel.track(userPresence);
-        }
-      });
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, profile]);
 
   // When a section becomes active, scroll the stack into view (under header)
   useEffect(() => {
