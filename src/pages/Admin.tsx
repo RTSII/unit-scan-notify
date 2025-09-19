@@ -596,11 +596,20 @@ export default function Admin() {
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-vice-cyan/20 relative">
         <div className="flex-1 flex justify-center">
-          <img
-            src="/Admin.png"
-            alt="Admin Panel"
-            className="h-28 w-auto border border-vice-cyan/30 rounded-lg shadow-[0_0_20px_rgba(0,255,255,0.3)] backdrop-blur-sm"
-          />
+          <h1 
+            className="text-7xl font-bold text-vice-pink tracking-wider"
+            style={{
+              textShadow: `
+                0 0 5px #ff1493,
+                0 0 10px #ff1493,
+                0 0 15px #ff1493,
+                0 0 20px #ff1493,
+                0 0 30px #ff1493
+              `
+            }}
+          >
+            ADMIN
+          </h1>
         </div>
         <Button
           onClick={() => navigate('/')}
