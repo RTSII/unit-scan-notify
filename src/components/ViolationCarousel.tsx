@@ -135,7 +135,7 @@ export const ViolationCarousel3D: React.FC<{ forms: FormLike[] }> = ({ forms }) 
               {displayItems.map((item, i) => (
                 <motion.div
                   key={`key-${item.imageUrl}-${i}`}
-                  className="absolute flex h-full origin-center items-center justify-center rounded-2xl p-0.5 sm:p-1"
+                  className="absolute flex h-full origin-center items-center justify-center rounded-2xl p-0.5"
                   style={{ width: `${faceWidth}px`, transform: `rotateY(${i * (360 / faceCount)}deg) translateZ(${radius}px)` }}
                   onClick={() => handleClick(item.imageUrl, i)}
                 >
