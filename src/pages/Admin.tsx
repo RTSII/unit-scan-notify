@@ -599,7 +599,7 @@ export default function Admin() {
           <img
             src="/Admin.png"
             alt="Admin Panel"
-            className="h-28 w-auto"
+            className="h-12 w-auto"
           />
         </div>
         <Button
