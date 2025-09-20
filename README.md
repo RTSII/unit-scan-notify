@@ -4,9 +4,13 @@
 
 **SPR Vice City** is a mobile-first violation notice management application designed for field operations. Built with a Vaporwave retro-futuristic aesthetic set in Coastal South Carolina, this app enables my property management team to capture, document, export, and manage violation notices efficiently on mobile devices.
 
-**Live URL**: https://lovable.dev/projects/22649cbf-4588-41b8-adc2-962a2e3dd1da
+**Live URL**: https://spr-vicecity.lovable.app/
 
-## 🚀 Recent Updates (2025)
+### ✅ **Latest Updates - September 20, 2025**
+- **Camera Capture Fixes**: Fixed red X button to properly resume live video preview after canceling photo capture
+- **Books Navigation Enhancement**: Added automatic data refresh when navigating to Books page after saving forms
+- **Improved User Workflow**: Newly saved violation forms now appear immediately in the books library without manual refresh
+- **Live URL Update**: Updated to new production URL: https://spr-vicecity.lovable.app/
 
 ### ✅ **Latest Updates - September 8, 2025**
 - **Texture Card Components**: Implemented custom TextureCard UI components for enhanced visual design
