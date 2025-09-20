@@ -341,36 +341,65 @@ export default function DetailsPrevious() {
 
     setIsSaving(true);
     try {
-      const allPhotos = [...existingPhotos, ...selectedImages];
+      // Convert date and time to occurred_at timestamp
+      let occurredAt = null;
+      if (formData.date && formData.time) {
+        // Parse MM/DD format date - assume current year
+        const currentYear = new Date().getFullYear();
+        const [month, day] = formData.date.split('/').map(num => parseInt(num));
+        const [hours, minutes] = formData.time.split(':').map(num => parseInt(num));
+        
+        // Convert to 24-hour format
+        let adjustedHours = hours;
+        if (formData.ampm === 'PM' && hours !== 12) {
+          adjustedHours += 12;
+        } else if (formData.ampm === 'AM' && hours === 12) {
+          adjustedHours = 0;
+        }
+
+        const dateObject = new Date(currentYear, month - 1, day, adjustedHours, minutes);
+        occurredAt = dateObject.toISOString();
+      }
 
       const formDataToSave = {
         user_id: user.id,
         unit_number: formData.unit_number,
-        date: formData.date,
-        time: `${formData.time} ${formData.ampm}`,
+        occurred_at: occurredAt,
         location: selectedViolations.join(', '),
         description: formData.description,
-        photos: allPhotos,
         status: 'saved'
       };
 
+      let savedFormId;
       let error: PostgrestError | null = null;
+
       if (id) {
         // Update existing record
         const result = await supabase
           .from('violation_forms')
-          .update(formDataToSave)
-          .eq('id', id);
+          .update(formDataToSave as any)
+          .eq('id', id)
+          .select();
         error = result.error;
+        savedFormId = id;
       } else {
         // Create new record
         const result = await supabase
           .from('violation_forms')
-          .insert(formDataToSave);
+          .insert(formDataToSave as any)
+          .select();
         error = result.error;
+        savedFormId = result.data?.[0]?.id;
       }
 
       if (error) throw error;
+
+      // Save photos to violation_photos table if any
+      if (selectedImages.length > 0 && savedFormId) {
+        // TODO: Upload photos to storage and save references
+        // For now, just log that photos would be saved
+        console.log('Photos to save:', selectedImages.length, 'for form ID:', savedFormId);
+      }
 
       toast.success(id ? 'Form updated successfully!' : 'Form saved successfully!');
       navigate('/books');
@@ -405,13 +434,27 @@ export default function DetailsPrevious() {
         }
 
         if (data) {
-          const timeMatch = data.time?.match(/^(\d{1,2}:\d{2})\s*(AM|PM)$/i);
-          const time = timeMatch ? timeMatch[1] : '';
-          const ampm = timeMatch ? timeMatch[2].toUpperCase() : 'AM';
+          // Parse occurred_at timestamp to date and time
+          let date = '';
+          let time = '';
+          let ampm = 'AM';
+          
+          if ((data as any).occurred_at) {
+            const occurredDate = new Date((data as any).occurred_at);
+            const month = (occurredDate.getMonth() + 1).toString().padStart(2, '0');
+            const day = occurredDate.getDate().toString().padStart(2, '0');
+            date = `${month}/${day}`;
+            
+            let hours = occurredDate.getHours();
+            const minutes = occurredDate.getMinutes().toString().padStart(2, '0');
+            ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12;
+            time = `${hours}:${minutes}`;
+          }
 
           setFormData({
             unit_number: data.unit_number || '',
-            date: data.date || '',
+            date: date,
             time: time,
             ampm: ampm,
             description: data.description || '',
@@ -424,9 +467,9 @@ export default function DetailsPrevious() {
             balconyChoice: data.location?.includes('balcony') ? 'balcony' : data.location?.includes('front') ? 'front' : '',
           });
 
-          if (data.photos) {
-            setExistingPhotos(data.photos);
-          }
+          // TODO: Load photos from violation_photos table
+          // For now, just clear existing photos
+          setExistingPhotos([]);
         }
       };
 
