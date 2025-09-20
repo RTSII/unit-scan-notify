@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Home, Camera, X, ArrowLeftIcon } from 'lucide-react';
+import { Home, Camera, X, ArrowLeftIcon, Plus } from 'lucide-react';
 
 import { TextureCard, TextureCardContent } from '../components/ui/texture-card';
 import { Button } from '../components/ui/button';
@@ -108,6 +108,12 @@ export default function DetailsPrevious() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
 
+    // Check if adding these files would exceed the max limit of 4
+    if (selectedImages.length + files.length > 4) {
+      toast.error('Maximum 4 photos allowed');
+      return;
+    }
+
     files.forEach(file => {
       const reader = new FileReader();
       reader.onload = (event) => {
@@ -196,20 +202,41 @@ export default function DetailsPrevious() {
     );
   };
 
-  // Photos Popover Component
-  const PhotosPopover = () => {
-    const [isOpen, setIsOpen] = useState(false);
-
-    const handleDone = () => {
-      setIsOpen(false);
+  // Photos Section Component - Expands below when photos are added
+  const PhotosSection = () => {
+    const addPhoto = () => {
+      if (selectedImages.length < 4) {
+        fileInputRef.current?.click();
+      }
     };
 
+    // Calculate grid layout - show empty slots up to 4 total
+    const photoSlots = [];
+    for (let i = 0; i < Math.max(4, selectedImages.length); i++) {
+      if (i < selectedImages.length) {
+        // Show existing photo
+        photoSlots.push({
+          type: 'photo',
+          src: selectedImages[i],
+          index: i
+        });
+      } else if (i === selectedImages.length && selectedImages.length < 4) {
+        // Show plus button for adding more
+        photoSlots.push({
+          type: 'add',
+          index: i
+        });
+      }
+    }
+
     return (
-      <MorphingPopover open={isOpen} onOpenChange={setIsOpen}>
-        <MorphingPopoverTrigger asChild>
+      <div className="space-y-4">
+        {/* Photos Button */}
+        <div className="flex justify-center">
           <button
             type="button"
-            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-full transition-all duration-300 ease-in-out min-h-[44px] min-w-[120px] transform-gpu ${selectedImages.length > 0 || isOpen
+            onClick={addPhoto}
+            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-full transition-all duration-300 ease-in-out min-h-[44px] min-w-[120px] transform-gpu ${selectedImages.length > 0
               ? 'bg-vice-pink text-white shadow-lg shadow-vice-pink/30 scale-105'
               : 'bg-black/40 border border-vice-cyan/30 text-vice-cyan hover:bg-vice-pink/20 hover:shadow-md hover:shadow-vice-pink/20'
               }`}
@@ -219,82 +246,61 @@ export default function DetailsPrevious() {
               Photos ({selectedImages.length})
             </span>
           </button>
-        </MorphingPopoverTrigger>
-        <MorphingPopoverContent 
-          className="w-80 p-0 bg-black/90 border-vice-cyan/30"
-          side="bottom"
-          align="center"
-          avoidCollisions={false}
-        >
+        </div>
+
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleFileChange}
+          className="hidden"
+        />
+
+        {/* Expanding Photo Grid - Only show when photos exist */}
+        {selectedImages.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="p-4 space-y-4"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className="bg-black/90 border border-vice-cyan/30 rounded-lg p-4 backdrop-blur-sm"
           >
-            <div className="flex items-center justify-between">
-              <h3 className="text-vice-cyan font-medium">Attach Photos</h3>
-              <Button
-                onClick={() => setIsOpen(false)}
-                variant="ghost"
-                size="sm"
-                className="text-white hover:bg-white/10 p-1"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleFileChange}
-              className="hidden"
-            />
-
-            <Button
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full bg-vice-cyan hover:bg-vice-cyan/80 text-black"
-            >
-              <Camera className="w-4 h-4 mr-2" />
-              Select Photos
-            </Button>
-
-            {selectedImages.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="text-white text-sm font-medium">Selected Photos ({selectedImages.length})</h4>
-                <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
-                  {selectedImages.map((image, index) => (
-                    <div key={index} className="relative group">
+            <h3 className="text-vice-cyan font-medium mb-3 text-center">Attached Photos</h3>
+            <div className="grid grid-cols-2 gap-3 max-w-xs mx-auto">
+              {photoSlots.slice(0, 4).map((slot, i) => (
+                <div key={i} className="aspect-square">
+                  {slot.type === 'photo' ? (
+                    <div className="relative group w-full h-full">
                       <img
-                        src={image}
-                        alt={`Selected ${index + 1}`}
-                        className="w-full h-20 object-cover rounded border border-vice-cyan/30"
+                        src={slot.src}
+                        alt={`Photo ${slot.index + 1}`}
+                        className="w-full h-full object-cover rounded border border-vice-cyan/30"
                       />
                       <button
-                        onClick={() => removeImage(index)}
+                        onClick={() => removeImage(slot.index)}
                         className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <X className="w-3 h-3" />
                       </button>
                     </div>
-                  ))}
+                  ) : (
+                    <button
+                      onClick={addPhoto}
+                      disabled={selectedImages.length >= 4}
+                      className="w-full h-full border-2 border-dashed border-vice-cyan/50 rounded flex items-center justify-center text-vice-cyan hover:border-vice-pink hover:text-vice-pink transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Plus className="w-6 h-6" />
+                    </button>
+                  )}
                 </div>
-              </div>
-            )}
-
-            <div className="flex justify-end">
-              <Button
-                onClick={handleDone}
-                size="sm"
-                className="bg-vice-pink hover:bg-vice-pink/80 text-white"
-              >
-                Done
-              </Button>
+              ))}
             </div>
+            {selectedImages.length >= 4 && (
+              <p className="text-xs text-vice-cyan/70 text-center mt-2">Maximum 4 photos reached</p>
+            )}
           </motion.div>
-        </MorphingPopoverContent>
-      </MorphingPopover>
+        )}
+      </div>
     );
   };
 
@@ -607,8 +613,10 @@ export default function DetailsPrevious() {
               {/* Morphing Description and Photos Buttons - Combined Row */}
               <div className="flex gap-3 justify-center">
                 <DescriptionPopover />
-                <PhotosPopover />
               </div>
+
+              {/* Photos Section - Expands below when photos are added */}
+              <PhotosSection />
 
               {/* Book Em Button */}
               <div className="flex justify-center pt-4">
