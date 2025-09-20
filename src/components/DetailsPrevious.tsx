@@ -202,8 +202,33 @@ export default function DetailsPrevious() {
     );
   };
 
-  // Photos Section Component - Expands below when photos are added
-  const PhotosSection = () => {
+  // Photos Button Component
+  const PhotosButton = () => {
+    const addPhoto = () => {
+      if (selectedImages.length < 4) {
+        fileInputRef.current?.click();
+      }
+    };
+
+    return (
+      <button
+        type="button"
+        onClick={addPhoto}
+        className={`flex items-center justify-center gap-2 px-4 py-3 rounded-full transition-all duration-300 ease-in-out min-h-[44px] min-w-[120px] transform-gpu ${selectedImages.length > 0
+          ? 'bg-vice-pink text-white shadow-lg shadow-vice-pink/30 scale-105'
+          : 'bg-black/40 border border-vice-cyan/30 text-vice-cyan hover:bg-vice-pink/20 hover:shadow-md hover:shadow-vice-pink/20'
+          }`}
+      >
+        <Camera className="w-4 h-4" />
+        <span className="font-medium text-sm">
+          Photos ({selectedImages.length})
+        </span>
+      </button>
+    );
+  };
+
+  // Photos Grid Component
+  const PhotosGrid = () => {
     const addPhoto = () => {
       if (selectedImages.length < 4) {
         fileInputRef.current?.click();
@@ -230,24 +255,7 @@ export default function DetailsPrevious() {
     }
 
     return (
-      <div className="space-y-4">
-        {/* Photos Button */}
-        <div className="flex justify-center">
-          <button
-            type="button"
-            onClick={addPhoto}
-            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-full transition-all duration-300 ease-in-out min-h-[44px] min-w-[120px] transform-gpu ${selectedImages.length > 0
-              ? 'bg-vice-pink text-white shadow-lg shadow-vice-pink/30 scale-105'
-              : 'bg-black/40 border border-vice-cyan/30 text-vice-cyan hover:bg-vice-pink/20 hover:shadow-md hover:shadow-vice-pink/20'
-              }`}
-          >
-            <Camera className="w-4 h-4" />
-            <span className="font-medium text-sm">
-              Photos ({selectedImages.length})
-            </span>
-          </button>
-        </div>
-
+      <>
         {/* Hidden file input */}
         <input
           ref={fileInputRef}
@@ -263,12 +271,12 @@ export default function DetailsPrevious() {
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
-            className="bg-black/90 border border-vice-cyan/30 rounded-lg p-4 backdrop-blur-sm"
+            className="bg-black/90 border border-vice-cyan/30 rounded-lg p-3 backdrop-blur-sm max-w-xs mx-auto"
           >
-            <h3 className="text-vice-cyan font-medium mb-3 text-center">Attached Photos</h3>
-            <div className="grid grid-cols-2 gap-3 max-w-xs mx-auto">
+            <h3 className="text-vice-cyan font-medium mb-2 text-center text-sm">Attached Photos</h3>
+            <div className="grid grid-cols-2 gap-2">
               {photoSlots.slice(0, 4).map((slot, i) => (
-                <div key={i} className="aspect-square">
+                <div key={i} className="aspect-square w-16 h-16">
                   {slot.type === 'photo' ? (
                     <div className="relative group w-full h-full">
                       <img
@@ -278,9 +286,9 @@ export default function DetailsPrevious() {
                       />
                       <button
                         onClick={() => removeImage(slot.index)}
-                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
                       >
-                        <X className="w-3 h-3" />
+                        <X className="w-2 h-2" />
                       </button>
                     </div>
                   ) : (
@@ -289,18 +297,18 @@ export default function DetailsPrevious() {
                       disabled={selectedImages.length >= 4}
                       className="w-full h-full border-2 border-dashed border-vice-cyan/50 rounded flex items-center justify-center text-vice-cyan hover:border-vice-pink hover:text-vice-pink transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <Plus className="w-6 h-6" />
+                      <Plus className="w-4 h-4" />
                     </button>
                   )}
                 </div>
               ))}
             </div>
             {selectedImages.length >= 4 && (
-              <p className="text-xs text-vice-cyan/70 text-center mt-2">Maximum 4 photos reached</p>
+              <p className="text-xs text-vice-cyan/70 text-center mt-1">Maximum 4 photos reached</p>
             )}
           </motion.div>
         )}
-      </div>
+      </>
     );
   };
 
@@ -613,10 +621,13 @@ export default function DetailsPrevious() {
               {/* Morphing Description and Photos Buttons - Combined Row */}
               <div className="flex gap-3 justify-center">
                 <DescriptionPopover />
+                <PhotosButton />
               </div>
 
-              {/* Photos Section - Expands below when photos are added */}
-              <PhotosSection />
+              {/* Photos Grid - Expands below buttons when photos are added */}
+              <div className="flex justify-center">
+                <PhotosGrid />
+              </div>
 
               {/* Book Em Button */}
               <div className="flex justify-center pt-4">
