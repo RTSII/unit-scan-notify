@@ -62,6 +62,9 @@ This document defines the canonical visual and behavioral spec for the 3D carous
 - When used in multiple collapsible sections (e.g., This Week, This Month):
   - Only one section may be expanded at a time.
   - Clicking outside of the violations area collapses all.
+  - **Active Section Positioning**: When a section is expanded, it automatically moves to the top position within the sections container for improved visibility and user experience.
+  - **Dynamic Reordering**: Use CSS flexbox `order-first` class on the expanded section's container to move it to the top of the flex column.
+  - **Return to Default**: When collapsed or when another section becomes active, sections return to their natural order.
 - Reference: see `src/pages/Admin.tsx` — `AdminViolationCarousel` and the surrounding expand/collapse logic.
 
 
@@ -96,6 +99,10 @@ This document defines the canonical visual and behavioral spec for the 3D carous
 7. Sections behavior (if applicable)
    - Ensure only one collapsible section is open at a time.
    - Implement click-outside collapse for the entire violations block.
+   - **Implement Active Section Positioning**: Add conditional CSS classes to move expanded sections to the top:
+     - Wrap each section in a container with dynamic `order-first` class when expanded
+     - Example: `<div className={`w-full ${isExpanded ? 'order-first' : ''}`}>`
+   - Ensure smooth transitions when sections reorder.
 
 
 ## File references

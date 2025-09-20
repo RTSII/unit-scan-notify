@@ -73,6 +73,7 @@
 - **Centered Content**: All UI elements properly centered with responsive containers and breakpoints
 - **Mobile-First Approach**: Designed primarily for mobile with progressive enhancement
 - **Full-Screen Coverage**: Eliminates white space with proper CSS positioning and viewport handling
+- **Active Section Positioning**: In multi-section interfaces with 3D carousels, expanded sections automatically move to the top position for improved visibility and user experience
 
 ### 🎨 Vice City Theme
 - **Vaporwave Retro-Futuristic Design**: Neon colors, gradients, beach/ocean elements, and cyberpunk aesthetics

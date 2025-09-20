@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
@@ -57,9 +57,19 @@ const Books = () => {
   const filterRef = useRef<HTMLDivElement>(null);
   const cardsContainerRef = useRef<HTMLDivElement>(null);
 
+  const location = useLocation();
+
   useEffect(() => {
     fetchSavedForms();
   }, [user]);
+
+  // Refetch data when navigating to books page (e.g., after saving a new form)
+  useEffect(() => {
+    if (location.pathname === '/books' && !loading) {
+      console.log('Navigated to books page, refreshing data...');
+      fetchSavedForms();
+    }
+  }, [location.pathname, loading]);
 
   // Click outside handler for filter dropdown and card expansion
   useEffect(() => {
@@ -312,56 +322,60 @@ const Books = () => {
 
         {/* Dashboard Stats - Vertically Stacked and Centered */}
         <div className="py-4">
-          <div className="flex flex-col items-center gap-4 max-w-md mx-auto" ref={cardsContainerRef}>
+          <div className="flex flex-col items-center gap-4 max-w-[560px] mx-auto" ref={cardsContainerRef}>
             {/* This Week Card */}
-            <Collapsible open={thisWeekExpanded} onOpenChange={handleWeekExpansion} className="w-full">
-              <CollapsibleTrigger asChild>
-                <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm hover:border-vice-pink/50 transition-colors cursor-pointer w-full">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs font-medium text-vice-cyan">This Week</p>
-                        <p className="text-lg font-bold text-white">
-                          {getThisWeekForms().length}
-                        </p>
+            <div className={`w-full ${thisWeekExpanded ? 'order-first' : ''}`}>
+              <Collapsible open={thisWeekExpanded} onOpenChange={handleWeekExpansion} className="w-full">
+                <CollapsibleTrigger asChild>
+                  <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm hover:border-vice-pink/50 transition-colors cursor-pointer w-full">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-medium text-vice-cyan">This Week</p>
+                          <p className="text-lg font-bold text-white">
+                            {getThisWeekForms().length}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-6 h-6 text-vice-pink" />
+                          {thisWeekExpanded ? <ChevronUp className="w-4 h-4 text-vice-cyan" /> : <ChevronDown className="w-4 h-4 text-vice-cyan" />}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-6 h-6 text-vice-pink" />
-                        {thisWeekExpanded ? <ChevronUp className="w-4 h-4 text-vice-cyan" /> : <ChevronDown className="w-4 h-4 text-vice-cyan" />}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="mt-4">
-                <ViolationCarousel3D forms={getThisWeekForms()} />
-              </CollapsibleContent>
-            </Collapsible>
+                    </CardContent>
+                  </Card>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-4">
+                  <ViolationCarousel3D forms={getThisWeekForms()} />
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
 
             {/* This Month Card */}
-            <Collapsible open={thisMonthExpanded} onOpenChange={handleMonthExpansion} className="w-full">
-              <CollapsibleTrigger asChild>
-                <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm hover:border-vice-pink/50 transition-colors cursor-pointer w-full">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs font-medium text-vice-cyan">This Month</p>
-                        <p className="text-lg font-bold text-white">
-                          {getThisMonthForms().length}
-                        </p>
+            <div className={`w-full ${thisMonthExpanded && !thisWeekExpanded ? 'order-first' : ''}`}>
+              <Collapsible open={thisMonthExpanded} onOpenChange={handleMonthExpansion} className="w-full">
+                <CollapsibleTrigger asChild>
+                  <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm hover:border-vice-pink/50 transition-colors cursor-pointer w-full">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-medium text-vice-cyan">This Month</p>
+                          <p className="text-lg font-bold text-white">
+                            {getThisMonthForms().length}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-6 h-6 text-vice-pink" />
+                          {thisMonthExpanded ? <ChevronUp className="w-4 h-4 text-vice-cyan" /> : <ChevronDown className="w-4 h-4 text-vice-cyan" />}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-6 h-6 text-vice-pink" />
-                        {thisMonthExpanded ? <ChevronUp className="w-4 h-4 text-vice-cyan" /> : <ChevronDown className="w-4 h-4 text-vice-cyan" />}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="mt-4">
-                <ViolationCarousel3D forms={getThisMonthForms()} />
-              </CollapsibleContent>
-            </Collapsible>
+                    </CardContent>
+                  </Card>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-4">
+                  <ViolationCarousel3D forms={getThisMonthForms()} />
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
           </div>
         </div>
         <div className="flex justify-center py-6">

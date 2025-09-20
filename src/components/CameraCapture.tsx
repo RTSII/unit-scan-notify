@@ -289,6 +289,12 @@ const CameraCapture = () => {
     setCaptureState('initial');
     setCapturedImageUrl('');
     // Note: We don't stop the camera, just return to live view
+    // Ensure video is playing if it stopped
+    if (videoRef.current && videoRef.current.paused) {
+      videoRef.current.play().catch(error => {
+        console.error('Error resuming video after cancel:', error);
+      });
+    }
   };
 
   const handleConfirmCapture = () => {

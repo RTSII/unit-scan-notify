@@ -54,7 +54,7 @@ This document outlines the comprehensive mobile optimizations implemented for iP
 - **Thumbnail Shape & Effects**: `aspect-square`, `rounded-2xl`, `ring-1 ring-vice-cyan/40`, neon shadow
 - **Overlay**: In-thumb neon cyan labels (stacked) — `Unit {unit}` and `{date}` at bottom-left
 - **Interactions**: Drag with momentum spring; unique `layoutId` per face; modal preview when tapped
-- **Sections UX**: Only one section expanded at a time; click-outside collapses all (Admin reference)
+- **Sections UX**: Only one section expanded at a time; click-outside collapses all; active sections automatically move to top position for improved visibility (Admin reference)
 
 #### Camera Component (`src/components/CameraCapture.tsx`)
 - **Rear Camera Priority**: Automatically attempts to use rear camera (environment) first for accurate violation documentation
@@ -127,3 +127,4 @@ This document outlines the comprehensive mobile optimizations implemented for iP
 - **Vice City Thumbnails**: Black screens with glowing borders using official color palette
 - **Single Card Expansion**: Enhanced user experience with exclusive card expansion logic
 - **Mobile Responsiveness**: Improved drag interactions and touch target sizing
+- **Active Section Positioning**: Expanded sections automatically move to top of UI for better visibility
