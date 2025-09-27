@@ -352,9 +352,17 @@ const Books = () => {
 
         {/* All Forms Section */}
         <div className="flex flex-col items-center py-6 space-y-6">
-          <h2 className="text-2xl font-bold text-white text-center">All Forms</h2>
+          <Button
+            onClick={() => setShowFullLibrary(true)}
+            variant="outline"
+            size="lg"
+            className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20 px-8 py-3 min-h-[44px]"
+          >
+            <BookOpen className="w-6 h-6 mr-2" />
+            Full Library
+          </Button>
           
-          {/* Search and Filter - Centered below All Forms */}
+          {/* Search and Filter - Centered below Full Library */}
           <div className="w-full max-w-4xl">
             <div className="flex flex-col md:flex-row items-center gap-4 bg-black/40 border border-vice-cyan/30 backdrop-blur-sm p-4 rounded-lg">
               {/* Search Bar */}
@@ -472,16 +480,6 @@ const Books = () => {
               </div>
             </div>
           </div>
-
-          <Button
-            onClick={() => setShowFullLibrary(true)}
-            variant="outline"
-            size="lg"
-            className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20 px-8 py-3 min-h-[44px]"
-          >
-            <BookOpen className="w-6 h-6 mr-2" />
-            Full Library
-          </Button>
         </div>
 
         {/* Forms Display */}
