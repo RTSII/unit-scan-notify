@@ -47,7 +47,6 @@ const Books = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
-  const [selectedFilter, setSelectedFilter] = useState("all");
   const [selectedBuilding, setSelectedBuilding] = useState("all");
   const [selectedViolationType, setSelectedViolationType] = useState("all");
   const [showWithPhotosOnly, setShowWithPhotosOnly] = useState(false);
@@ -177,10 +176,6 @@ const Books = () => {
       );
     }
 
-    // Apply status filter
-    if (selectedFilter !== "all") {
-      filtered = filtered.filter(form => form.status === selectedFilter);
-    }
 
     // Apply building filter
     if (selectedBuilding !== "all") {
@@ -299,133 +294,6 @@ const Books = () => {
 
       {/* Main Content Container */}
       <div className="w-full max-w-7xl mx-auto px-4 pb-6">
-        {/* Search and Filter - Centered */}
-        <div className="py-4">
-          <div className="flex flex-col items-center gap-4 max-w-2xl mx-auto">
-            <div className="relative w-full max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-vice-cyan" />
-              <Input
-                placeholder="Search by unit, description, location, or team member..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-black/30 border-vice-cyan/50 text-white placeholder:text-vice-cyan/70 min-h-[44px] w-full"
-              />
-            </div>
-
-            <div className="relative" ref={filterRef}>
-              <Collapsible open={filterOpen} onOpenChange={setFilterOpen}>
-                <CollapsibleTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20 min-h-[44px] px-6"
-                  >
-                    <Filter className="w-4 h-4 mr-2" />
-                    Filter
-                    {filterOpen ? <ChevronUp className="w-4 h-4 ml-2" /> : <ChevronDown className="w-4 h-4 ml-2" />}
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="absolute left-1/2 transform -translate-x-1/2 top-full mt-2 z-10 w-72">
-                  <Card className="bg-black/90 border-vice-cyan/50 backdrop-blur-sm">
-                    <CardContent className="p-3 space-y-4">
-                      {/* Status Filter */}
-                      <div>
-                        <p className="text-xs font-medium text-vice-cyan mb-2">Status</p>
-                        <div className="space-y-1">
-                          {["all", "saved", "completed"].map((filter) => (
-                            <Button
-                              key={filter}
-                              variant={selectedFilter === filter ? "default" : "ghost"}
-                              size="sm"
-                              onClick={() => setSelectedFilter(filter)}
-                              className="w-full justify-start text-white hover:bg-vice-cyan/20 min-h-[36px] text-xs"
-                            >
-                              {filter === "all" ? "All Statuses" : filter.charAt(0).toUpperCase() + filter.slice(1)}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Building Filter */}
-                      <div>
-                        <p className="text-xs font-medium text-vice-cyan mb-2">Building</p>
-                        <div className="space-y-1">
-                          {["all", "A", "B", "C", "D"].map((building) => (
-                            <Button
-                              key={building}
-                              variant={selectedBuilding === building ? "default" : "ghost"}
-                              size="sm"
-                              onClick={() => setSelectedBuilding(building)}
-                              className="w-full justify-start text-white hover:bg-vice-cyan/20 min-h-[36px] text-xs"
-                            >
-                              {building === "all" ? "All Buildings" : `Building ${building}`}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Violation Type Filter */}
-                      <div>
-                        <p className="text-xs font-medium text-vice-cyan mb-2">Violation Type</p>
-                        <div className="space-y-1">
-                          {[
-                            { value: "all", label: "All Types" },
-                            { value: "balcony", label: "Balcony" },
-                            { value: "front", label: "Front/Porch" },
-                            { value: "window", label: "Window" },
-                            { value: "parking", label: "Parking/Vehicle" },
-                            { value: "noise", label: "Noise" },
-                            { value: "trash", label: "Trash/Garbage" }
-                          ].map((type) => (
-                            <Button
-                              key={type.value}
-                              variant={selectedViolationType === type.value ? "default" : "ghost"}
-                              size="sm"
-                              onClick={() => setSelectedViolationType(type.value)}
-                              className="w-full justify-start text-white hover:bg-vice-cyan/20 min-h-[36px] text-xs"
-                            >
-                              {type.label}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Photos Filter */}
-                      <div>
-                        <p className="text-xs font-medium text-vice-cyan mb-2">Photos</p>
-                        <Button
-                          variant={showWithPhotosOnly ? "default" : "ghost"}
-                          size="sm"
-                          onClick={() => setShowWithPhotosOnly(!showWithPhotosOnly)}
-                          className="w-full justify-start text-white hover:bg-vice-cyan/20 min-h-[36px] text-xs"
-                        >
-                          {showWithPhotosOnly ? "✓ " : ""}With Photos Only
-                        </Button>
-                      </div>
-
-                      {/* Clear All Filters */}
-                      <div className="pt-2 border-t border-vice-cyan/20">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedFilter("all");
-                            setSelectedBuilding("all");
-                            setSelectedViolationType("all");
-                            setShowWithPhotosOnly(false);
-                            setFilterOpen(false);
-                          }}
-                          className="w-full bg-transparent border-vice-pink/50 text-vice-pink hover:bg-vice-pink/20 min-h-[36px] text-xs"
-                        >
-                          Clear All Filters
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </CollapsibleContent>
-              </Collapsible>
-            </div>
-          </div>
-        </div>
 
         {/* Dashboard Stats - Vertically Stacked and Centered */}
         <div className="py-4">
@@ -481,7 +349,130 @@ const Books = () => {
             </Collapsible>
           </div>
         </div>
-        <div className="flex justify-center py-6">
+
+        {/* All Forms Section */}
+        <div className="flex flex-col items-center py-6 space-y-6">
+          <h2 className="text-2xl font-bold text-white text-center">All Forms</h2>
+          
+          {/* Search and Filter - Centered below All Forms */}
+          <div className="w-full max-w-4xl">
+            <div className="flex flex-col md:flex-row items-center gap-4 bg-black/40 border border-vice-cyan/30 backdrop-blur-sm p-4 rounded-lg">
+              {/* Search Bar */}
+              <div className="relative flex-1 w-full">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-vice-cyan" />
+                <Input
+                  placeholder="Search by unit, description, location, or team member..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 bg-black/30 border-vice-cyan/50 text-white placeholder:text-vice-cyan/70 min-h-[44px] w-full"
+                />
+              </div>
+
+              {/* Filter Accordions */}
+              <div className="flex flex-wrap gap-2 items-center" ref={filterRef}>
+                {/* Building Filter */}
+                <Collapsible>
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20 min-h-[36px] px-3"
+                    >
+                      <Home className="w-4 h-4 mr-1" />
+                      Building
+                      <ChevronDown className="w-3 h-3 ml-1" />
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="absolute mt-2 z-10">
+                    <Card className="bg-black/90 border-vice-cyan/50 backdrop-blur-sm w-48">
+                      <CardContent className="p-2 space-y-1">
+                        {["all", "A", "B", "C", "D"].map((building) => (
+                          <Button
+                            key={building}
+                            variant={selectedBuilding === building ? "default" : "ghost"}
+                            size="sm"
+                            onClick={() => setSelectedBuilding(building)}
+                            className="w-full justify-start text-white hover:bg-vice-cyan/20 min-h-[32px] text-xs"
+                          >
+                            {building === "all" ? "All Buildings" : `Building ${building}`}
+                          </Button>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  </CollapsibleContent>
+                </Collapsible>
+
+                {/* Violation Type Filter */}
+                <Collapsible>
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20 min-h-[36px] px-3"
+                    >
+                      <MapPin className="w-4 h-4 mr-1" />
+                      Type
+                      <ChevronDown className="w-3 h-3 ml-1" />
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="absolute mt-2 z-10">
+                    <Card className="bg-black/90 border-vice-cyan/50 backdrop-blur-sm w-48">
+                      <CardContent className="p-2 space-y-1">
+                        {[
+                          { value: "all", label: "All Types" },
+                          { value: "balcony", label: "Balcony" },
+                          { value: "front", label: "Front/Porch" },
+                          { value: "window", label: "Window" },
+                          { value: "parking", label: "Parking/Vehicle" },
+                          { value: "noise", label: "Noise" },
+                          { value: "trash", label: "Trash/Garbage" }
+                        ].map((type) => (
+                          <Button
+                            key={type.value}
+                            variant={selectedViolationType === type.value ? "default" : "ghost"}
+                            size="sm"
+                            onClick={() => setSelectedViolationType(type.value)}
+                            className="w-full justify-start text-white hover:bg-vice-cyan/20 min-h-[32px] text-xs"
+                          >
+                            {type.label}
+                          </Button>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  </CollapsibleContent>
+                </Collapsible>
+
+                {/* Photos Filter */}
+                <Button
+                  variant={showWithPhotosOnly ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setShowWithPhotosOnly(!showWithPhotosOnly)}
+                  className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20 min-h-[36px] px-3"
+                >
+                  <ImageIcon className="w-4 h-4 mr-1" />
+                  Photos Only
+                </Button>
+
+                {/* Clear Filters */}
+                {(selectedBuilding !== "all" || selectedViolationType !== "all" || showWithPhotosOnly) && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedBuilding("all");
+                      setSelectedViolationType("all");
+                      setShowWithPhotosOnly(false);
+                    }}
+                    className="bg-transparent border-vice-pink/50 text-vice-pink hover:bg-vice-pink/20 min-h-[36px] px-3"
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Clear
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+
           <Button
             onClick={() => setShowFullLibrary(true)}
             variant="outline"
@@ -504,9 +495,6 @@ const Books = () => {
           ) : (
             /* Dashboard List View */
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-white text-center">
-                {searchTerm ? `Search Results (${filteredForms.length})` : `Filtered Results (${filteredForms.length})`}
-              </h3>
 
               {filteredForms.map((form) => (
                 <Card
