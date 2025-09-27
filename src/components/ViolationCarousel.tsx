@@ -139,10 +139,10 @@ export const ViolationCarousel3D: React.FC<{ forms: FormLike[] }> = ({ forms }) 
                   style={{ width: `${faceWidth}px`, transform: `rotateY(${i * (360 / faceCount)}deg) translateZ(${radius}px)` }}
                   onClick={() => handleClick(item.imageUrl, i)}
                 >
-                  {item.imageUrl === "placeholder" ? (
+                   {item.imageUrl === "placeholder" ? (
                     <div className="relative w-full rounded-2xl bg-gray-900 ring-2 ring-vice-pink shadow-[0_0_12px_#ff1493,0_0_24px_#ff149350] aspect-square flex flex-col items-center justify-center">
-                      <div className="text-lg font-bold text-vice-cyan mb-2">Placeholder</div>
-                      <div className="text-sm text-vice-cyan/80">Unit {item.unit}</div>
+                      <div className="text-lg font-bold text-vice-cyan mb-2">Date</div>
+                      <div className="text-sm text-vice-cyan/80">Unit</div>
                     </div>
                   ) : (
                     <div className="relative w-full aspect-square">
