@@ -1,0 +1,6 @@
+{
+  "scripts": {
+    "mcp:start": "cd ../MCP/magic-mcp && npm start",
+    "mcp:install": "cd ../MCP/magic-mcp && npm install"
+  }
+}

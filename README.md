@@ -167,6 +167,22 @@ For technical support or questions:
 - Test changes in development environment first
 - Use `npm run migrate` for database help
 
+## 🧠 MCP Server Integration
+
+This project supports local code intelligence and context sharing via the [magic-mcp](https://github.com/21st-dev/magic-mcp#) server.
+
+- The MCP server code should be located in `../MCP/magic-mcp` or in the `mcp-server` folder for easy management.
+- To start the MCP server:
+  1. Open a terminal in the `magic-mcp` directory.
+  2. Run `npm install` (first time only).
+  3. Run `npm start`.
+- You can also use npm scripts from the main project:
+  - `npm run mcp:install` — Installs MCP server dependencies
+  - `npm run mcp:start` — Starts the MCP server
+- The server will start and listen for connections (see its README for port/configuration).
+
+For more details, see the [magic-mcp GitHub](https://github.com/21st-dev/magic-mcp#).
+
 ---
 
 **SPR Vice City** - Professional violation management for the digital age 🌴⚡

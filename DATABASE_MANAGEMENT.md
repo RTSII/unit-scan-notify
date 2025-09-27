@@ -144,6 +144,11 @@ If you need help with database changes:
 2. Use `npm run migrate` to see available commands
 3. Test SQL in Supabase Dashboard before creating migrations
 
+## MCP Server Integration
+
+- The project supports local code intelligence and context sharing via the [magic-mcp](https://github.com/21st-dev/magic-mcp#) server.
+- See the main README for setup and usage instructions.
+
 ---
 
 **Project:** SPR Vice City - Mobile Violation Management  
