@@ -48,6 +48,9 @@ const Books = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const [selectedBuilding, setSelectedBuilding] = useState("all");
+  const [selectedViolationType, setSelectedViolationType] = useState("all");
+  const [showWithPhotosOnly, setShowWithPhotosOnly] = useState(false);
   const [thisWeekExpanded, setThisWeekExpanded] = useState(false);
   const [thisMonthExpanded, setThisMonthExpanded] = useState(false);
   const [showFullLibrary, setShowFullLibrary] = useState(false);
@@ -179,6 +182,42 @@ const Books = () => {
       filtered = filtered.filter(form => form.status === selectedFilter);
     }
 
+    // Apply building filter
+    if (selectedBuilding !== "all") {
+      filtered = filtered.filter(form => {
+        const unitLetter = form.unit_number?.charAt(0)?.toUpperCase();
+        return unitLetter === selectedBuilding;
+      });
+    }
+
+    // Apply violation type filter
+    if (selectedViolationType !== "all") {
+      filtered = filtered.filter(form => {
+        const location = form.location?.toLowerCase() || '';
+        switch (selectedViolationType) {
+          case 'balcony':
+            return location.includes('balcony');
+          case 'front':
+            return location.includes('front') || location.includes('porch');
+          case 'window':
+            return location.includes('window');
+          case 'parking':
+            return location.includes('parking') || location.includes('vehicle');
+          case 'noise':
+            return location.includes('noise') || location.includes('sound');
+          case 'trash':
+            return location.includes('trash') || location.includes('garbage');
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Apply photos filter
+    if (showWithPhotosOnly) {
+      filtered = filtered.filter(form => form.photos && form.photos.length > 0);
+    }
+
     return filtered;
   };
 
@@ -285,23 +324,101 @@ const Books = () => {
                     {filterOpen ? <ChevronUp className="w-4 h-4 ml-2" /> : <ChevronDown className="w-4 h-4 ml-2" />}
                   </Button>
                 </CollapsibleTrigger>
-                <CollapsibleContent className="absolute left-1/2 transform -translate-x-1/2 top-full mt-2 z-10 w-48">
+                <CollapsibleContent className="absolute left-1/2 transform -translate-x-1/2 top-full mt-2 z-10 w-72">
                   <Card className="bg-black/90 border-vice-cyan/50 backdrop-blur-sm">
-                    <CardContent className="p-3 space-y-2">
-                      {["all", "saved", "completed"].map((filter) => (
+                    <CardContent className="p-3 space-y-4">
+                      {/* Status Filter */}
+                      <div>
+                        <p className="text-xs font-medium text-vice-cyan mb-2">Status</p>
+                        <div className="space-y-1">
+                          {["all", "saved", "completed"].map((filter) => (
+                            <Button
+                              key={filter}
+                              variant={selectedFilter === filter ? "default" : "ghost"}
+                              size="sm"
+                              onClick={() => setSelectedFilter(filter)}
+                              className="w-full justify-start text-white hover:bg-vice-cyan/20 min-h-[36px] text-xs"
+                            >
+                              {filter === "all" ? "All Statuses" : filter.charAt(0).toUpperCase() + filter.slice(1)}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Building Filter */}
+                      <div>
+                        <p className="text-xs font-medium text-vice-cyan mb-2">Building</p>
+                        <div className="space-y-1">
+                          {["all", "A", "B", "C", "D"].map((building) => (
+                            <Button
+                              key={building}
+                              variant={selectedBuilding === building ? "default" : "ghost"}
+                              size="sm"
+                              onClick={() => setSelectedBuilding(building)}
+                              className="w-full justify-start text-white hover:bg-vice-cyan/20 min-h-[36px] text-xs"
+                            >
+                              {building === "all" ? "All Buildings" : `Building ${building}`}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Violation Type Filter */}
+                      <div>
+                        <p className="text-xs font-medium text-vice-cyan mb-2">Violation Type</p>
+                        <div className="space-y-1">
+                          {[
+                            { value: "all", label: "All Types" },
+                            { value: "balcony", label: "Balcony" },
+                            { value: "front", label: "Front/Porch" },
+                            { value: "window", label: "Window" },
+                            { value: "parking", label: "Parking/Vehicle" },
+                            { value: "noise", label: "Noise" },
+                            { value: "trash", label: "Trash/Garbage" }
+                          ].map((type) => (
+                            <Button
+                              key={type.value}
+                              variant={selectedViolationType === type.value ? "default" : "ghost"}
+                              size="sm"
+                              onClick={() => setSelectedViolationType(type.value)}
+                              className="w-full justify-start text-white hover:bg-vice-cyan/20 min-h-[36px] text-xs"
+                            >
+                              {type.label}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Photos Filter */}
+                      <div>
+                        <p className="text-xs font-medium text-vice-cyan mb-2">Photos</p>
                         <Button
-                          key={filter}
-                          variant={selectedFilter === filter ? "default" : "ghost"}
+                          variant={showWithPhotosOnly ? "default" : "ghost"}
+                          size="sm"
+                          onClick={() => setShowWithPhotosOnly(!showWithPhotosOnly)}
+                          className="w-full justify-start text-white hover:bg-vice-cyan/20 min-h-[36px] text-xs"
+                        >
+                          {showWithPhotosOnly ? "✓ " : ""}With Photos Only
+                        </Button>
+                      </div>
+
+                      {/* Clear All Filters */}
+                      <div className="pt-2 border-t border-vice-cyan/20">
+                        <Button
+                          variant="outline"
                           size="sm"
                           onClick={() => {
-                            setSelectedFilter(filter);
+                            setSelectedFilter("all");
+                            setSelectedBuilding("all");
+                            setSelectedViolationType("all");
+                            setShowWithPhotosOnly(false);
                             setFilterOpen(false);
                           }}
-                          className="w-full justify-start text-white hover:bg-vice-cyan/20 min-h-[44px]"
+                          className="w-full bg-transparent border-vice-pink/50 text-vice-pink hover:bg-vice-pink/20 min-h-[36px] text-xs"
                         >
-                          {filter === "all" ? "All Forms" : filter.charAt(0).toUpperCase() + filter.slice(1)}
+                          Clear All Filters
                         </Button>
-                      ))}
+                      </div>
                     </CardContent>
                   </Card>
                 </CollapsibleContent>
@@ -388,7 +505,7 @@ const Books = () => {
             /* Dashboard List View */
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-white text-center">
-                {searchTerm ? `Search Results (${filteredForms.length})` : 'All Forms'}
+                {searchTerm ? `Search Results (${filteredForms.length})` : `Filtered Results (${filteredForms.length})`}
               </h3>
 
               {filteredForms.map((form) => (
