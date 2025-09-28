@@ -136,18 +136,31 @@ export function SmartCombobox({
   // Compute base options (local or remote)
   React.useEffect(() => {
     let didCancel = false;
-    if (!onQuery) {
+    if (!onQuery || typeof onQuery !== 'function') {
       setRemoteOptions(null);
+      setLoading(false);
       return;
     }
     setLoading(true);
-    onQuery(debouncedQuery)
-      .then((res) => {
-        if (!didCancel) setRemoteOptions(res || []);
-      })
-      .finally(() => {
-        if (!didCancel) setLoading(false);
-      });
+    const queryResult = onQuery(debouncedQuery);
+    if (queryResult && typeof queryResult.then === 'function') {
+      queryResult
+        .then((res) => {
+          if (!didCancel) setRemoteOptions(res || []);
+        })
+        .catch((error) => {
+          console.error('SmartCombobox query error:', error);
+          if (!didCancel) setRemoteOptions([]);
+        })
+        .finally(() => {
+          if (!didCancel) setLoading(false);
+        });
+    } else {
+      if (!didCancel) {
+        setRemoteOptions([]);
+        setLoading(false);
+      }
+    }
     return () => {
       didCancel = true;
     };
