@@ -43,18 +43,18 @@ interface SavedForm {
   } | null;
 }
 
-// Smart Combo Box options
+// Smart Combo Box options with grouped Building options
 const filterOptions = [
   { id: 'all', label: 'All' },
-  { id: 'building-a', label: 'Building A' },
-  { id: 'building-b', label: 'Building B' },
-  { id: 'building-c', label: 'Building C' },
-  { id: 'building-d', label: 'Building D' },
-  { id: 'balcony', label: 'Balcony Violations' },
-  { id: 'front', label: 'Balcony/Front Railing Violations' },
-  { id: 'parking', label: 'Parking/Vehicle Violations' },
-  { id: 'trash', label: 'Items Left in Front of Unit' },
-  { id: 'with-photos', label: 'With Photos' }
+  { id: 'building', label: 'Building', group: 'Buildings' },
+  { id: 'building-a', label: 'Building A', group: 'Buildings' },
+  { id: 'building-b', label: 'Building B', group: 'Buildings' },
+  { id: 'building-c', label: 'Building C', group: 'Buildings' },
+  { id: 'building-d', label: 'Building D', group: 'Buildings' },
+  { id: 'trash', label: 'Items/trash left outside unit' },
+  { id: 'balcony', label: 'Items left on balcony/front railing' },
+  { id: 'parking', label: 'Parking Violation' },
+  { id: 'photos', label: 'Photos' }
 ];
 
 const Books = () => {
@@ -175,15 +175,11 @@ const Books = () => {
     setSelectedFilter(filterValue);
     
     // Handle special filters
-    if (filterValue === 'with-photos') {
+    if (filterValue === 'photos') {
       setShowWithPhotosOnly(true);
     } else {
       setShowWithPhotosOnly(false);
     }
-  };
-
-  const handleComboBoxInput = (input: string) => {
-    setSearchTerm(input);
   };
 
   const applyFilters = (formsToFilter: SavedForm[]) => {
@@ -202,29 +198,33 @@ const Books = () => {
 
     // Apply selected filter
     if (selectedFilter !== "all") {
-      if (selectedFilter.startsWith('building-')) {
-        const buildingLetter = selectedFilter.split('-')[1].toUpperCase();
-        filtered = filtered.filter(form => {
-          const unitLetter = form.unit_number?.charAt(0)?.toUpperCase();
-          return unitLetter === buildingLetter;
-        });
+      if (selectedFilter.startsWith('building')) {
+        if (selectedFilter === 'building') {
+          // Show all buildings when "Building" is selected
+          filtered = filtered.filter(form => {
+            const unitLetter = form.unit_number?.charAt(0)?.toUpperCase();
+            return ['A', 'B', 'C', 'D'].includes(unitLetter);
+          });
+        } else {
+          // Show specific building
+          const buildingLetter = selectedFilter.split('-')[1].toUpperCase();
+          filtered = filtered.filter(form => {
+            const unitLetter = form.unit_number?.charAt(0)?.toUpperCase();
+            return unitLetter === buildingLetter;
+          });
+        }
       } else {
         // Apply violation type filter
         filtered = filtered.filter(form => {
           const location = form.location?.toLowerCase() || '';
+          const description = form.description?.toLowerCase() || '';
           switch (selectedFilter) {
             case 'balcony':
-              return location.includes('balcony');
-            case 'front':
-              return location.includes('front') || location.includes('porch');
-            case 'window':
-              return location.includes('window');
+              return location.includes('balcony') || location.includes('front') || location.includes('porch') || location.includes('railing');
             case 'parking':
-              return location.includes('parking') || location.includes('vehicle');
-            case 'noise':
-              return location.includes('noise') || location.includes('sound');
+              return location.includes('parking') || location.includes('vehicle') || description.includes('parking') || description.includes('vehicle');
             case 'trash':
-              return location.includes('trash') || location.includes('garbage');
+              return location.includes('trash') || location.includes('garbage') || location.includes('outside') || description.includes('trash') || description.includes('garbage') || description.includes('items');
             default:
               return true;
           }
@@ -387,14 +387,24 @@ const Books = () => {
           </Button>
           
           {/* Smart Combo Box - Centered below Full Library */}
-          <div className="w-full max-w-2xl">
-            <div className="bg-black/40 border border-vice-cyan/30 backdrop-blur-sm p-4 rounded-lg">
+          <div className="w-full max-w-2xl px-4 sm:px-0">
+            <div className="bg-black/40 border border-vice-cyan/30 backdrop-blur-sm p-4 rounded-lg shadow-lg">
               <SmartCombobox
                 options={filterOptions}
                 value={selectedFilter}
                 onValueChange={handleComboBoxChange}
                 placeholder="Search violations or select filter category..."
-                className="bg-black/30 border-vice-cyan/50 text-white"
+                className="w-full bg-black/30 border-vice-cyan/50 text-white placeholder:text-vice-cyan/60 focus:border-vice-pink/50 focus:ring-2 focus:ring-vice-pink/20 min-h-[48px]"
+                renderOption={(option) => (
+                  <div className="flex items-center gap-2 p-2 text-sm">
+                    {option.group === 'Buildings' && option.id !== 'building' && (
+                      <div className="w-2 h-2 rounded-full bg-vice-cyan/50 ml-4" />
+                    )}
+                    <span className={option.group === 'Buildings' && option.id !== 'building' ? 'text-vice-cyan/80' : 'text-white'}>
+                      {option.label}
+                    </span>
+                  </div>
+                )}
               />
               
               {/* Clear Filter Button */}
@@ -408,7 +418,7 @@ const Books = () => {
                       setSelectedFilter("all");
                       setShowWithPhotosOnly(false);
                     }}
-                    className="text-vice-pink hover:bg-vice-pink/20 min-h-[36px] px-3"
+                    className="text-vice-pink hover:bg-vice-pink/20 min-h-[44px] px-4"
                   >
                     <X className="w-4 h-4 mr-1" />
                     Clear Filters
