@@ -43,17 +43,20 @@ interface SavedForm {
   } | null;
 }
 
-// Smart Combo Box options with grouped Building options
+// Smart Combo Box options with properly grouped categories
 const filterOptions = [
   { id: 'all', label: 'All' },
+  // Buildings group
   { id: 'building-a', label: 'Building A', group: 'Buildings' },
   { id: 'building-b', label: 'Building B', group: 'Buildings' },
   { id: 'building-c', label: 'Building C', group: 'Buildings' },
   { id: 'building-d', label: 'Building D', group: 'Buildings' },
-  { id: 'trash', label: 'Items/trash left outside unit' },
-  { id: 'balcony', label: 'Items left on balcony/front railing' },
-  { id: 'parking', label: 'Parking Violation' },
-  { id: 'photos', label: 'Photos' }
+  // Violations group
+  { id: 'trash', label: 'Items/trash left outside unit', group: 'Violations' },
+  { id: 'balcony', label: 'Items left on balcony/front railing', group: 'Violations' },
+  { id: 'parking', label: 'Parking Violation', group: 'Violations' },
+  // Photos group
+  { id: 'photos', label: 'Forms with Photos', group: 'Photos' }
 ];
 
 const Books = () => {

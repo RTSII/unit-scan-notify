@@ -391,8 +391,8 @@ export function SmartCombobox({
   }, [visible]);
 
   // Live region messaging for SR users
-  // Collapsed groups state
-  const [collapsedGroups, setCollapsedGroups] = React.useState<Set<string>>(new Set(['Buildings']));
+  // Collapsed groups state - all categories collapsed by default
+  const [collapsedGroups, setCollapsedGroups] = React.useState<Set<string>>(new Set(['Violations', 'Buildings', 'Photos']));
   
   const toggleGroupCollapsed = (groupName: string) => {
     setCollapsedGroups(prev => {
@@ -405,6 +405,17 @@ export function SmartCombobox({
       return next;
     });
   };
+
+  // Get all unique groups for horizontal display
+  const allGroups = React.useMemo(() => {
+    const groupSet = new Set<string>();
+    for (const option of options) {
+      if (option.group && option.group !== "Other") {
+        groupSet.add(option.group);
+      }
+    }
+    return Array.from(groupSet);
+  }, [options]);
 
   const [live, setLive] = React.useState("");
   React.useEffect(() => {
@@ -542,10 +553,10 @@ export function SmartCombobox({
       {open && (
         <div
           className={classNames(
-            "absolute z-50 mt-1 w-full overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg backdrop-blur-sm",
+            "absolute z-50 mt-1 w-full overflow-hidden rounded-md border border-[hsl(var(--border))] bg-black shadow-lg backdrop-blur-sm",
             "animate-in fade-in-0 zoom-in-95 data-[closed]:fade-out-0 data-[closed]:zoom-out-95"
           )}
-          style={{ maxHeight }}
+          style={{ maxHeight: Math.max(maxHeight, 400) }} // Ensure minimum height for content
         >
           {header ? (
             <div className="border-b border-[hsl(var(--border))] p-2 text-xs text-[hsl(var(--muted-foreground))]">
@@ -553,13 +564,51 @@ export function SmartCombobox({
             </div>
           ) : null}
 
+          {/* Horizontal Category Buttons */}
+          {allGroups.length > 0 && (
+            <div className="border-b border-[hsl(var(--border))]/20 p-2 bg-black">
+              <div className="flex flex-wrap gap-2">
+                {allGroups.map((group) => {
+                  const isCollapsed = collapsedGroups.has(group);
+                  const groupOptions = options.filter(opt => opt.group === group);
+                  const hasSelectedInGroup = groupOptions.some(opt => isSelected(opt.id));
+                  
+                  return (
+                    <button
+                      key={group}
+                      onClick={() => toggleGroupCollapsed(group)}
+                      className={classNames(
+                        "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+                        "border border-[hsl(var(--border))]/40",
+                        isCollapsed 
+                          ? "bg-[hsl(var(--muted))]/20 text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--accent))]/40"
+                          : "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]",
+                        hasSelectedInGroup && "ring-1 ring-[hsl(var(--primary))]/50"
+                      )}
+                    >
+                      <span>{group}</span>
+                      <svg 
+                        className={classNames("w-3 h-3 transition-transform", isCollapsed ? "rotate-0" : "rotate-180")} 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <div
             ref={listRef}
             id={listboxId}
             role="listbox"
             aria-multiselectable={isMultiple || undefined}
             className="max-h-[inherit] overflow-auto"
-            style={{ maxHeight }}
+            style={{ maxHeight: Math.max(maxHeight - 60, 300) }} // Account for category buttons
             onScroll={(e) => {
               if (!useVirtual) return;
               const el = e.currentTarget;
@@ -595,28 +644,16 @@ export function SmartCombobox({
             {/* Virtualization padders */}
             {useVirtual && paddingTop > 0 ? <div style={{ height: paddingTop }} /> : null}
 
-            {/* Grouped visible options */}
+            {/* Expanded Group Options */}
             {[...groups.entries()].map(([group, items]) => {
               const isCollapsed = collapsedGroups.has(group);
+              
+              // Only show options for expanded groups
+              if (isCollapsed) return null;
+              
               return (
-                <div key={group} role="group" aria-label={group}>
-                  {group !== "Other" && (
-                    <div 
-                      className="sticky top-0 z-10 bg-[hsl(var(--popover))] border-b border-[hsl(var(--border))]/20 px-3 py-2 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))] backdrop-blur-sm cursor-pointer hover:bg-[hsl(var(--accent))]/20 flex items-center justify-between"
-                      onClick={() => toggleGroupCollapsed(group)}
-                    >
-                      <span>{group}</span>
-                      <svg 
-                        className={classNames("w-3 h-3 transition-transform", isCollapsed ? "" : "rotate-180")} 
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </div>
-                  )}
-                  {!isCollapsed && items.map((opt) => {
+                <div key={group} role="group" aria-label={group} className="border-b border-[hsl(var(--border))]/10 last:border-b-0">
+                  {items.map((opt) => {
                     const idx = options.indexOf(opt) + (showCreate ? 1 : 0);
                     const active = idx === activeIndex;
                     const selected = isSelected(opt.id);
