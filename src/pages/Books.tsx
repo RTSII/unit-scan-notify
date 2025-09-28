@@ -9,6 +9,7 @@ import { useAuth } from "../hooks/useAuth";
 import { supabase } from "../integrations/supabase/client";
 import { useToast } from "../hooks/use-toast";
 import { ViolationCarousel3D } from "../components/ViolationCarousel";
+import { SmartCombobox } from "../components/smart-combo-box";
 import {
   BookOpen,
   Calendar,
@@ -42,13 +43,27 @@ interface SavedForm {
   } | null;
 }
 
+// Smart Combo Box options
+const filterOptions = [
+  { id: 'all', label: 'All' },
+  { id: 'building-a', label: 'Building A' },
+  { id: 'building-b', label: 'Building B' },
+  { id: 'building-c', label: 'Building C' },
+  { id: 'building-d', label: 'Building D' },
+  { id: 'balcony', label: 'Balcony Violations' },
+  { id: 'front', label: 'Front/Porch Violations' },
+  { id: 'window', label: 'Window Violations' },
+  { id: 'parking', label: 'Parking/Vehicle Violations' },
+  { id: 'noise', label: 'Noise Violations' },
+  { id: 'trash', label: 'Trash/Garbage Violations' },
+  { id: 'with-photos', label: 'With Photos Only' }
+];
+
 const Books = () => {
   const [forms, setForms] = useState<SavedForm[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterOpen, setFilterOpen] = useState(false);
-  const [selectedBuilding, setSelectedBuilding] = useState("all");
-  const [selectedViolationType, setSelectedViolationType] = useState("all");
+  const [selectedFilter, setSelectedFilter] = useState("all");
   const [showWithPhotosOnly, setShowWithPhotosOnly] = useState(false);
   const [thisWeekExpanded, setThisWeekExpanded] = useState(false);
   const [thisMonthExpanded, setThisMonthExpanded] = useState(false);
@@ -56,21 +71,15 @@ const Books = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const filterRef = useRef<HTMLDivElement>(null);
   const cardsContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchSavedForms();
   }, [user]);
 
-  // Click outside handler for filter dropdown and card expansion
+  // Click outside handler for card expansion
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      // Handle filter dropdown
-      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
-        setFilterOpen(false);
-      }
-
       // Handle card expansion - collapse when clicking outside the cards container
       if (cardsContainerRef.current && !cardsContainerRef.current.contains(event.target as Node)) {
         setThisWeekExpanded(false);
@@ -78,14 +87,14 @@ const Books = () => {
       }
     };
 
-    if (filterOpen || thisWeekExpanded || thisMonthExpanded) {
+    if (thisWeekExpanded || thisMonthExpanded) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [filterOpen, thisWeekExpanded, thisMonthExpanded]);
+  }, [thisWeekExpanded, thisMonthExpanded]);
 
   // Handle single card expansion - only one can be open at a time
   const handleWeekExpansion = (isExpanded: boolean) => {
@@ -162,6 +171,23 @@ const Books = () => {
     }
   };
 
+  // Handler for Smart Combo Box
+  const handleComboBoxChange = (value: string | string[] | null) => {
+    const filterValue = Array.isArray(value) ? value[0] || 'all' : value || 'all';
+    setSelectedFilter(filterValue);
+    
+    // Handle special filters
+    if (filterValue === 'with-photos') {
+      setShowWithPhotosOnly(true);
+    } else {
+      setShowWithPhotosOnly(false);
+    }
+  };
+
+  const handleComboBoxInput = (input: string) => {
+    setSearchTerm(input);
+  };
+
   const applyFilters = (formsToFilter: SavedForm[]) => {
     let filtered = formsToFilter;
 
@@ -176,36 +202,36 @@ const Books = () => {
       );
     }
 
-
-    // Apply building filter
-    if (selectedBuilding !== "all") {
-      filtered = filtered.filter(form => {
-        const unitLetter = form.unit_number?.charAt(0)?.toUpperCase();
-        return unitLetter === selectedBuilding;
-      });
-    }
-
-    // Apply violation type filter
-    if (selectedViolationType !== "all") {
-      filtered = filtered.filter(form => {
-        const location = form.location?.toLowerCase() || '';
-        switch (selectedViolationType) {
-          case 'balcony':
-            return location.includes('balcony');
-          case 'front':
-            return location.includes('front') || location.includes('porch');
-          case 'window':
-            return location.includes('window');
-          case 'parking':
-            return location.includes('parking') || location.includes('vehicle');
-          case 'noise':
-            return location.includes('noise') || location.includes('sound');
-          case 'trash':
-            return location.includes('trash') || location.includes('garbage');
-          default:
-            return true;
-        }
-      });
+    // Apply selected filter
+    if (selectedFilter !== "all") {
+      if (selectedFilter.startsWith('building-')) {
+        const buildingLetter = selectedFilter.split('-')[1].toUpperCase();
+        filtered = filtered.filter(form => {
+          const unitLetter = form.unit_number?.charAt(0)?.toUpperCase();
+          return unitLetter === buildingLetter;
+        });
+      } else {
+        // Apply violation type filter
+        filtered = filtered.filter(form => {
+          const location = form.location?.toLowerCase() || '';
+          switch (selectedFilter) {
+            case 'balcony':
+              return location.includes('balcony');
+            case 'front':
+              return location.includes('front') || location.includes('porch');
+            case 'window':
+              return location.includes('window');
+            case 'parking':
+              return location.includes('parking') || location.includes('vehicle');
+            case 'noise':
+              return location.includes('noise') || location.includes('sound');
+            case 'trash':
+              return location.includes('trash') || location.includes('garbage');
+            default:
+              return true;
+          }
+        });
+      }
     }
 
     // Apply photos filter
@@ -364,121 +390,6 @@ const Books = () => {
           
           {/* Search and Filter - Centered below Full Library */}
           <div className="w-full max-w-4xl">
-            <div className="flex flex-col md:flex-row items-center gap-4 bg-black/40 border border-vice-cyan/30 backdrop-blur-sm p-4 rounded-lg">
-              {/* Search Bar */}
-              <div className="relative flex-1 w-full">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-vice-cyan" />
-                <Input
-                  placeholder="Search by unit, description, location, or team member..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-black/30 border-vice-cyan/50 text-white placeholder:text-vice-cyan/70 min-h-[44px] w-full"
-                />
-              </div>
-
-              {/* Filter Accordions */}
-              <div className="flex flex-wrap gap-2 items-center" ref={filterRef}>
-                {/* Building Filter */}
-                <Collapsible>
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20 min-h-[36px] px-3"
-                    >
-                      <Home className="w-4 h-4 mr-1" />
-                      Building
-                      <ChevronDown className="w-3 h-3 ml-1" />
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="absolute mt-2 z-10">
-                    <Card className="bg-black/90 border-vice-cyan/50 backdrop-blur-sm w-48">
-                      <CardContent className="p-2 space-y-1">
-                        {["all", "A", "B", "C", "D"].map((building) => (
-                          <Button
-                            key={building}
-                            variant={selectedBuilding === building ? "default" : "ghost"}
-                            size="sm"
-                            onClick={() => setSelectedBuilding(building)}
-                            className="w-full justify-start text-white hover:bg-vice-cyan/20 min-h-[32px] text-xs"
-                          >
-                            {building === "all" ? "All Buildings" : `Building ${building}`}
-                          </Button>
-                        ))}
-                      </CardContent>
-                    </Card>
-                  </CollapsibleContent>
-                </Collapsible>
-
-                {/* Violation Type Filter */}
-                <Collapsible>
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20 min-h-[36px] px-3"
-                    >
-                      <MapPin className="w-4 h-4 mr-1" />
-                      Type
-                      <ChevronDown className="w-3 h-3 ml-1" />
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="absolute mt-2 z-10">
-                    <Card className="bg-black/90 border-vice-cyan/50 backdrop-blur-sm w-48">
-                      <CardContent className="p-2 space-y-1">
-                        {[
-                          { value: "all", label: "All Types" },
-                          { value: "balcony", label: "Balcony" },
-                          { value: "front", label: "Front/Porch" },
-                          { value: "window", label: "Window" },
-                          { value: "parking", label: "Parking/Vehicle" },
-                          { value: "noise", label: "Noise" },
-                          { value: "trash", label: "Trash/Garbage" }
-                        ].map((type) => (
-                          <Button
-                            key={type.value}
-                            variant={selectedViolationType === type.value ? "default" : "ghost"}
-                            size="sm"
-                            onClick={() => setSelectedViolationType(type.value)}
-                            className="w-full justify-start text-white hover:bg-vice-cyan/20 min-h-[32px] text-xs"
-                          >
-                            {type.label}
-                          </Button>
-                        ))}
-                      </CardContent>
-                    </Card>
-                  </CollapsibleContent>
-                </Collapsible>
-
-                {/* Photos Filter */}
-                <Button
-                  variant={showWithPhotosOnly ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setShowWithPhotosOnly(!showWithPhotosOnly)}
-                  className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20 min-h-[36px] px-3"
-                >
-                  <ImageIcon className="w-4 h-4 mr-1" />
-                  Photos Only
-                </Button>
-
-                {/* Clear Filters */}
-                {(selectedBuilding !== "all" || selectedViolationType !== "all" || showWithPhotosOnly) && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedBuilding("all");
-                      setSelectedViolationType("all");
-                      setShowWithPhotosOnly(false);
-                    }}
-                    className="bg-transparent border-vice-pink/50 text-vice-pink hover:bg-vice-pink/20 min-h-[36px] px-3"
-                  >
-                    <X className="w-4 h-4 mr-1" />
-                    Clear
-                  </Button>
-                )}
-              </div>
-            </div>
           </div>
         </div>
 
