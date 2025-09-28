@@ -51,12 +51,10 @@ const filterOptions = [
   { id: 'building-c', label: 'Building C' },
   { id: 'building-d', label: 'Building D' },
   { id: 'balcony', label: 'Balcony Violations' },
-  { id: 'front', label: 'Front/Porch Violations' },
-  { id: 'window', label: 'Window Violations' },
+  { id: 'front', label: 'Balcony/Front Railing Violations' },
   { id: 'parking', label: 'Parking/Vehicle Violations' },
-  { id: 'noise', label: 'Noise Violations' },
-  { id: 'trash', label: 'Trash/Garbage Violations' },
-  { id: 'with-photos', label: 'With Photos Only' }
+  { id: 'trash', label: 'Items Left in Front of Unit' },
+  { id: 'with-photos', label: 'With Photos' }
 ];
 
 const Books = () => {
