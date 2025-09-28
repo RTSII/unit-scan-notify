@@ -388,8 +388,36 @@ const Books = () => {
             Full Library
           </Button>
           
-          {/* Search and Filter - Centered below Full Library */}
-          <div className="w-full max-w-4xl">
+          {/* Smart Combo Box - Centered below Full Library */}
+          <div className="w-full max-w-2xl">
+            <div className="bg-black/40 border border-vice-cyan/30 backdrop-blur-sm p-4 rounded-lg">
+              <SmartCombobox
+                options={filterOptions}
+                value={selectedFilter}
+                onValueChange={handleComboBoxChange}
+                placeholder="Search violations or select filter category..."
+                className="bg-black/30 border-vice-cyan/50 text-white"
+              />
+              
+              {/* Clear Filter Button */}
+              {(searchTerm || selectedFilter !== 'all' || showWithPhotosOnly) && (
+                <div className="mt-3 flex justify-center">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSearchTerm("");
+                      setSelectedFilter("all");
+                      setShowWithPhotosOnly(false);
+                    }}
+                    className="text-vice-pink hover:bg-vice-pink/20 min-h-[36px] px-3"
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Clear Filters
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
