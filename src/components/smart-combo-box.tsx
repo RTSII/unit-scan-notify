@@ -527,7 +527,7 @@ export function SmartCombobox({
       {open && (
         <div
           className={classNames(
-            "absolute z-50 mt-1 w-full overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg",
+            "absolute z-50 mt-1 w-full overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg backdrop-blur-sm",
             "animate-in fade-in-0 zoom-in-95 data-[closed]:fade-out-0 data-[closed]:zoom-out-95"
           )}
           style={{ maxHeight }}
@@ -585,7 +585,7 @@ export function SmartCombobox({
               return (
                 <div key={group} role="group" aria-label={group}>
                   {group !== "Other" && (
-                    <div className="sticky top-0 z-10 bg-[hsl(var(--popover))] px-2 py-1 text-[10px] uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
+                    <div className="sticky top-0 z-10 bg-[hsl(var(--popover))] border-b border-[hsl(var(--border))]/20 px-3 py-2 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))] backdrop-blur-sm">
                       {group}
                     </div>
                   )}
@@ -605,11 +605,11 @@ export function SmartCombobox({
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => toggleOption(opt)}
                         className={classNames(
-                          "flex cursor-pointer items-center justify-between gap-2 px-2",
-                          "text-[hsl(var(--foreground))]",
+                          "flex cursor-pointer items-center justify-between gap-2 px-3 py-2",
+                          "text-[hsl(var(--foreground))] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))] transition-colors duration-150",
                           active
                             ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]"
-                            : "hover:bg-[hsl(var(--accent))]/60"
+                            : "hover:bg-[hsl(var(--accent))]/80"
                         )}
                         // FIX: exact row height (no vertical padding)
                         style={{ height: itemHeight }}

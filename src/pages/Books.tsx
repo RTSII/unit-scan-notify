@@ -46,7 +46,6 @@ interface SavedForm {
 // Smart Combo Box options with grouped Building options
 const filterOptions = [
   { id: 'all', label: 'All' },
-  { id: 'building', label: 'Building', group: 'Buildings' },
   { id: 'building-a', label: 'Building A', group: 'Buildings' },
   { id: 'building-b', label: 'Building B', group: 'Buildings' },
   { id: 'building-c', label: 'Building C', group: 'Buildings' },
@@ -395,12 +394,13 @@ const Books = () => {
                 onValueChange={handleComboBoxChange}
                 placeholder="Search violations or select filter category..."
                 className="w-full bg-black/30 border-vice-cyan/50 text-white placeholder:text-vice-cyan/60 focus:border-vice-pink/50 focus:ring-2 focus:ring-vice-pink/20 min-h-[48px]"
+                maxHeight={320}
                 renderOption={(option) => (
-                  <div className="flex items-center gap-2 p-2 text-sm">
-                    {option.group === 'Buildings' && option.id !== 'building' && (
-                      <div className="w-2 h-2 rounded-full bg-vice-cyan/50 ml-4" />
+                  <div className="flex items-center gap-2 px-3 py-2 text-sm text-white hover:bg-vice-cyan/20 rounded">
+                    {option.group === 'Buildings' && (
+                      <div className="w-2 h-2 rounded-full bg-vice-cyan/70 ml-2" />
                     )}
-                    <span className={option.group === 'Buildings' && option.id !== 'building' ? 'text-vice-cyan/80' : 'text-white'}>
+                    <span className={option.group === 'Buildings' ? 'text-vice-cyan/90 font-medium' : 'text-white'}>
                       {option.label}
                     </span>
                   </div>
