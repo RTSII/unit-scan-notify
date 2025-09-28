@@ -391,6 +391,21 @@ export function SmartCombobox({
   }, [visible]);
 
   // Live region messaging for SR users
+  // Collapsed groups state
+  const [collapsedGroups, setCollapsedGroups] = React.useState<Set<string>>(new Set(['Buildings']));
+  
+  const toggleGroupCollapsed = (groupName: string) => {
+    setCollapsedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(groupName)) {
+        next.delete(groupName);
+      } else {
+        next.add(groupName);
+      }
+      return next;
+    });
+  };
+
   const [live, setLive] = React.useState("");
   React.useEffect(() => {
     const count = options.length + (showCreate ? 1 : 0);
@@ -421,7 +436,7 @@ export function SmartCombobox({
       <div
         className={classNames(
           // FIX: remove vertical padding from the control to keep a consistent height
-          "group flex min-h-10 w-full items-center gap-2 rounded-md border bg-[hsl(var(--background))] px-2",
+          "group flex min-h-10 w-full items-center gap-2 rounded-md border bg-black px-2",
           "border-[hsl(var(--border))] focus-within:ring-2 focus-within:ring-[hsl(var(--ring))] focus-within:ring-offset-2",
           disabled && "opacity-60 pointer-events-none"
         )}
@@ -582,14 +597,26 @@ export function SmartCombobox({
 
             {/* Grouped visible options */}
             {[...groups.entries()].map(([group, items]) => {
+              const isCollapsed = collapsedGroups.has(group);
               return (
                 <div key={group} role="group" aria-label={group}>
                   {group !== "Other" && (
-                    <div className="sticky top-0 z-10 bg-[hsl(var(--popover))] border-b border-[hsl(var(--border))]/20 px-3 py-2 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))] backdrop-blur-sm">
-                      {group}
+                    <div 
+                      className="sticky top-0 z-10 bg-[hsl(var(--popover))] border-b border-[hsl(var(--border))]/20 px-3 py-2 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))] backdrop-blur-sm cursor-pointer hover:bg-[hsl(var(--accent))]/20 flex items-center justify-between"
+                      onClick={() => toggleGroupCollapsed(group)}
+                    >
+                      <span>{group}</span>
+                      <svg 
+                        className={classNames("w-3 h-3 transition-transform", isCollapsed ? "" : "rotate-180")} 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
                     </div>
                   )}
-                  {items.map((opt) => {
+                  {!isCollapsed && items.map((opt) => {
                     const idx = options.indexOf(opt) + (showCreate ? 1 : 0);
                     const active = idx === activeIndex;
                     const selected = isSelected(opt.id);
