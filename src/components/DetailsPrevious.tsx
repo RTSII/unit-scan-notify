@@ -551,9 +551,9 @@ export default function DetailsPrevious() {
       <div className="flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20 relative">
         <div className="flex flex-col items-center gap-2">
           <img 
-            src="/violation.png" 
+            src={`/violation.png?t=${Date.now()}`}
             alt="Violation Form Header" 
-            className="h-16 w-auto object-contain"
+            className="w-80 h-auto object-contain max-w-[75vw]"
             loading="eager"
           />
         </div>
