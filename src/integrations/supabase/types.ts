@@ -76,6 +76,45 @@ export type Database = {
       }
       violation_forms: {
         Row: {
+          created_at: string | null
+          description: string | null
+          id: number
+          location: string | null
+          occurred_at: string | null
+          old_uuid_id: string | null
+          status: string | null
+          unit_number: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: never
+          location?: string | null
+          occurred_at?: string | null
+          old_uuid_id?: string | null
+          status?: string | null
+          unit_number?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: never
+          location?: string | null
+          occurred_at?: string | null
+          old_uuid_id?: string | null
+          status?: string | null
+          unit_number?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      violation_forms_backup_before_migration: {
+        Row: {
           created_at: string
           date: string
           description: string
@@ -113,6 +152,30 @@ export type Database = {
           unit_number?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      violation_photos: {
+        Row: {
+          created_at: string | null
+          id: number
+          storage_path: string
+          uploaded_by: string
+          violation_id: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: never
+          storage_path: string
+          uploaded_by: string
+          violation_id: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: never
+          storage_path?: string
+          uploaded_by?: string
+          violation_id?: number
         }
         Relationships: []
       }

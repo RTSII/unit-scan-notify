@@ -330,16 +330,26 @@ export default function DetailsPrevious() {
 
   const handleSaveForm = async () => {
     if (!user) {
+      console.error('Save failed: User not logged in');
       toast.error('You must be logged in to save forms');
       return;
     }
 
-    if (!isFormValid()) {
+    const validationResult = isFormValid();
+    console.log('Form validation result:', validationResult);
+    console.log('Form data:', formData);
+    console.log('Selected violations:', selectedViolations);
+    console.log('Is unit valid:', isUnitValid);
+
+    if (!validationResult) {
+      console.error('Save failed: Form validation failed');
       toast.error('Please fill in all required fields');
       return;
     }
 
     setIsSaving(true);
+    console.log('Starting save process...');
+    
     try {
       // Convert date and time to occurred_at timestamp
       let occurredAt = null;
@@ -370,44 +380,102 @@ export default function DetailsPrevious() {
         status: 'saved'
       };
 
+      console.log('Data to save:', formDataToSave);
+
       let savedFormId;
       let error: PostgrestError | null = null;
 
       if (id) {
         // Update existing record
+        console.log('Updating existing form with ID:', id);
         const result = await supabase
           .from('violation_forms')
           .update(formDataToSave as any)
-          .eq('id', id)
+          .eq('id', Number(id))
           .select();
         error = result.error;
-        savedFormId = id;
+        savedFormId = Number(id);
+        console.log('Update result:', result);
       } else {
         // Create new record
+        console.log('Creating new form...');
         const result = await supabase
           .from('violation_forms')
           .insert(formDataToSave as any)
           .select();
         error = result.error;
         savedFormId = result.data?.[0]?.id;
+        console.log('Insert result:', result);
       }
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
 
-      // Save photos to violation_photos table if any
+      console.log('Form saved with ID:', savedFormId);
+
+      // Upload photos to storage and save references
       if (selectedImages.length > 0 && savedFormId) {
-        // TODO: Upload photos to storage and save references
-        // For now, just log that photos would be saved
-        console.log('Photos to save:', selectedImages.length, 'for form ID:', savedFormId);
+        console.log('Uploading photos:', selectedImages.length);
+        
+        try {
+          for (let i = 0; i < selectedImages.length; i++) {
+            const base64Data = selectedImages[i];
+            
+            // Convert base64 to blob
+            const response = await fetch(base64Data);
+            const blob = await response.blob();
+            
+            // Create a unique filename
+            const fileExt = 'jpg'; // Default to jpg for base64 images
+            const fileName = `${user.id}/${savedFormId}_${i}_${Date.now()}.${fileExt}`;
+            
+            console.log('Uploading file:', fileName);
+            
+            // Upload file to storage
+            const { data: uploadData, error: uploadError } = await supabase.storage
+              .from('violation-photos')
+              .upload(fileName, blob);
+
+            if (uploadError) {
+              console.error('Photo upload error:', uploadError);
+              throw uploadError;
+            }
+
+            console.log('File uploaded:', uploadData);
+
+            // Save photo reference to violation_photos table
+            const { error: photoError } = await supabase
+              .from('violation_photos')
+              .insert({
+                violation_id: Number(savedFormId),
+                storage_path: uploadData.path,
+                uploaded_by: user.id
+              });
+
+            if (photoError) {
+              console.error('Photo reference save error:', photoError);
+              throw photoError;
+            }
+          }
+          
+          console.log('All photos uploaded successfully');
+        } catch (photoError) {
+          console.error('Photo upload failed:', photoError);
+          toast.error('Form saved but photo upload failed');
+        }
       }
 
+      console.log('Save successful, navigating to /books');
       toast.success(id ? 'Form updated successfully!' : 'Form saved successfully!');
       navigate('/books');
     } catch (error) {
       console.error('Error saving form:', error);
-      toast.error('Failed to save form');
+      toast.error('Failed to save form. Please try again.');
     } finally {
       setIsSaving(false);
+      console.log('Save process completed');
     }
   };
 
@@ -424,7 +492,7 @@ export default function DetailsPrevious() {
         const { data, error } = await supabase
           .from('violation_forms')
           .select('*')
-          .eq('id', id)
+          .eq('id', Number(id))
           .single();
 
         if (error) {
