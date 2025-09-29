@@ -22,14 +22,16 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 
 interface ViolationForm {
-  id: string;
-  unit_number: string;
-  date: string;
-  time: string;
-  location: string;
-  description: string;
-  status: string;
-  created_at: string;
+  id: number; // Database uses bigint for violation_forms.id
+  user_id: string;
+  unit_number: string | null;
+  location: string | null;
+  description: string | null;
+  status: string | null;
+  occurred_at: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  old_uuid_id: string | null;
 }
 
 export default function Export() {
@@ -40,7 +42,7 @@ export default function Export() {
   const [filteredForms, setFilteredForms] = useState<ViolationForm[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
-  const [selectedForms, setSelectedForms] = useState<string[]>([]);
+  const [selectedForms, setSelectedForms] = useState<number[]>([]);
   const [isThisWeekExpanded, setIsThisWeekExpanded] = useState(false);
   const [thisWeekCount, setThisWeekCount] = useState(0);
 
@@ -114,7 +116,7 @@ export default function Export() {
     setThisWeekCount(thisWeekForms.length);
   };
 
-  const handleFormSelection = (formId: string, checked: boolean) => {
+  const handleFormSelection = (formId: number, checked: boolean) => {
     if (checked) {
       setSelectedForms(prev => [...prev, formId]);
     } else {
@@ -122,7 +124,7 @@ export default function Export() {
     }
   };
 
-  const removeSelectedForm = (formId: string) => {
+  const removeSelectedForm = (formId: number) => {
     setSelectedForms(prev => prev.filter(id => id !== formId));
   };
 
@@ -138,7 +140,7 @@ export default function Export() {
 
     const selectedNotices = forms.filter(form => selectedForms.includes(form.id));
     const emailBody = selectedNotices.map(form => 
-      `Unit: ${form.unit_number}\nDate: ${form.date}\nTime: ${form.time}\nLocation: ${form.location}\nDescription: ${form.description}\n\n`
+      `Unit: ${form.unit_number}\nDate: ${form.occurred_at || form.created_at}\nTime: ${form.occurred_at ? new Date(form.occurred_at).toLocaleTimeString() : 'Not specified'}\nLocation: ${form.location}\nDescription: ${form.description}\n\n`
     ).join('---\n\n');
 
     const subject = `SPR Violation Notices - ${selectedNotices.length} notice(s)`;
@@ -193,8 +195,8 @@ export default function Export() {
               <div class="notice">
                 <h3>SPR Violation Notice</h3>
                 <p><span class="label">Unit:</span> ${form.unit_number}</p>
-                <p><span class="label">Date:</span> ${form.date}</p>
-                <p><span class="label">Time:</span> ${form.time}</p>
+                <p><span class="label">Date:</span> ${form.occurred_at || form.created_at}</p>
+                <p><span class="label">Time:</span> ${form.occurred_at ? new Date(form.occurred_at).toLocaleTimeString() : 'Not specified'}</p>
                 <p><span class="label">Location:</span> ${form.location}</p>
                 <p><span class="label">Description:</span> ${form.description}</p>
                 <p><span class="label">Status:</span> ${form.status}</p>
@@ -301,7 +303,7 @@ export default function Export() {
                       <div key={formId} className="flex items-center justify-between bg-black/20 p-3 rounded border border-vice-cyan/20">
                         <div>
                           <p className="text-white font-medium">Unit {form.unit_number}</p>
-                          <p className="text-vice-cyan/80 text-sm">{form.date} - {form.location}</p>
+                          <p className="text-vice-cyan/80 text-sm">{form.occurred_at || form.created_at} - {form.location}</p>
                         </div>
                         <Button
                           variant="ghost"
@@ -391,7 +393,7 @@ export default function Export() {
                             {form.status}
                           </span>
                         </div>
-                        <p className="text-vice-cyan/80 text-sm mb-1">{form.date} at {form.time}</p>
+                        <p className="text-vice-cyan/80 text-sm mb-1">{form.occurred_at || form.created_at}</p>
                         <p className="text-vice-cyan/80 text-sm mb-1">{form.location}</p>
                         <p className="text-white/90 text-sm">{form.description}</p>
                       </div>

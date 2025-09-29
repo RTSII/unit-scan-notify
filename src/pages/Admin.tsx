@@ -76,16 +76,18 @@ interface UserActivitySummary {
 }
 
 interface SavedForm {
-  id: string;
+  id: number; // Database uses bigint for violation_forms.id
   user_id: string;
-  unit_number: string;
-  date: string;
-  time: string;
-  location: string;
-  description: string;
-  photos: string[];
-  status: string;
-  created_at: string;
+  unit_number: string | null;
+  location: string | null;
+  description: string | null;
+  status: string | null;
+  occurred_at: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  old_uuid_id: string | null;
+  
+  // Add profile information for joined queries
   profiles?: {
     email: string;
     full_name: string | null;
@@ -476,8 +478,8 @@ export default function Admin() {
     }
   };
 
-  const deleteViolationForm = async (formId: string) => {
-    setDeletingFormId(formId);
+  const deleteViolationForm = async (formId: number) => {
+    setDeletingFormId(formId.toString());
     try {
       const { error } = await supabase
         .from('violation_forms')
@@ -553,9 +555,9 @@ export default function Admin() {
       // common will be used as Unit label line (second line)
       common: f.unit_number || '—',
       // binomial will be used as Date label line (top line)
-      binomial: f.date ? formatShort(f.date) : '—',
+      binomial: f.occurred_at ? formatShort(f.occurred_at) : (f.created_at ? formatShort(f.created_at) : '—'),
       photo: {
-        url: f.photos?.[0] || fallbacks[idx % fallbacks.length],
+        url: fallbacks[idx % fallbacks.length], // No photos in new schema yet
         text: f.description || 'Violation photo',
         by: f.profiles?.full_name || f.profiles?.email || 'Unknown User',
       },

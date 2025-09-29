@@ -3,10 +3,10 @@ import { AnimatePresence, motion, useAnimation, useMotionValue, useTransform } f
 import { useMediaQuery } from "./ui/3d-carousel";
 
 export interface FormLike {
-  id: string;
-  unit_number: string;
-  date: string; // ISO or parseable date
-  photos: string[];
+  id: number; // Changed to match database bigint
+  unit_number: string | null;
+  occurred_at: string | null; // Changed from date
+  created_at: string | null;
 }
 
 export type CarouselItem = {
@@ -18,14 +18,20 @@ export type CarouselItem = {
 
 export function mapFormsToCarouselItems(forms: FormLike[]): CarouselItem[] {
   return (forms || []).map((form, index) => ({
-    id: form.id,
-    imageUrl: form.photos?.[0] || `https://picsum.photos/400/400?violation-${index}`,
-    date: new Date(form.date).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    }),
-    unit: form.unit_number,
+    id: form.id.toString(),
+    imageUrl: `https://picsum.photos/400/400?violation-${index}`, // No photos in new schema yet
+    date: form.occurred_at 
+      ? new Date(form.occurred_at).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric", 
+          year: "numeric",
+        })
+      : new Date(form.created_at || '').toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
+    unit: form.unit_number || 'Unknown',
   }));
 }
 

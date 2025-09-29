@@ -25,16 +25,17 @@ import {
 } from "lucide-react";
 
 interface SavedForm {
-  id: string;
+  id: number; // Database uses bigint for violation_forms.id
   user_id: string;
-  unit_number: string;
-  date: string;
-  time: string;
-  location: string;
-  description: string;
-  photos: string[];
-  status: string;
-  created_at: string;
+  unit_number: string | null;
+  location: string | null;
+  description: string | null;
+  status: string | null;
+  occurred_at: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  old_uuid_id: string | null;
+  
   // Add user profile information - make it optional since the join might fail
   profiles?: {
     email: string;
@@ -234,10 +235,10 @@ const Books = () => {
       }
     }
 
-    // Apply photos filter
-    if (showWithPhotosOnly) {
-      filtered = filtered.filter(form => form.photos && form.photos.length > 0);
-    }
+    // Apply photos filter - Skip for now since photos not in new schema
+    // if (showWithPhotosOnly) {
+    //   filtered = filtered.filter(form => form.photos && form.photos.length > 0);
+    // }
 
     return filtered;
   };
@@ -473,12 +474,12 @@ const Books = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
                       <div className="flex items-center gap-2 text-vice-cyan/70">
                         <Calendar className="w-4 h-4 flex-shrink-0" />
-                        <span className="truncate">{formatDate(form.date)}</span>
+                        <span className="truncate">{formatDate(form.occurred_at || form.created_at)}</span>
                       </div>
 
                       <div className="flex items-center gap-2 text-vice-cyan/70">
                         <Clock className="w-4 h-4 flex-shrink-0" />
-                        <span className="truncate">{formatTime(form.time)}</span>
+                        <span className="truncate">{formatTime(form.occurred_at || form.created_at)}</span>
                       </div>
 
                       <div className="flex items-center gap-2 text-vice-cyan/70">
@@ -488,7 +489,7 @@ const Books = () => {
 
                       <div className="flex items-center gap-2 text-vice-cyan/70">
                         <ImageIcon className="w-4 h-4 flex-shrink-0" />
-                        <span>{form.photos.length} photo{form.photos.length !== 1 ? 's' : ''}</span>
+                        <span>0 photos</span>
                       </div>
                     </div>
                   </CardContent>
@@ -548,7 +549,7 @@ const Books = () => {
                             </CardTitle>
                             <div className="flex items-center gap-2 text-sm text-vice-cyan/70 mt-1">
                               <Calendar className="w-4 h-4 flex-shrink-0" />
-                              <span className="truncate">{formatDate(form.date)}</span>
+                              <span className="truncate">{formatDate(form.occurred_at || form.created_at)}</span>
                             </div>
                           </div>
                         </div>
@@ -560,17 +561,17 @@ const Books = () => {
                           <p className="text-sm text-white break-words">{form.description}</p>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3 text-sm">
-                          <div className="flex items-center gap-2 text-vice-cyan/70">
-                            <Clock className="w-4 h-4 flex-shrink-0" />
-                            <span className="truncate">{formatTime(form.time)}</span>
-                          </div>
+                          <div className="grid grid-cols-2 gap-3 text-sm">
+                            <div className="flex items-center gap-2 text-vice-cyan/70">
+                              <Clock className="w-4 h-4 flex-shrink-0" />
+                              <span className="truncate">{formatTime(form.occurred_at || form.created_at)}</span>
+                            </div>
 
-                          <div className="flex items-center gap-2 text-vice-cyan/70">
-                            <ImageIcon className="w-4 h-4 flex-shrink-0" />
-                            <span>{form.photos.length} photo{form.photos.length !== 1 ? 's' : ''}</span>
+                            <div className="flex items-center gap-2 text-vice-cyan/70">
+                              <ImageIcon className="w-4 h-4 flex-shrink-0" />
+                              <span>0 photos</span>
+                            </div>
                           </div>
-                        </div>
 
                         <div>
                           <p className="text-xs font-medium text-vice-cyan mb-1">Location</p>
