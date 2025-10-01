@@ -548,11 +548,11 @@ export default function DetailsPrevious() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue text-white flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-center py-2 px-6 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20 relative">
+      <div className="flex items-center justify-center py-3 px-6 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20 relative">
         <img 
           src={`/violation.png?v=${Math.random()}&t=${Date.now()}`}
           alt="Violation Form Header" 
-          className="h-20 w-auto object-contain"
+          className="h-56 w-auto object-contain"
           loading="eager"
         />
         <Button
