@@ -552,7 +552,7 @@ export default function DetailsPrevious() {
         <img 
           src={`/violation.png?v=${Math.random()}&t=${Date.now()}`}
           alt="Violation Form Header" 
-          className="h-24 w-auto object-contain"
+          className="h-40 w-auto object-contain"
           loading="eager"
         />
         <Button
