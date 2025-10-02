@@ -535,9 +535,28 @@ export default function DetailsPrevious() {
             balconyChoice: data.location?.includes('balcony') ? 'balcony' : data.location?.includes('front') ? 'front' : '',
           });
 
-          // TODO: Load photos from violation_photos table
-          // For now, just clear existing photos
-          setExistingPhotos([]);
+          // Load photos from violation_photos table
+          const { data: photosData, error: photosError } = await supabase
+            .from('violation_photos')
+            .select('storage_path')
+            .eq('violation_id', Number(id));
+
+          if (photosError) {
+            console.error('Error fetching photos:', photosError);
+          } else if (photosData && photosData.length > 0) {
+            // Fetch the actual images from storage
+            const photoUrls: string[] = [];
+            for (const photo of photosData) {
+              const { data: urlData } = supabase.storage
+                .from('violation-photos')
+                .getPublicUrl(photo.storage_path);
+              
+              if (urlData?.publicUrl) {
+                photoUrls.push(urlData.publicUrl);
+              }
+            }
+            setSelectedImages(photoUrls);
+          }
         }
       };
 
