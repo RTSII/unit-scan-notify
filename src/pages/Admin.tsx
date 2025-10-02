@@ -203,7 +203,7 @@ export default function Admin() {
                 className="overflow-hidden"
               >
                 <div className="p-4 pt-0">
-                  <ViolationCarousel3D forms={getThisWeekForms()} />
+                  <ViolationCarousel3D forms={getThisWeekForms()} onDelete={deleteViolationForm} />
                 </div>
               </motion.div>
             )}
@@ -241,7 +241,7 @@ export default function Admin() {
                 className="overflow-hidden"
               >
                 <div className="p-4 pt-0">
-                  <ViolationCarousel3D forms={getThisMonthForms()} />
+                  <ViolationCarousel3D forms={getThisMonthForms()} onDelete={deleteViolationForm} />
                 </div>
               </motion.div>
             )}

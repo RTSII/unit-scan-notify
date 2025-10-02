@@ -1,12 +1,16 @@
 import React, { useMemo, useState } from "react";
 import { AnimatePresence, motion, useAnimation, useMotionValue, useTransform } from "framer-motion";
 import { useMediaQuery } from "./ui/3d-carousel";
+import { Trash2 } from "lucide-react";
+import { Checkbox } from "./ui/checkbox";
 
 export interface FormLike {
   id: number; // Changed to match database bigint
   unit_number: string | null;
   occurred_at: string | null; // Changed from date
   created_at: string | null;
+  description?: string | null;
+  location?: string | null;
 }
 
 export type CarouselItem = {
@@ -35,10 +39,15 @@ export function mapFormsToCarouselItems(forms: FormLike[]): CarouselItem[] {
   }));
 }
 
-export const ViolationCarousel3D: React.FC<{ forms: FormLike[] }> = ({ forms }) => {
+export const ViolationCarousel3D: React.FC<{ 
+  forms: FormLike[];
+  onDelete?: (formId: number) => Promise<void>;
+}> = ({ forms, onDelete }) => {
   const [activeImg, setActiveImg] = useState<string | null>(null);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [isCarouselActive, setIsCarouselActive] = useState(true);
+  const [selectedForDelete, setSelectedForDelete] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const controls = useAnimation();
   const isScreenSizeSm = useMediaQuery("(max-width: 640px)");
 
@@ -88,13 +97,33 @@ export const ViolationCarousel3D: React.FC<{ forms: FormLike[] }> = ({ forms }) 
     setActiveImg(null);
     setActiveIndex(null);
     setIsCarouselActive(true);
+    setSelectedForDelete(false);
+  };
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!selectedForDelete || activeIndex === null || !onDelete) return;
+    
+    const activeForm = forms[activeIndex];
+    if (!activeForm) return;
+
+    setIsDeleting(true);
+    try {
+      await onDelete(activeForm.id);
+      handleClose();
+    } catch (error) {
+      console.error('Delete failed:', error);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
     <div className="w-full">
       <motion.div layout className="relative">
         <AnimatePresence mode="sync">
-          {activeImg && (
+          {activeImg && activeIndex !== null && (
             <motion.div
               initial={{ opacity: 0, scale: 0 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -102,19 +131,103 @@ export const ViolationCarousel3D: React.FC<{ forms: FormLike[] }> = ({ forms }) 
               layoutId={`img-container-${activeImg}`}
               layout="position"
               onClick={handleClose}
-              className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50 m-5 md:m-36 lg:mx-[19rem] rounded-3xl"
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-5 md:p-36"
               style={{ willChange: "opacity" }}
               transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
             >
-              <motion.img
-                layoutId={`img-${activeImg}-${activeIndex}`}
-                src={activeImg}
-                className="max-w-full max-h-full rounded-lg shadow-lg"
-                initial={{ scale: 0.5 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.5, duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
-                style={{ willChange: "transform" }}
-              />
+              <div className="relative max-w-4xl w-full" onClick={(e) => e.stopPropagation()}>
+                {/* Checkbox and Delete Controls */}
+                {onDelete && (
+                  <div className="absolute top-4 left-4 z-10 flex items-center gap-3 bg-black/60 backdrop-blur-sm px-4 py-2 rounded-lg border border-vice-cyan/30">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="delete-checkbox"
+                        checked={selectedForDelete}
+                        onCheckedChange={(checked) => setSelectedForDelete(checked as boolean)}
+                        className="border-vice-cyan data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink"
+                      />
+                      <label
+                        htmlFor="delete-checkbox"
+                        className="text-sm text-white cursor-pointer select-none"
+                      >
+                        Select to delete
+                      </label>
+                    </div>
+                    <button
+                      onClick={handleDelete}
+                      disabled={!selectedForDelete || isDeleting}
+                      className={`p-2 rounded-md transition-all ${
+                        selectedForDelete && !isDeleting
+                          ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/50'
+                          : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                      }`}
+                      title={selectedForDelete ? 'Delete violation' : 'Check the box to enable delete'}
+                    >
+                      {isDeleting ? (
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <Trash2 className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
+                )}
+
+                {/* Card with violation details */}
+                <motion.div
+                  className="bg-gradient-to-br from-black/90 to-black/70 backdrop-blur-xl rounded-3xl overflow-hidden border border-vice-cyan/30 shadow-2xl"
+                  initial={{ scale: 0.5 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.3, duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+                >
+                  <motion.img
+                    layoutId={`img-${activeImg}-${activeIndex}`}
+                    src={activeImg}
+                    className="w-full h-auto rounded-t-3xl"
+                    style={{ willChange: "transform" }}
+                  />
+                  
+                  {/* Violation Details */}
+                  {forms[activeIndex] && (
+                    <div className="p-6 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-2xl font-bold text-vice-cyan drop-shadow-[0_0_8px_#00ffff]">
+                            Unit: {forms[activeIndex].unit_number || 'Unknown'}
+                          </h3>
+                          <p className="text-vice-pink/80 text-sm mt-1">
+                            {forms[activeIndex].occurred_at 
+                              ? new Date(forms[activeIndex].occurred_at!).toLocaleDateString("en-US", {
+                                  weekday: 'long',
+                                  month: 'long',
+                                  day: 'numeric',
+                                  year: 'numeric'
+                                })
+                              : 'Date unknown'
+                            }
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {forms[activeIndex].location && (
+                        <div>
+                          <h4 className="text-vice-cyan/90 text-sm font-semibold mb-1">Location:</h4>
+                          <p className="text-white/90">{forms[activeIndex].location}</p>
+                        </div>
+                      )}
+                      
+                      {forms[activeIndex].description && (
+                        <div>
+                          <h4 className="text-vice-cyan/90 text-sm font-semibold mb-1">Description:</h4>
+                          <p className="text-white/90">{forms[activeIndex].description}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </motion.div>
+
+                {/* Close hint */}
+                <p className="text-center text-white/60 text-sm mt-4">Click outside to close</p>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
