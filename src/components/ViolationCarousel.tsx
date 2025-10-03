@@ -1,7 +1,7 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useAnimation, useMotionValue, useTransform } from "framer-motion";
 import { useMediaQuery } from "./ui/3d-carousel";
-import { Trash2 } from "lucide-react";
+import { Trash2, X } from "lucide-react";
 import { Checkbox } from "./ui/checkbox";
 
 export interface FormLike {
@@ -100,7 +100,15 @@ export const ViolationCarousel3D: React.FC<{
     setSelectedForDelete(false);
   };
 
-  const handleDelete = async (e: React.MouseEvent) => {
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleClose();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [activeImg, activeIndex]);
+ 
+   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
     
     if (!selectedForDelete || activeIndex === null || !onDelete) return;
@@ -125,15 +133,17 @@ export const ViolationCarousel3D: React.FC<{
         <AnimatePresence mode="sync">
           {activeImg && activeIndex !== null && (
             <motion.div
-              initial={{ opacity: 0, scale: 0 }}
+              initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0 }}
+              exit={{ opacity: 0, scale: 0.98 }}
               layoutId={`img-container-${activeImg}`}
               layout="position"
               onClick={handleClose}
-              className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-8"
+              role="dialog"
+              aria-modal="true"
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm relative flex items-start justify-center z-[1000] p-4 md:p-8"
               style={{ willChange: "opacity" }}
-              transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
+              transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
             >
               <div className="relative w-full max-w-6xl h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
                 {/* Checkbox and Delete Controls */}
@@ -171,6 +181,15 @@ export const ViolationCarousel3D: React.FC<{
                     </button>
                   </div>
                 )}
+                {/* Close button */}
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleClose(); }}
+                  className="absolute top-2 right-2 z-10 p-2 rounded-lg bg-black/80 border border-white/20 text-white hover:bg-white/10 transition"
+                  aria-label="Close"
+                  title="Close"
+                >
+                  <X className="w-5 h-5" />
+                </button>
 
                 {/* Card with violation details */}
                 <motion.div
@@ -179,48 +198,56 @@ export const ViolationCarousel3D: React.FC<{
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.3, duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
                 >
-                  <motion.img
-                    layoutId={`img-${activeImg}-${activeIndex}`}
-                    src={activeImg}
-                    className="w-full h-[60%] object-cover rounded-t-3xl"
-                    style={{ willChange: "transform" }}
-                  />
-                  
-                  {/* Violation Details */}
+                  {/* Violation Details at Top */}
                   {forms[activeIndex] && (
                     <div className="p-8 space-y-6 flex-1 overflow-y-auto">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-start justify-between gap-4">
                         <div>
                           <h3 className="text-3xl font-bold text-vice-cyan drop-shadow-[0_0_8px_#00ffff]">
                             Unit: {forms[activeIndex].unit_number || 'Unknown'}
                           </h3>
                           <p className="text-vice-pink/90 text-lg mt-2">
-                            {forms[activeIndex].occurred_at 
+                            {forms[activeIndex].occurred_at
                               ? new Date(forms[activeIndex].occurred_at!).toLocaleDateString("en-US", {
                                   weekday: 'long',
                                   month: 'long',
                                   day: 'numeric',
-                                  year: 'numeric'
+                                  year: 'numeric',
                                 })
-                              : 'Date unknown'
-                            }
+                              : 'Date unknown'}
                           </p>
                         </div>
                       </div>
-                      
+
                       {forms[activeIndex].location && (
                         <div>
                           <h4 className="text-vice-cyan/90 text-base font-semibold mb-2">Location:</h4>
                           <p className="text-white/90 text-lg">{forms[activeIndex].location}</p>
                         </div>
                       )}
-                      
+
                       {forms[activeIndex].description && (
                         <div>
                           <h4 className="text-vice-cyan/90 text-base font-semibold mb-2">Description:</h4>
                           <p className="text-white/90 text-lg leading-relaxed">{forms[activeIndex].description}</p>
                         </div>
                       )}
+
+                      {/* Attached Photos at Bottom (small) */}
+                      <div className="pt-2">
+                        <h4 className="text-vice-cyan/90 text-base font-semibold mb-3">Attached Photos</h4>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                          {activeImg && activeImg !== "placeholder" ? (
+                            <img
+                              src={activeImg}
+                              alt="Violation photo"
+                              className="w-full h-28 object-cover rounded-xl ring-2 ring-vice-pink shadow-[0_0_12px_#ff1493,0_0_24px_#ff149350]"
+                            />
+                          ) : (
+                            <div className="text-white/60 text-sm">No photos attached.</div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   )}
                 </motion.div>
