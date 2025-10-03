@@ -131,24 +131,24 @@ export const ViolationCarousel3D: React.FC<{
               layoutId={`img-container-${activeImg}`}
               layout="position"
               onClick={handleClose}
-              className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-5 md:p-36"
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-8"
               style={{ willChange: "opacity" }}
               transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
             >
-              <div className="relative max-w-4xl w-full" onClick={(e) => e.stopPropagation()}>
+              <div className="relative w-full max-w-6xl h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
                 {/* Checkbox and Delete Controls */}
                 {onDelete && (
-                  <div className="absolute top-4 left-4 z-10 flex items-center gap-3 bg-black/60 backdrop-blur-sm px-4 py-2 rounded-lg border border-vice-cyan/30">
+                  <div className="absolute top-2 left-2 z-10 flex items-center gap-3 bg-black/80 backdrop-blur-sm px-4 py-3 rounded-lg border-2 border-vice-cyan/50 shadow-lg">
                     <div className="flex items-center gap-2">
                       <Checkbox
                         id="delete-checkbox"
                         checked={selectedForDelete}
                         onCheckedChange={(checked) => setSelectedForDelete(checked as boolean)}
-                        className="border-vice-cyan data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink"
+                        className="border-vice-cyan data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink w-5 h-5"
                       />
                       <label
                         htmlFor="delete-checkbox"
-                        className="text-sm text-white cursor-pointer select-none"
+                        className="text-sm font-medium text-white cursor-pointer select-none"
                       >
                         Select to delete
                       </label>
@@ -156,7 +156,7 @@ export const ViolationCarousel3D: React.FC<{
                     <button
                       onClick={handleDelete}
                       disabled={!selectedForDelete || isDeleting}
-                      className={`p-2 rounded-md transition-all ${
+                      className={`p-2.5 rounded-md transition-all ${
                         selectedForDelete && !isDeleting
                           ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/50'
                           : 'bg-gray-700 text-gray-500 cursor-not-allowed'
@@ -174,7 +174,7 @@ export const ViolationCarousel3D: React.FC<{
 
                 {/* Card with violation details */}
                 <motion.div
-                  className="bg-gradient-to-br from-black/90 to-black/70 backdrop-blur-xl rounded-3xl overflow-hidden border border-vice-cyan/30 shadow-2xl"
+                  className="bg-gradient-to-br from-black/90 to-black/70 backdrop-blur-xl rounded-3xl overflow-hidden border border-vice-cyan/30 shadow-2xl flex-1 flex flex-col"
                   initial={{ scale: 0.5 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.3, duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
@@ -182,19 +182,19 @@ export const ViolationCarousel3D: React.FC<{
                   <motion.img
                     layoutId={`img-${activeImg}-${activeIndex}`}
                     src={activeImg}
-                    className="w-full h-auto rounded-t-3xl"
+                    className="w-full h-[60%] object-cover rounded-t-3xl"
                     style={{ willChange: "transform" }}
                   />
                   
                   {/* Violation Details */}
                   {forms[activeIndex] && (
-                    <div className="p-6 space-y-4">
+                    <div className="p-8 space-y-6 flex-1 overflow-y-auto">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="text-2xl font-bold text-vice-cyan drop-shadow-[0_0_8px_#00ffff]">
+                          <h3 className="text-3xl font-bold text-vice-cyan drop-shadow-[0_0_8px_#00ffff]">
                             Unit: {forms[activeIndex].unit_number || 'Unknown'}
                           </h3>
-                          <p className="text-vice-pink/80 text-sm mt-1">
+                          <p className="text-vice-pink/90 text-lg mt-2">
                             {forms[activeIndex].occurred_at 
                               ? new Date(forms[activeIndex].occurred_at!).toLocaleDateString("en-US", {
                                   weekday: 'long',
@@ -210,15 +210,15 @@ export const ViolationCarousel3D: React.FC<{
                       
                       {forms[activeIndex].location && (
                         <div>
-                          <h4 className="text-vice-cyan/90 text-sm font-semibold mb-1">Location:</h4>
-                          <p className="text-white/90">{forms[activeIndex].location}</p>
+                          <h4 className="text-vice-cyan/90 text-base font-semibold mb-2">Location:</h4>
+                          <p className="text-white/90 text-lg">{forms[activeIndex].location}</p>
                         </div>
                       )}
                       
                       {forms[activeIndex].description && (
                         <div>
-                          <h4 className="text-vice-cyan/90 text-sm font-semibold mb-1">Description:</h4>
-                          <p className="text-white/90">{forms[activeIndex].description}</p>
+                          <h4 className="text-vice-cyan/90 text-base font-semibold mb-2">Description:</h4>
+                          <p className="text-white/90 text-lg leading-relaxed">{forms[activeIndex].description}</p>
                         </div>
                       )}
                     </div>
