@@ -5,9 +5,9 @@ import { Trash2, X } from "lucide-react";
 import { Checkbox } from "./ui/checkbox";
 import {
   MorphingPopover,
-  MorphingPopoverTrigger,
   MorphingPopoverContent,
-} from "../../components/motion-primitives/morphing-popover";
+  MorphingPopoverTrigger,
+} from './core/morphing-popover';
 
 export interface FormLike {
   id: number;
@@ -53,9 +53,7 @@ export const ViolationCarousel3D: React.FC<{
   forms: FormLike[];
   onDelete?: (formId: number) => Promise<void>;
 }> = ({ forms, onDelete }) => {
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [selectedForDelete, setSelectedForDelete] = useState(false);
+  const [selectedForDelete, setSelectedForDelete] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const controls = useAnimation();
   const isScreenSizeSm = useMediaQuery("(max-width: 640px)");
@@ -93,31 +91,15 @@ export const ViolationCarousel3D: React.FC<{
   const rotation = useMotionValue(0);
   const transform = useTransform(rotation, (value) => `rotate3d(0, 1, 0, ${value}deg)`);
 
-  const handleClick = (imgUrl: string, index: number) => {
-    if (imgUrl !== "placeholder") {
-      setActiveIndex(index);
-      setIsPopoverOpen(true);
-    }
-  };
-
-  const handleClose = () => {
-    setIsPopoverOpen(false);
-    setActiveIndex(null);
-    setSelectedForDelete(false);
-  };
- 
-  const handleDelete = async (e: React.MouseEvent) => {
+  const handleDelete = async (e: React.MouseEvent, formId: number, index: number) => {
     e.stopPropagation();
     
-    if (!selectedForDelete || activeIndex === null || !onDelete) return;
-    
-    const activeForm = forms[activeIndex];
-    if (!activeForm) return;
+    if (selectedForDelete !== index || !onDelete) return;
 
     setIsDeleting(true);
     try {
-      await onDelete(activeForm.id);
-      handleClose();
+      await onDelete(formId);
+      setSelectedForDelete(null);
     } catch (error) {
       console.error('Delete failed:', error);
     } finally {
@@ -126,32 +108,32 @@ export const ViolationCarousel3D: React.FC<{
   };
 
   return (
-    <div className="w-full">
-      <MorphingPopover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-        <div className="relative h-[200px] w-full overflow-hidden rounded-xl bg-black/20 py-4">
-          <div
-            className="flex h-full items-center justify-center bg-black/10"
-            style={{ perspective: "1000px", transformStyle: "preserve-3d", willChange: "transform" }}
+    <div className="w-full space-y-4">
+      {/* 3D Carousel */}
+      <div className="relative h-[200px] w-full overflow-hidden rounded-xl bg-black/20 py-4">
+        <div
+          className="flex h-full items-center justify-center bg-black/10"
+          style={{ perspective: "1000px", transformStyle: "preserve-3d", willChange: "transform" }}
+        >
+          <motion.div
+            drag="x"
+            className="relative flex h-full origin-center cursor-grab justify-center active:cursor-grabbing"
+            style={{ transform, rotateY: rotation, width: cylinderWidth, transformStyle: "preserve-3d" }}
+            onDrag={(_, info) => rotation.set(rotation.get() + info.offset.x * 0.05)}
+            onDragEnd={(_, info) =>
+              controls.start({ 
+                rotateY: rotation.get() + info.velocity.x * 0.1, 
+                transition: { type: "spring", stiffness: 100, damping: 30, mass: 0.1 } 
+              })
+            }
+            animate={controls}
           >
-            <motion.div
-              drag="x"
-              className="relative flex h-full origin-center cursor-grab justify-center active:cursor-grabbing"
-              style={{ transform, rotateY: rotation, width: cylinderWidth, transformStyle: "preserve-3d" }}
-              onDrag={(_, info) => rotation.set(rotation.get() + info.offset.x * 0.05)}
-              onDragEnd={(_, info) =>
-                controls.start({ 
-                  rotateY: rotation.get() + info.velocity.x * 0.1, 
-                  transition: { type: "spring", stiffness: 100, damping: 30, mass: 0.1 } 
-                })
-              }
-              animate={controls}
-            >
-              {displayItems.map((item, i) => (
-                <MorphingPopoverTrigger key={`key-${item.imageUrl}-${i}`} asChild>
+            {displayItems.map((item, i) => (
+              <MorphingPopover key={`key-${item.imageUrl}-${i}`}>
+                <MorphingPopoverTrigger asChild>
                   <motion.div
                     className="absolute flex h-full origin-center items-center justify-center rounded-2xl p-1 cursor-pointer"
                     style={{ width: `${faceWidth}px`, transform: `rotateY(${i * (360 / faceCount)}deg) translateZ(${radius}px)` }}
-                    onClick={() => handleClick(item.imageUrl, i)}
                   >
                     {item.imageUrl === "placeholder" ? (
                       <div className="relative w-full rounded-2xl bg-gray-900 ring-2 ring-vice-pink shadow-[0_0_12px_#ff1493,0_0_24px_#ff149350] aspect-square flex flex-col items-center justify-center">
@@ -180,122 +162,112 @@ export const ViolationCarousel3D: React.FC<{
                     )}
                   </motion.div>
                 </MorphingPopoverTrigger>
-              ))}
-            </motion.div>
-          </div>
-        </div>
 
-        {/* Morphing Popover Content */}
-        {activeIndex !== null && forms[activeIndex] && (
-          <MorphingPopoverContent className="z-[9999] w-full max-w-[92vw] sm:max-w-md md:max-w-lg lg:max-w-xl p-0 bg-transparent border-0">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="relative bg-black rounded-2xl border-2 border-vice-cyan shadow-[0_0_40px_#00ffff50] p-5 sm:p-6 max-h-[85vh] overflow-y-auto w-full"
-            >
-              {/* Close button and delete controls */}
-              <div className="absolute top-4 right-4 flex items-center gap-3 z-10">
-                {onDelete && (
-                  <div className="flex items-center gap-3 bg-black/80 backdrop-blur-sm px-4 py-3 rounded-lg border-2 border-vice-cyan/50">
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        id="delete-checkbox"
-                        checked={selectedForDelete}
-                        onCheckedChange={(checked) => setSelectedForDelete(checked as boolean)}
-                        className="border-vice-cyan data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink w-5 h-5"
-                      />
-                      <label
-                        htmlFor="delete-checkbox"
-                        className="text-sm font-medium text-white cursor-pointer select-none"
-                      >
-                        Select to delete
-                      </label>
-                    </div>
-                    <button
-                      onClick={handleDelete}
-                      disabled={!selectedForDelete || isDeleting}
-                      className={`p-2.5 rounded-md transition-all ${
-                        selectedForDelete && !isDeleting
-                          ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/50'
-                          : 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                      }`}
-                      title={selectedForDelete ? 'Delete violation' : 'Check the box to enable delete'}
+                {/* Morphing Popover Content for each card */}
+                {item.imageUrl !== "placeholder" && forms[i] && (
+                  <MorphingPopoverContent 
+                    className="z-[9999] w-full max-w-[92vw] sm:max-w-md md:max-w-lg p-0 bg-transparent border-0 shadow-none"
+                    side="top"
+                    align="center"
+                    sideOffset={10}
+                  >
+                    <motion.div
+                      initial={{ scale: 0.95, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0.95, opacity: 0 }}
+                      className="relative bg-black rounded-2xl border-2 border-vice-cyan shadow-[0_0_40px_#00ffff50] p-5 sm:p-6 max-h-[85vh] overflow-y-auto w-full"
                     >
-                      {isDeleting ? (
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      ) : (
-                        <Trash2 className="w-5 h-5" />
-                      )}
-                    </button>
-                  </div>
+                      {/* Close button and delete controls */}
+                      <div className="absolute top-2 right-2 flex items-center gap-2 z-10">
+                        {onDelete && (
+                          <div className="flex items-center gap-2 bg-black/90 backdrop-blur-sm px-3 py-2 rounded-lg border border-vice-cyan/50">
+                            <Checkbox
+                              id={`delete-checkbox-${i}`}
+                              checked={selectedForDelete === i}
+                              onCheckedChange={(checked) => {
+                                setSelectedForDelete(checked ? i : null);
+                              }}
+                              className="border-vice-cyan data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink w-4 h-4"
+                            />
+                            <button
+                              onClick={(e) => handleDelete(e, forms[i].id, i)}
+                              disabled={selectedForDelete !== i || isDeleting}
+                              className={`p-1.5 rounded-md transition-all ${
+                                selectedForDelete === i && !isDeleting
+                                  ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/50'
+                                  : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                              }`}
+                              title={selectedForDelete === i ? 'Delete violation' : 'Check box to delete'}
+                            >
+                              {isDeleting && selectedForDelete === i ? (
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                              ) : (
+                                <Trash2 className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Violation Details */}
+                      <div className="space-y-4 mt-8">
+                        <div>
+                          <h3 className="text-2xl sm:text-3xl font-bold text-vice-cyan drop-shadow-[0_0_8px_#00ffff]">
+                            Unit: {forms[i].unit_number || 'Unknown'}
+                          </h3>
+                          <p className="text-vice-pink/90 text-base sm:text-lg mt-2">
+                            {forms[i].occurred_at
+                              ? new Date(forms[i].occurred_at!).toLocaleDateString("en-US", {
+                                  weekday: 'long',
+                                  month: 'long',
+                                  day: 'numeric',
+                                  year: 'numeric',
+                                })
+                              : 'Date unknown'}
+                          </p>
+                        </div>
+
+                        {forms[i].location && (
+                          <div>
+                            <h4 className="text-vice-cyan/90 text-sm font-semibold mb-1">Location:</h4>
+                            <p className="text-white/90 text-base">{forms[i].location}</p>
+                          </div>
+                        )}
+
+                        {forms[i].description && (
+                          <div>
+                            <h4 className="text-vice-cyan/90 text-sm font-semibold mb-1">Description:</h4>
+                            <p className="text-white/90 text-base leading-relaxed">{forms[i].description}</p>
+                          </div>
+                        )}
+
+                        {/* Attached Photos */}
+                        <div className="mt-6">
+                          <h4 className="text-vice-cyan/90 text-sm font-semibold mb-3">Attached Photos</h4>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                            {forms[i].photos && forms[i].photos!.length > 0 ? (
+                              forms[i].photos!.map((photo) => (
+                                <img
+                                  key={photo.id}
+                                  src={photo.public_url}
+                                  alt="Violation photo"
+                                  className="w-full h-16 sm:h-20 object-cover rounded-lg ring-1 ring-vice-pink shadow-[0_0_8px_#ff149330]"
+                                />
+                              ))
+                            ) : (
+                              <div className="text-white/60 text-sm col-span-2">No photos attached.</div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </MorphingPopoverContent>
                 )}
-                <button
-                  onClick={handleClose}
-                  className="p-2 rounded-lg bg-black/80 border border-white/20 text-white hover:bg-white/10 transition"
-                  aria-label="Close"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Violation Details */}
-              <div className="space-y-6 mt-12">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h3 className="text-3xl font-bold text-vice-cyan drop-shadow-[0_0_8px_#00ffff]">
-                      Unit: {forms[activeIndex].unit_number || 'Unknown'}
-                    </h3>
-                    <p className="text-vice-pink/90 text-lg mt-2">
-                      {forms[activeIndex].occurred_at
-                        ? new Date(forms[activeIndex].occurred_at!).toLocaleDateString("en-US", {
-                            weekday: 'long',
-                            month: 'long',
-                            day: 'numeric',
-                            year: 'numeric',
-                          })
-                        : 'Date unknown'}
-                    </p>
-                  </div>
-                </div>
-
-                {forms[activeIndex].location && (
-                  <div>
-                    <h4 className="text-vice-cyan/90 text-base font-semibold mb-2">Location:</h4>
-                    <p className="text-white/90 text-lg">{forms[activeIndex].location}</p>
-                  </div>
-                )}
-
-                {forms[activeIndex].description && (
-                  <div>
-                    <h4 className="text-vice-cyan/90 text-base font-semibold mb-2">Description:</h4>
-                    <p className="text-white/90 text-lg leading-relaxed">{forms[activeIndex].description}</p>
-                  </div>
-                )}
-
-                {/* Attached Photos */}
-                <div className="mt-8">
-                  <h4 className="text-vice-cyan/90 text-base font-semibold mb-3">Attached Photos</h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                    {forms[activeIndex].photos && forms[activeIndex].photos!.length > 0 ? (
-                      forms[activeIndex].photos!.map((photo) => (
-                        <img
-                          key={photo.id}
-                          src={photo.public_url}
-                          alt="Violation photo"
-                          className="w-full h-16 sm:h-20 md:h-24 object-cover rounded-xl ring-2 ring-vice-pink shadow-[0_0_12px_#ff1493,0_0_24px_#ff149350]"
-                        />
-                      ))
-                    ) : (
-                      <div className="text-white/60 text-sm">No photos attached.</div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </MorphingPopoverContent>
-        )}
-      </MorphingPopover>
+              </MorphingPopover>
+            ))}
+          </motion.div>
+        </div>
+      </div>
     </div>
   );
 };
