@@ -148,7 +148,7 @@ export const ViolationCarousel3D: React.FC<{
               <div className="relative w-full max-w-6xl h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
                 {/* Checkbox and Delete Controls */}
                 {onDelete && (
-                  <div className="absolute top-2 left-2 z-10 flex items-center gap-3 bg-black/80 backdrop-blur-sm px-4 py-3 rounded-lg border-2 border-vice-cyan/50 shadow-lg">
+                  <div className="absolute bottom-2 right-2 z-10 flex items-center gap-3 bg-black/80 backdrop-blur-sm px-4 py-3 rounded-lg border-2 border-vice-cyan/50 shadow-lg">
                     <div className="flex items-center gap-2">
                       <Checkbox
                         id="delete-checkbox"
