@@ -187,12 +187,12 @@ export const ViolationCarousel3D: React.FC<{
 
         {/* Morphing Popover Content */}
         {activeIndex !== null && forms[activeIndex] && (
-          <MorphingPopoverContent className="w-full max-w-4xl p-0 bg-transparent border-0">
+          <MorphingPopoverContent className="z-[9999] w-full max-w-[92vw] sm:max-w-md md:max-w-lg lg:max-w-xl p-0 bg-transparent border-0">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="relative bg-gradient-to-br from-black/95 to-black/80 backdrop-blur-xl rounded-3xl border-2 border-vice-cyan/40 shadow-[0_0_40px_#00ffff50] p-6 max-h-[80vh] overflow-y-auto"
+              className="relative bg-black rounded-2xl border-2 border-vice-cyan shadow-[0_0_40px_#00ffff50] p-5 sm:p-6 max-h-[85vh] overflow-y-auto w-full"
             >
               {/* Close button and delete controls */}
               <div className="absolute top-4 right-4 flex items-center gap-3 z-10">
@@ -274,7 +274,7 @@ export const ViolationCarousel3D: React.FC<{
                 )}
 
                 {/* Attached Photos */}
-                <div className="pt-2">
+                <div className="mt-8">
                   <h4 className="text-vice-cyan/90 text-base font-semibold mb-3">Attached Photos</h4>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                     {forms[activeIndex].photos && forms[activeIndex].photos!.length > 0 ? (
@@ -283,7 +283,7 @@ export const ViolationCarousel3D: React.FC<{
                           key={photo.id}
                           src={photo.public_url}
                           alt="Violation photo"
-                          className="w-full h-28 object-cover rounded-xl ring-2 ring-vice-pink shadow-[0_0_12px_#ff1493,0_0_24px_#ff149350]"
+                          className="w-full h-16 sm:h-20 md:h-24 object-cover rounded-xl ring-2 ring-vice-pink shadow-[0_0_12px_#ff1493,0_0_24px_#ff149350]"
                         />
                       ))
                     ) : (
