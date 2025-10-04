@@ -11,6 +11,11 @@ export interface FormLike {
   created_at: string | null;
   description?: string | null;
   location?: string | null;
+  photos?: Array<{
+    id: number;
+    storage_path: string;
+    public_url?: string;
+  }>;
 }
 
 export type CarouselItem = {
@@ -237,12 +242,15 @@ export const ViolationCarousel3D: React.FC<{
                       <div className="pt-2">
                         <h4 className="text-vice-cyan/90 text-base font-semibold mb-3">Attached Photos</h4>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                          {activeImg && activeImg !== "placeholder" ? (
-                            <img
-                              src={activeImg}
-                              alt="Violation photo"
-                              className="w-full h-28 object-cover rounded-xl ring-2 ring-vice-pink shadow-[0_0_12px_#ff1493,0_0_24px_#ff149350]"
-                            />
+                          {forms[activeIndex].photos && forms[activeIndex].photos!.length > 0 ? (
+                            forms[activeIndex].photos!.map((photo) => (
+                              <img
+                                key={photo.id}
+                                src={photo.public_url}
+                                alt="Violation photo"
+                                className="w-full h-28 object-cover rounded-xl ring-2 ring-vice-pink shadow-[0_0_12px_#ff1493,0_0_24px_#ff149350]"
+                              />
+                            ))
                           ) : (
                             <div className="text-white/60 text-sm">No photos attached.</div>
                           )}

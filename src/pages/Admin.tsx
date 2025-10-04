@@ -293,7 +293,7 @@ export default function Admin() {
 
   const fetchViolationForms = async () => {
     try {
-      // Fetch violation forms with user profile information
+      // Fetch violation forms with user profile information and photos
       let { data, error } = await supabase
         .from('violation_forms')
         .select(`
@@ -331,12 +331,35 @@ export default function Admin() {
           profiles: profilesData?.find(profile => profile.user_id === form.user_id) || null
         }));
 
-        setViolationForms(formsWithProfiles);
-      } else {
-        // Type assertion to handle the Supabase response
-        const formsWithProfiles = (data || []) as unknown as SavedForm[];
-        setViolationForms(formsWithProfiles);
+        data = formsWithProfiles as any;
       }
+
+      // Fetch photos for all forms
+      const formIds = (data || []).map(form => form.id);
+      const { data: photosData } = await supabase
+        .from('violation_photos')
+        .select('*')
+        .in('violation_id', formIds);
+
+      // Get public URLs for all photos
+      const photosWithUrls = await Promise.all((photosData || []).map(async (photo) => {
+        const { data: urlData } = supabase.storage
+          .from('violation-photos')
+          .getPublicUrl(photo.storage_path);
+        
+        return {
+          ...photo,
+          public_url: urlData.publicUrl
+        };
+      }));
+
+      // Attach photos to forms
+      const formsWithPhotos = (data || []).map(form => ({
+        ...form,
+        photos: photosWithUrls.filter(photo => photo.violation_id === form.id)
+      }));
+
+      setViolationForms(formsWithPhotos as unknown as SavedForm[]);
     } catch (error: any) {
       console.error('Error fetching violation forms:', error);
       toast({
