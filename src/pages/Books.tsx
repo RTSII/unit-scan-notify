@@ -41,6 +41,12 @@ interface SavedForm {
     full_name: string | null;
     role: string;
   } | null;
+  // Add violation_photos join data
+  violation_photos?: Array<{
+    id: string;
+    storage_path: string;
+    created_at: string;
+  }>;
 }
 
 const Books = () => {
@@ -115,7 +121,7 @@ const Books = () => {
     if (!user) return;
 
     try {
-      // First, try to fetch with the join
+      // First, try to fetch with the join (including violation_photos)
       let { data, error } = await supabase
         .from('violation_forms')
         .select(`
@@ -124,6 +130,11 @@ const Books = () => {
             email,
             full_name,
             role
+          ),
+          violation_photos (
+            id,
+            storage_path,
+            created_at
           )
         `)
         .order('created_at', { ascending: false });
@@ -132,10 +143,17 @@ const Books = () => {
       if (error || !data) {
         console.log('Join query failed, falling back to separate queries:', error);
 
-        // Fetch violation forms
+        // Fetch violation forms with photos join
         const { data: formsData, error: formsError } = await supabase
           .from('violation_forms')
-          .select('*')
+          .select(`
+            *,
+            violation_photos (
+              id,
+              storage_path,
+              created_at
+            )
+          `)
           .order('created_at', { ascending: false });
 
         if (formsError) throw formsError;
@@ -147,9 +165,11 @@ const Books = () => {
 
         if (profilesError) throw profilesError;
 
-        // Manually join the data
+        // Manually join the data and map photos
         const formsWithProfiles = (formsData || []).map(form => ({
           ...form,
+          // @ts-ignore - Supabase types need regeneration for violation_photos join
+          photos: form.violation_photos?.map(p => p.storage_path) || [],
           profiles: profilesData?.find(profile => profile.user_id === form.user_id) || null
         }));
 
@@ -161,6 +181,7 @@ const Books = () => {
             id: f.id,
             unit: f.unit_number,
             date: f.date,
+            // @ts-ignore - occurred_at exists in database but not in generated types
             occurred_at: f.occurred_at,
             photos: f.photos,
             photoCount: f.photos?.length || 0,
@@ -172,12 +193,18 @@ const Books = () => {
 
         // Debug: See all fetched forms
         console.log('Forms fetched:', formsWithProfiles);
+        // @ts-ignore - Type assertion needed until Supabase types are regenerated
         setForms(formsWithProfiles);
       } else {
-        // Type assertion to handle the Supabase response
-        const formsWithProfiles = (data || []) as unknown as SavedForm[];
+        // Map the data to include photos array from violation_photos join
+        const formsWithProfiles = (data || []).map(form => ({
+          ...form,
+          // @ts-ignore - Supabase types need regeneration for violation_photos join
+          photos: form.violation_photos?.map(p => p.storage_path) || []
+        }));
         // Debug: See all fetched forms
         console.log('Forms fetched (with join):', formsWithProfiles);
+        // @ts-ignore - Type assertion needed until Supabase types are regenerated
         setForms(formsWithProfiles);
       }
     } catch (error) {
