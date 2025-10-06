@@ -67,8 +67,9 @@ const DetailsLive = () => {
     const photos = capturedImage ? [capturedImage] : [];
 
     try {
+      // @ts-ignore - Supabase types need regeneration for violation_forms_new
       const { error } = await supabase
-        .from('violation_forms')
+        .from('violation_forms_new')
         .insert({
           user_id: user.id,
           unit_number: formData.unit,
