@@ -395,14 +395,22 @@ export default function DetailsPrevious() {
         const savedForm = result.data[0];
         console.log('Saved form date field:', savedForm.date);
         console.log('Saved form occurred_at field:', savedForm.occurred_at);
+        console.log('Saved form photos:', savedForm.photos);
+        
+        // Show debug info in toast for mobile testing
+        const debugInfo = `Date: ${savedForm.date || 'MISSING'}, Photos: ${savedForm.photos?.length || 0}`;
         
         if (!savedForm.date && !savedForm.occurred_at) {
           console.warn('WARNING: Date was not saved to database!');
-          toast.error('Warning: Date may not have been saved correctly');
+          toast.error(`⚠️ Date not saved! ${debugInfo}`);
+        } else if (!savedForm.photos || savedForm.photos.length === 0) {
+          toast.error(`⚠️ Photos not saved! ${debugInfo}`);
+        } else {
+          toast.success(`✅ Saved! ${debugInfo}`);
         }
+      } else {
+        toast.success(id ? 'Form updated!' : 'Form saved!');
       }
-      
-      toast.success(id ? 'Form updated successfully!' : 'Form saved successfully!');
       navigate('/books');
     } catch (error) {
       console.error('Error saving form:', error);
