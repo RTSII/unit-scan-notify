@@ -288,14 +288,20 @@ export default function Admin() {
   const fetchViolationForms = async () => {
     try {
       // Fetch violation forms with user profile information
+      // @ts-ignore - Supabase types need regeneration for violation_forms_new
       let { data, error } = await supabase
-        .from('violation_forms')
+        .from('violation_forms_new')
         .select(`
           *,
-          profiles!violation_forms_user_id_fkey (
+          profiles!violation_forms_new_user_id_fkey (
             email,
             full_name,
             role
+          ),
+          violation_photos (
+            id,
+            storage_path,
+            created_at
           )
         `)
         .order('created_at', { ascending: false }).limit(1000);
@@ -304,10 +310,18 @@ export default function Admin() {
       if (error || !data) {
         console.log('Join query failed, falling back to separate queries:', error);
 
-        // Fetch violation forms
+        // Fetch violation forms with photos
+        // @ts-ignore - Supabase types need regeneration for violation_forms_new
         const { data: formsData, error: formsError } = await supabase
-          .from('violation_forms')
-          .select('*')
+          .from('violation_forms_new')
+          .select(`
+            *,
+            violation_photos (
+              id,
+              storage_path,
+              created_at
+            )
+          `)
           .order('created_at', { ascending: false }).limit(1000);
 
         if (formsError) throw formsError;
@@ -319,16 +333,23 @@ export default function Admin() {
 
         if (profilesError) throw profilesError;
 
-        // Manually join the data
+        // Manually join the data and map photos
         const formsWithProfiles = (formsData || []).map(form => ({
           ...form,
+          // @ts-ignore - Supabase types need regeneration for violation_photos join
+          photos: form.violation_photos?.map(p => p.storage_path) || [],
           profiles: profilesData?.find(profile => profile.user_id === form.user_id) || null
         }));
 
         setViolationForms(formsWithProfiles);
       } else {
-        // Type assertion to handle the Supabase response
-        const formsWithProfiles = (data || []) as unknown as SavedForm[];
+        // Map the data to include photos array from violation_photos join
+        const formsWithProfiles = (data || []).map(form => ({
+          ...form,
+          // @ts-ignore - Supabase types need regeneration for violation_photos join
+          photos: form.violation_photos?.map(p => p.storage_path) || []
+        }));
+        // @ts-ignore - Type assertion needed until Supabase types are regenerated
         setViolationForms(formsWithProfiles);
       }
     } catch (error: any) {
@@ -377,8 +398,9 @@ export default function Admin() {
       setUserActivity([]);
 
       // Fetch violation statistics for overall team metrics
+      // @ts-ignore - Supabase types need regeneration for violation_forms_new
       const { data: violationsData, error: violationsError } = await supabase
-        .from('violation_forms')
+        .from('violation_forms_new')
         .select('id, created_at, status');
 
       if (violationsError) throw violationsError;
@@ -475,8 +497,9 @@ export default function Admin() {
   const deleteViolationForm = async (formId: string) => {
     setDeletingFormId(formId);
     try {
+      // @ts-ignore - Supabase types need regeneration for violation_forms_new
       const { error } = await supabase
-        .from('violation_forms')
+        .from('violation_forms_new')
         .delete()
         .eq('id', formId);
 
