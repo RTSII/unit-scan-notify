@@ -24,12 +24,19 @@ import { supabase } from '@/integrations/supabase/client';
 interface ViolationForm {
   id: string;
   unit_number: string;
-  date: string;
-  time: string;
+  date?: string; // Legacy field
+  time?: string; // Legacy field
+  occurred_at?: string; // New timestamp field
   location: string;
   description: string;
   status: string;
   created_at: string;
+  photos?: string[]; // Photos array from violation_photos join
+  violation_photos?: Array<{
+    id: string;
+    storage_path: string;
+    created_at: string;
+  }>;
 }
 
 export default function Export() {
@@ -65,14 +72,31 @@ export default function Export() {
 
   const fetchForms = async () => {
     try {
+      // @ts-ignore - Supabase types need regeneration for violation_forms_new
       const { data, error } = await supabase
-        .from('violation_forms')
-        .select('*')
+        .from('violation_forms_new')
+        .select(`
+          *,
+          violation_photos (
+            id,
+            storage_path,
+            created_at
+          )
+        `)
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setForms(data || []);
+      
+      // Map photos array from violation_photos join
+      const formsWithPhotos = (data || []).map(form => ({
+        ...form,
+        // @ts-ignore - Supabase types need regeneration
+        photos: form.violation_photos?.map(p => p.storage_path) || []
+      }));
+      
+      // @ts-ignore - Type assertion needed
+      setForms(formsWithPhotos);
     } catch (error) {
       console.error('Error fetching forms:', error);
       toast({
@@ -137,9 +161,26 @@ export default function Export() {
     }
 
     const selectedNotices = forms.filter(form => selectedForms.includes(form.id));
-    const emailBody = selectedNotices.map(form => 
-      `Unit: ${form.unit_number}\nDate: ${form.date}\nTime: ${form.time}\nLocation: ${form.location}\nDescription: ${form.description}\n\n`
-    ).join('---\n\n');
+    const emailBody = selectedNotices.map(form => {
+      // Format date from occurred_at or use legacy date/time
+      let dateStr = '';
+      if (form.occurred_at) {
+        const dateObj = new Date(form.occurred_at);
+        dateStr = `${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}/${dateObj.getFullYear()}`;
+      } else if (form.date) {
+        dateStr = form.date;
+      }
+      
+      let timeStr = '';
+      if (form.occurred_at) {
+        const dateObj = new Date(form.occurred_at);
+        timeStr = dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+      } else if (form.time) {
+        timeStr = form.time;
+      }
+      
+      return `Unit: ${form.unit_number}\nDate: ${dateStr}\nTime: ${timeStr}\nLocation: ${form.location}\nDescription: ${form.description}\nPhotos: ${form.photos?.length || 0}\n\n`;
+    }).join('---\n\n');
 
     const subject = `SPR Violation Notices - ${selectedNotices.length} notice(s)`;
     const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
@@ -185,21 +226,45 @@ export default function Export() {
             .notice h3 { margin: 0 0 10px 0; font-size: 16px; font-weight: bold; }
             .notice p { margin: 5px 0; font-size: 12px; }
             .notice .label { font-weight: bold; }
+            .notice img { max-width: 100%; height: auto; margin-top: 10px; }
           </style>
         </head>
         <body>
           <div class="grid">
-            ${selectedNotices.map(form => `
+            ${selectedNotices.map(form => {
+              // Format date from occurred_at or use legacy date/time
+              let dateStr = '';
+              if (form.occurred_at) {
+                const dateObj = new Date(form.occurred_at);
+                dateStr = `${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}/${dateObj.getFullYear()}`;
+              } else if (form.date) {
+                dateStr = form.date;
+              }
+              
+              let timeStr = '';
+              if (form.occurred_at) {
+                const dateObj = new Date(form.occurred_at);
+                timeStr = dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+              } else if (form.time) {
+                timeStr = form.time;
+              }
+              
+              return `
               <div class="notice">
                 <h3>SPR Violation Notice</h3>
                 <p><span class="label">Unit:</span> ${form.unit_number}</p>
-                <p><span class="label">Date:</span> ${form.date}</p>
-                <p><span class="label">Time:</span> ${form.time}</p>
+                <p><span class="label">Date:</span> ${dateStr}</p>
+                <p><span class="label">Time:</span> ${timeStr}</p>
                 <p><span class="label">Location:</span> ${form.location}</p>
                 <p><span class="label">Description:</span> ${form.description}</p>
                 <p><span class="label">Status:</span> ${form.status}</p>
+                ${form.photos && form.photos.length > 0 ? `
+                  <p><span class="label">Photo:</span></p>
+                  <img src="${form.photos[0]}" alt="Violation photo" />
+                ` : ''}
               </div>
-            `).join('')}
+            `;
+            }).join('')}
           </div>
         </body>
       </html>
@@ -303,7 +368,9 @@ export default function Export() {
                       <div key={formId} className="flex items-center justify-between bg-black/20 p-3 rounded border border-vice-cyan/20">
                         <div>
                           <p className="text-white font-medium">Unit {form.unit_number}</p>
-                          <p className="text-vice-cyan/80 text-sm">{form.date} - {form.location}</p>
+                          <p className="text-vice-cyan/80 text-sm">
+                            {form.occurred_at ? new Date(form.occurred_at).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' }) : form.date} - {form.location}
+                          </p>
                         </div>
                         <Button
                           variant="ghost"
@@ -393,9 +460,19 @@ export default function Export() {
                             {form.status}
                           </span>
                         </div>
-                        <p className="text-vice-cyan/80 text-sm mb-1">{form.date} at {form.time}</p>
+                        <p className="text-vice-cyan/80 text-sm mb-1">
+                          {form.occurred_at ? (
+                            new Date(form.occurred_at).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) + ' at ' +
+                            new Date(form.occurred_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+                          ) : (
+                            `${form.date} at ${form.time}`
+                          )}
+                        </p>
                         <p className="text-vice-cyan/80 text-sm mb-1">{form.location}</p>
                         <p className="text-white/90 text-sm">{form.description}</p>
+                        {form.photos && form.photos.length > 0 && (
+                          <p className="text-vice-pink text-xs mt-1">📷 {form.photos.length} photo(s)</p>
+                        )}
                       </div>
                     </div>
                   ))}
