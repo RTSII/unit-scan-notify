@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Home, Camera, X, ArrowLeftIcon } from 'lucide-react';
+import { Home, Camera, X, ArrowLeftIcon, Plus } from 'lucide-react';
 
 import { TextureCard, TextureCardContent } from '../components/ui/texture-card';
 import { Button } from '../components/ui/button';
@@ -41,7 +41,7 @@ export default function DetailsPrevious() {
 
   const [formData, setFormData] = useState<ViolationFormData>({
     unit_number: '',
-    date: '',
+    date: '', // User manually enters date for previous violations
     time: '',
     ampm: 'AM',
     description: '',
@@ -108,7 +108,15 @@ export default function DetailsPrevious() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
 
-    files.forEach(file => {
+    // Limit to 4 photos total
+    const remainingSlots = 4 - selectedImages.length;
+    const filesToProcess = files.slice(0, remainingSlots);
+
+    if (files.length > remainingSlots) {
+      toast.error(`You can only attach up to 4 photos. ${remainingSlots} slot(s) remaining.`);
+    }
+
+    filesToProcess.forEach(file => {
       const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target?.result) {
@@ -117,6 +125,9 @@ export default function DetailsPrevious() {
       };
       reader.readAsDataURL(file);
     });
+
+    // Reset the input value so the same file can be selected again if needed
+    e.target.value = '';
   };
 
   const removeImage = (index: number) => {
@@ -248,21 +259,23 @@ export default function DetailsPrevious() {
               type="file"
               accept="image/*"
               multiple
+              capture={undefined}
               onChange={handleFileChange}
               className="hidden"
             />
 
             <Button
               onClick={() => fileInputRef.current?.click()}
-              className="w-full bg-vice-cyan hover:bg-vice-cyan/80 text-black"
+              disabled={selectedImages.length >= 4}
+              className="w-full bg-vice-cyan hover:bg-vice-cyan/80 text-black disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Camera className="w-4 h-4 mr-2" />
-              Select Photos
+              <Plus className="w-5 h-5 mr-2" />
+              {selectedImages.length >= 4 ? 'Max 4 Photos' : `Add from Album (${selectedImages.length}/4)`}
             </Button>
 
             {selectedImages.length > 0 && (
               <div className="space-y-2">
-                <h4 className="text-white text-sm font-medium">Selected Photos ({selectedImages.length})</h4>
+                <h4 className="text-white text-sm font-medium">Selected Photos ({selectedImages.length}/4)</h4>
                 <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
                   {selectedImages.map((image, index) => (
                     <div key={index} className="relative group">
@@ -328,6 +341,12 @@ export default function DetailsPrevious() {
     setIsSaving(true);
     try {
       const allPhotos = [...existingPhotos, ...selectedImages];
+      
+      console.log('Saving form with photos:', {
+        photoCount: allPhotos.length,
+        selectedImagesCount: selectedImages.length,
+        existingPhotosCount: existingPhotos.length
+      });
 
       const formDataToSave = {
         user_id: user.id,
@@ -340,24 +359,49 @@ export default function DetailsPrevious() {
         status: 'saved'
       };
 
+      console.log('Saving form data:', formDataToSave);
+
       let error: PostgrestError | null = null;
+      let result;
+      
       if (id) {
         // Update existing record
-        const result = await supabase
+        result = await supabase
           .from('violation_forms')
           .update(formDataToSave)
-          .eq('id', id);
+          .eq('id', id)
+          .select();
         error = result.error;
       } else {
         // Create new record
-        const result = await supabase
+        result = await supabase
           .from('violation_forms')
-          .insert(formDataToSave);
+          .insert(formDataToSave)
+          .select();
         error = result.error;
       }
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase save error:', error);
+        console.error('Attempted to save:', formDataToSave);
+        toast.error(`Failed to save: ${error.message}`);
+        throw error;
+      }
 
+      console.log('Form saved successfully:', result.data);
+      
+      // Verify the saved data has the date
+      if (result.data && result.data[0]) {
+        const savedForm = result.data[0];
+        console.log('Saved form date field:', savedForm.date);
+        console.log('Saved form occurred_at field:', savedForm.occurred_at);
+        
+        if (!savedForm.date && !savedForm.occurred_at) {
+          console.warn('WARNING: Date was not saved to database!');
+          toast.error('Warning: Date may not have been saved correctly');
+        }
+      }
+      
       toast.success(id ? 'Form updated successfully!' : 'Form saved successfully!');
       navigate('/books');
     } catch (error) {
@@ -369,10 +413,21 @@ export default function DetailsPrevious() {
   };
 
   const isFormValid = () => {
-    return formData.unit_number.trim() &&
-      formData.unit_number.length === 3 &&
-      isUnitValid !== false &&
-      (Object.values(formData.violationTypes).some(v => v) || formData.description.trim());
+    const hasDate = formData.date.trim().length > 0;
+    const hasUnit = formData.unit_number.trim() && formData.unit_number.length === 3;
+    const hasViolation = Object.values(formData.violationTypes).some(v => v) || formData.description.trim();
+    
+    if (!hasDate) {
+      console.warn('Form validation failed: Missing date');
+    }
+    if (!hasUnit) {
+      console.warn('Form validation failed: Invalid unit');
+    }
+    if (!hasViolation) {
+      console.warn('Form validation failed: No violation type selected');
+    }
+    
+    return hasDate && hasUnit && isUnitValid !== false && hasViolation;
   };
 
   useEffect(() => {
@@ -423,23 +478,25 @@ export default function DetailsPrevious() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue text-white flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20 relative">
-        <div className="flex flex-col items-center gap-2">
+      <div className="relative flex items-center p-6 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20">
+        <div className="absolute left-1/2 transform -translate-x-1/2">
           <img 
             src="/nv.png" 
             alt="New Violation header" 
-            className="h-12 w-auto"
+            className="h-40 w-auto object-contain"
             loading="eager"
           />
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-white hover:bg-white/10 p-2 absolute right-4"
-          onClick={() => navigate('/')}
-        >
-          <Home className="w-4 h-4" />
-        </Button>
+        <div className="ml-auto">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-white hover:bg-vice-cyan/20 min-h-[88px] min-w-[88px] p-1"
+            onClick={() => navigate('/')}
+          >
+            <Home className="w-24 h-24" />
+          </Button>
+        </div>
       </div>
 
       {/* Form Content */}

@@ -29,7 +29,6 @@ import {
   motion
 } from "framer-motion";
 import { ViolationCarousel3D } from '../components/ViolationCarousel';
-import { CircularGallery, GalleryItem } from '../components/ui/circular-gallery';
 
 interface Invite {
   id: string;
@@ -201,7 +200,7 @@ export default function Admin() {
                 className="overflow-hidden"
               >
                 <div className="p-4 pt-0">
-                  <ViolationCarousel3D forms={getThisWeekForms()} />
+                  <ViolationCarousel3D forms={getThisWeekForms()} onDelete={deleteViolationForm} />
                 </div>
               </motion.div>
             )}
@@ -239,7 +238,7 @@ export default function Admin() {
                 className="overflow-hidden"
               >
                 <div className="p-4 pt-0">
-                  <ViolationCarousel3D forms={getThisMonthForms()} />
+                  <ViolationCarousel3D forms={getThisMonthForms()} onDelete={deleteViolationForm} />
                 </div>
               </motion.div>
             )}
@@ -277,10 +276,7 @@ export default function Admin() {
               className="overflow-hidden"
             >
               <div className="p-4 pt-0">
-                {/* Circular gallery with fixed height to create vertical padding */}
-                <div className="w-full h-[360px] bg-black/60 rounded-lg overflow-hidden">
-                  <CircularGallery items={mapToGalleryItems(violationForms.slice(0, 24))} className="text-white" />
-                </div>
+                <ViolationCarousel3D forms={violationForms} onDelete={deleteViolationForm} />
               </div>
             </motion.div>
           )}
@@ -530,36 +526,6 @@ export default function Admin() {
     return invites.filter(invite =>
       !invite.used_at && new Date(invite.expires_at) > new Date()
     );
-  };
-
-  // Reuse ViolationCarousel3D from Books.tsx implementation
-  const mapToGalleryItems = (forms: SavedForm[]): GalleryItem[] => {
-    const fallbacks = [
-      'https://images.unsplash.com/photo-1541707519942-08fd2f6480ba?q=80&w=900&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1526095179574-86e545346ae6?q=80&w=900&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1662841238473-f4b137e123cb?q=80&w=900&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1589648751789-c8ecb7a88bd5?q=80&w=900&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1659540181281-1d89d6112832?q=80&w=900&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1595792419466-23cec2476fa6?q=80&w=900&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1689799513565-44d2bc09d75b?q=80&w=900&auto=format&fit=crop',
-    ];
-    const formatShort = (dateString: string) => {
-      const d = new Date(dateString);
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      const dd = String(d.getDate()).padStart(2, '0');
-      return `${mm}-${dd}`;
-    };
-    return (forms || []).map((f, idx) => ({
-      // common will be used as Unit label line (second line)
-      common: f.unit_number || '—',
-      // binomial will be used as Date label line (top line)
-      binomial: f.date ? formatShort(f.date) : '—',
-      photo: {
-        url: f.photos?.[0] || fallbacks[idx % fallbacks.length],
-        text: f.description || 'Violation photo',
-        by: f.profiles?.full_name || f.profiles?.email || 'Unknown User',
-      },
-    }));
   };
 
   // Show loading while checking auth or profile

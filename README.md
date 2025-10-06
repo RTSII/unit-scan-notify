@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**SPR Vice City** is a mobile-first violation notice management application designed for field operations. Built with a Vaporwave retro-futuristic aesthetic set in Coastal South Carolina, this app enables my property management team to capture, document, export, and manage violation notices efficiently on mobile devices.
+**SPR Vice City** is a mobile-first violation notice management application designed for field operations. Built with a Synth-wave retro-futuristic aesthetic set in Coastal South Carolina, this app enables my property management team to capture, document, export, and manage violation notices efficiently on mobile devices.
 
 **Live URL**: https://spr-vicecity.lovable.app/
 
@@ -105,7 +105,7 @@
 - Supabase account
 
 ### Installation
-```bash
+
 npm install
 ```
 

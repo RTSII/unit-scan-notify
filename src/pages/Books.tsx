@@ -27,11 +27,12 @@ interface SavedForm {
   id: string;
   user_id: string;
   unit_number: string;
-  date: string;
+  date?: string; // Legacy field - may not exist in newer records
+  occurred_at?: string; // New field from migration
   time: string;
   location: string;
   description: string;
-  photos: string[];
+  photos?: string[];
   status: string;
   created_at: string;
   // Add user profile information - make it optional since the join might fail
@@ -152,10 +153,14 @@ const Books = () => {
           profiles: profilesData?.find(profile => profile.user_id === form.user_id) || null
         }));
 
+        // Debug: See all fetched forms
+        console.log('Forms fetched:', formsWithProfiles);
         setForms(formsWithProfiles);
       } else {
         // Type assertion to handle the Supabase response
         const formsWithProfiles = (data || []) as unknown as SavedForm[];
+        // Debug: See all fetched forms
+        console.log('Forms fetched (with join):', formsWithProfiles);
         setForms(formsWithProfiles);
       }
     } catch (error) {
@@ -322,9 +327,9 @@ const Books = () => {
 
         {/* Dashboard Stats - Vertically Stacked and Centered */}
         <div className="py-4">
-          <div className="flex flex-col items-center gap-4 max-w-[560px] mx-auto" ref={cardsContainerRef}>
+          <div className="flex flex-col items-center gap-4 w-full" ref={cardsContainerRef}>
             {/* This Week Card */}
-            <div className={`w-full ${thisWeekExpanded ? 'order-first' : ''}`}>
+            <div className={`w-full ${thisWeekExpanded ? 'order-first max-w-7xl' : 'max-w-[560px]'} mx-auto transition-all duration-300`}>
               <Collapsible open={thisWeekExpanded} onOpenChange={handleWeekExpansion} className="w-full">
                 <CollapsibleTrigger asChild>
                   <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm hover:border-vice-pink/50 transition-colors cursor-pointer w-full">
@@ -344,14 +349,16 @@ const Books = () => {
                     </CardContent>
                   </Card>
                 </CollapsibleTrigger>
-                <CollapsibleContent className="mt-4">
-                  <ViolationCarousel3D forms={getThisWeekForms()} />
+                <CollapsibleContent className="mt-4 flex justify-center">
+                  <div className="w-full">
+                    <ViolationCarousel3D forms={getThisWeekForms()} />
+                  </div>
                 </CollapsibleContent>
               </Collapsible>
             </div>
 
             {/* This Month Card */}
-            <div className={`w-full ${thisMonthExpanded && !thisWeekExpanded ? 'order-first' : ''}`}>
+            <div className={`w-full ${thisMonthExpanded && !thisWeekExpanded ? 'order-first max-w-7xl' : 'max-w-[560px]'} mx-auto transition-all duration-300`}>
               <Collapsible open={thisMonthExpanded} onOpenChange={handleMonthExpansion} className="w-full">
                 <CollapsibleTrigger asChild>
                   <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm hover:border-vice-pink/50 transition-colors cursor-pointer w-full">
@@ -371,8 +378,10 @@ const Books = () => {
                     </CardContent>
                   </Card>
                 </CollapsibleTrigger>
-                <CollapsibleContent className="mt-4">
-                  <ViolationCarousel3D forms={getThisMonthForms()} />
+                <CollapsibleContent className="mt-4 flex justify-center">
+                  <div className="w-full">
+                    <ViolationCarousel3D forms={getThisMonthForms()} />
+                  </div>
                 </CollapsibleContent>
               </Collapsible>
             </div>
@@ -386,81 +395,12 @@ const Books = () => {
             className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20 px-8 py-3 min-h-[44px]"
           >
             <BookOpen className="w-6 h-6 mr-2" />
-            Full Library
+            All Forms
           </Button>
-        </div>
-
-        {/* Forms Display */}
-        <div className="space-y-6">
-          {filteredForms.length === 0 && forms.length > 0 ? (
-            <div className="text-center py-8">
-              <p className="text-vice-cyan/70">
-                Try adjusting your search terms or filter settings.
-              </p>
-            </div>
-          ) : (
-            /* Dashboard List View */
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-white text-center">
-                {searchTerm ? `Search Results (${filteredForms.length})` : 'All Forms'}
-              </h3>
-
-              {filteredForms.map((form) => (
-                <Card
-                  key={form.id}
-                  className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm hover:border-vice-pink/50 transition-all duration-200 max-w-4xl mx-auto"
-                >
-                  <CardHeader className="pb-3">
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <CardTitle className="text-base font-semibold text-white flex flex-col sm:flex-row sm:items-center gap-2">
-                          <span className="truncate">Unit {form.unit_number}</span>
-                          <Badge className={`self-start ${form.status === 'completed' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-vice-pink/20 text-vice-pink border-vice-pink/30'}`}>
-                            {form.status}
-                          </Badge>
-                        </CardTitle>
-                        <p className="text-sm text-vice-cyan/80 mt-1 break-words">
-                          {form.description}
-                        </p>
-                      </div>
-
-                      <div className="text-xs text-vice-cyan/60 flex-shrink-0">
-                        {form.status === 'completed' ? 'Completed' : 'Saved'} {formatDate(form.created_at)}
-                      </div>
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="pt-0">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
-                      <div className="flex items-center gap-2 text-vice-cyan/70">
-                        <Calendar className="w-4 h-4 flex-shrink-0" />
-                        <span className="truncate">{formatDate(form.date)}</span>
-                      </div>
-
-                      <div className="flex items-center gap-2 text-vice-cyan/70">
-                        <Clock className="w-4 h-4 flex-shrink-0" />
-                        <span className="truncate">{formatTime(form.time)}</span>
-                      </div>
-
-                      <div className="flex items-center gap-2 text-vice-cyan/70">
-                        <MapPin className="w-4 h-4 flex-shrink-0" />
-                        <span className="truncate">{form.location}</span>
-                      </div>
-
-                      <div className="flex items-center gap-2 text-vice-cyan/70">
-                        <ImageIcon className="w-4 h-4 flex-shrink-0" />
-                        <span>{form.photos.length} photo{form.photos.length !== 1 ? 's' : ''}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Full Library Modal */}
+      {/* All Forms Modal */}
       {showFullLibrary && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-gradient-to-br from-vice-purple/20 via-black/90 to-vice-blue/20 border border-vice-cyan/30 rounded-lg w-full max-w-7xl max-h-[90dvh] overflow-hidden">
@@ -468,7 +408,7 @@ const Books = () => {
             <div className="flex items-center justify-between p-4 sm:p-6 border-b border-vice-cyan/30">
               <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-3">
                 <BookOpen className="w-6 h-6 sm:w-8 sm:h-8 text-vice-pink" />
-                <span className="truncate">Full Library ({forms.length} Forms)</span>
+                <span className="truncate">All Forms ({forms.length})</span>
               </h2>
               <Button
                 onClick={() => setShowFullLibrary(false)}
@@ -480,75 +420,13 @@ const Books = () => {
               </Button>
             </div>
 
-            {/* Modal Content */}
+            {/* Modal Content with Carousel */}
             <div className="overflow-y-auto max-h-[calc(90dvh-120px)] p-4 sm:p-6">
-              {forms.length === 0 ? (
-                <div className="text-center py-8">
-                  <BookOpen className="w-12 h-12 text-vice-cyan mx-auto mb-4 opacity-50" />
+              <div className="flex justify-center">
+                <div className="w-full max-w-4xl">
+                  <ViolationCarousel3D forms={forms} />
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {forms.map((form) => (
-                    <Card
-                      key={form.id}
-                      className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm hover:border-vice-pink/50 transition-all duration-200"
-                    >
-                      <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1 min-w-0">
-                            <CardTitle className="text-base font-semibold text-white flex flex-col gap-2">
-                              <span className="truncate">Unit {form.unit_number}</span>
-                              <div className="flex items-center gap-2">
-                                <Badge className={`self-start ${form.status === 'completed' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-vice-pink/20 text-vice-pink border-vice-pink/30'}`}>
-                                  {form.status}
-                                </Badge>
-                                <span className="text-xs text-vice-pink font-normal">
-                                  by {form.profiles?.full_name || form.profiles?.email || 'Unknown User'}
-                                </span>
-                              </div>
-                            </CardTitle>
-                            <div className="flex items-center gap-2 text-sm text-vice-cyan/70 mt-1">
-                              <Calendar className="w-4 h-4 flex-shrink-0" />
-                              <span className="truncate">{formatDate(form.date)}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </CardHeader>
-
-                      <CardContent className="pt-0 space-y-3">
-                        <div>
-                          <p className="text-xs font-medium text-vice-cyan mb-1">Description</p>
-                          <p className="text-sm text-white break-words">{form.description}</p>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3 text-sm">
-                          <div className="flex items-center gap-2 text-vice-cyan/70">
-                            <Clock className="w-4 h-4 flex-shrink-0" />
-                            <span className="truncate">{formatTime(form.time)}</span>
-                          </div>
-
-                          <div className="flex items-center gap-2 text-vice-cyan/70">
-                            <ImageIcon className="w-4 h-4 flex-shrink-0" />
-                            <span>{form.photos.length} photo{form.photos.length !== 1 ? 's' : ''}</span>
-                          </div>
-                        </div>
-
-                        <div>
-                          <p className="text-xs font-medium text-vice-cyan mb-1">Location</p>
-                          <div className="flex items-center gap-2 text-sm text-white">
-                            <MapPin className="w-4 h-4 text-vice-cyan/70 flex-shrink-0" />
-                            <span className="break-words">{form.location}</span>
-                          </div>
-                        </div>
-
-                        <div className="text-xs text-vice-cyan/60 pt-2 border-t border-vice-cyan/20">
-                          {form.status === 'completed' ? 'Completed' : 'Saved'} {formatDate(form.created_at)}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
+              </div>
             </div>
           </div>
         </div>
