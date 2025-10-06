@@ -373,17 +373,17 @@ export default function DetailsPrevious() {
       let result;
       
       if (id) {
-        // @ts-ignore - Supabase types are outdated, actual schema has occurred_at
+        // @ts-ignore - Supabase types are outdated, using violation_forms_new after migration
         result = await supabase
-          .from('violation_forms')
+          .from('violation_forms_new')
           .update(formDataToSave)
           .eq('id', id)
           .select();
         error = result.error;
       } else {
-        // @ts-ignore - Supabase types are outdated, actual schema has occurred_at
+        // @ts-ignore - Supabase types are outdated, using violation_forms_new after migration
         result = await supabase
-          .from('violation_forms')
+          .from('violation_forms_new')
           .insert(formDataToSave)
           .select();
         error = result.error;
