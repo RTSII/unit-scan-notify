@@ -342,30 +342,38 @@ export default function DetailsPrevious() {
     try {
       const allPhotos = [...existingPhotos, ...selectedImages];
       
-      console.log('Saving form with photos:', {
-        photoCount: allPhotos.length,
-        selectedImagesCount: selectedImages.length,
-        existingPhotosCount: existingPhotos.length
-      });
+      // Convert date and time to occurred_at timestamp
+      let occurredAt = null;
+      if (formData.date) {
+        const [month, day] = formData.date.split('/');
+        const currentYear = new Date().getFullYear();
+        let dateStr = `${currentYear}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        
+        if (formData.time) {
+          dateStr += `T${formData.time}:00`;
+        } else {
+          dateStr += 'T12:00:00';
+        }
+        
+        occurredAt = new Date(dateStr).toISOString();
+      }
 
       const formDataToSave = {
         user_id: user.id,
         unit_number: formData.unit_number,
-        date: formData.date,
-        time: `${formData.time} ${formData.ampm}`,
+        occurred_at: occurredAt,
         location: selectedViolations.join(', '),
         description: formData.description,
-        photos: allPhotos,
         status: 'saved'
       };
 
-      console.log('Saving form data:', formDataToSave);
+      console.log('💾 SAVING FORM DATA:', formDataToSave);
 
       let error: PostgrestError | null = null;
       let result;
       
       if (id) {
-        // Update existing record
+        // @ts-ignore - Supabase types are outdated, actual schema has occurred_at
         result = await supabase
           .from('violation_forms')
           .update(formDataToSave)
@@ -373,7 +381,7 @@ export default function DetailsPrevious() {
           .select();
         error = result.error;
       } else {
-        // Create new record
+        // @ts-ignore - Supabase types are outdated, actual schema has occurred_at
         result = await supabase
           .from('violation_forms')
           .insert(formDataToSave)
@@ -383,34 +391,46 @@ export default function DetailsPrevious() {
 
       if (error) {
         console.error('Supabase save error:', error);
-        console.error('Attempted to save:', formDataToSave);
         toast.error(`Failed to save: ${error.message}`);
         throw error;
       }
 
-      console.log('Form saved successfully:', result.data);
+      console.log('✅ Form saved successfully!', result.data);
       
-      // Verify the saved data has the date
       if (result.data && result.data[0]) {
         const savedForm = result.data[0];
-        console.log('Saved form date field:', savedForm.date);
-        console.log('Saved form occurred_at field:', savedForm.occurred_at);
-        console.log('Saved form photos:', savedForm.photos);
+        const formId = savedForm.id;
         
-        // Show debug info in toast for mobile testing
-        const debugInfo = `Date: ${savedForm.date || 'MISSING'}, Photos: ${savedForm.photos?.length || 0}`;
-        
-        if (!savedForm.date && !savedForm.occurred_at) {
-          console.warn('WARNING: Date was not saved to database!');
-          toast.error(`⚠️ Date not saved! ${debugInfo}`);
-        } else if (!savedForm.photos || savedForm.photos.length === 0) {
-          toast.error(`⚠️ Photos not saved! ${debugInfo}`);
+        // Now save photos to violation_photos table
+        if (allPhotos.length > 0) {
+          console.log(`📸 Saving ${allPhotos.length} photos to violation_photos table...`);
+          
+          const photoInserts = allPhotos.map(photoBase64 => ({
+            violation_id: formId,
+            uploaded_by: user.id,
+            storage_path: photoBase64 // Store base64 for now (should upload to storage bucket later)
+          }));
+          
+          // @ts-ignore - violation_photos table exists but not in generated types
+          const { data: photosData, error: photosError } = await supabase
+            .from('violation_photos')
+            .insert(photoInserts)
+            .select();
+          
+          if (photosError) {
+            console.error('Photos save error:', photosError);
+            toast.error(`⚠️ Form saved but photos failed: ${photosError.message}`);
+          } else {
+            console.log('✅ Photos saved successfully!', photosData);
+            toast.success(`✅ Saved! Date: ${savedForm.occurred_at ? 'YES' : 'NO'}, Photos: ${photosData?.length || 0}`);
+          }
         } else {
-          toast.success(`✅ Saved! ${debugInfo}`);
+          toast.success(`✅ Saved! Date: ${savedForm.occurred_at ? 'YES' : 'NO'}, Photos: 0`);
         }
       } else {
-        toast.success(id ? 'Form updated!' : 'Form saved!');
+        toast.success('Form saved!');
       }
+      
       navigate('/books');
     } catch (error) {
       console.error('Error saving form:', error);

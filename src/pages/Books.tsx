@@ -153,6 +153,23 @@ const Books = () => {
           profiles: profilesData?.find(profile => profile.user_id === form.user_id) || null
         }));
 
+        // Debug: See all fetched forms with details
+        console.log('Forms fetched:', formsWithProfiles);
+        console.log('📊 FORM DETAILS:');
+        formsWithProfiles.forEach((f, idx) => {
+          console.log(`Form ${idx + 1}:`, {
+            id: f.id,
+            unit: f.unit_number,
+            date: f.date,
+            occurred_at: f.occurred_at,
+            photos: f.photos,
+            photoCount: f.photos?.length || 0,
+            photoType: typeof f.photos,
+            firstPhoto: f.photos?.[0]?.substring(0, 50) + '...',
+            location: f.location
+          });
+        });
+
         // Debug: See all fetched forms
         console.log('Forms fetched:', formsWithProfiles);
         setForms(formsWithProfiles);
