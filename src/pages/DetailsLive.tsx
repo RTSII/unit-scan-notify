@@ -66,22 +66,69 @@ const DetailsLive = () => {
     // Prepare photos array - include captured image if available
     const photos = capturedImage ? [capturedImage] : [];
 
+    // Convert date and time to occurred_at timestamp for violation_forms_new
+    const occurredAt = (() => {
+      try {
+        // Parse MM/DD format and HH:MM AM/PM format
+        const [month, day] = formData.date.split('/');
+        const currentYear = new Date().getFullYear();
+        
+        // Parse time with AM/PM
+        const timeMatch = formData.time.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+        if (!timeMatch) return new Date().toISOString();
+        
+        let hours = parseInt(timeMatch[1]);
+        const minutes = parseInt(timeMatch[2]);
+        const period = timeMatch[3].toUpperCase();
+        
+        // Convert to 24-hour format
+        if (period === 'PM' && hours !== 12) hours += 12;
+        if (period === 'AM' && hours === 12) hours = 0;
+        
+        const dateObj = new Date(currentYear, parseInt(month) - 1, parseInt(day), hours, minutes);
+        return dateObj.toISOString();
+      } catch (error) {
+        console.error('Error parsing date/time:', error);
+        return new Date().toISOString();
+      }
+    })();
+
     try {
       // @ts-ignore - Supabase types need regeneration for violation_forms_new
-      const { error } = await supabase
+      const { data: formResult, error } = await supabase
         .from('violation_forms_new')
         .insert({
           user_id: user.id,
-          unit_number: formData.unit,
-          date: formData.date,
-          time: formData.time,
+          unit_number: formData.unit.toUpperCase(),
+          occurred_at: occurredAt,
           location: selectedViolations.join(', '),
           description: formData.description,
-          photos: photos,
           status: 'saved'
-        });
+        })
+        .select();
 
       if (error) throw error;
+
+      // Save photos to violation_photos table if we have any
+      if (photos.length > 0 && formResult && formResult[0]) {
+        const formId = formResult[0].id;
+        
+        const photoRecords = photos.map(photoBase64 => ({
+          violation_id: formId,
+          uploaded_by: user.id,
+          storage_path: photoBase64
+        }));
+
+        // @ts-ignore - Supabase types need regeneration for violation_photos
+        const { error: photosError } = await supabase
+          .from('violation_photos')
+          .insert(photoRecords);
+
+        if (photosError) {
+          console.error('Error saving photos:', photosError);
+          // Don't throw - form is saved, just log the photo error
+        }
+      }
 
       // Clear sessionStorage
       sessionStorage.removeItem('capturedImage');
@@ -180,9 +227,9 @@ const DetailsLive = () => {
                   <label className="text-vice-cyan font-medium text-xs sm:text-sm text-center block">Unit</label>
                   <Input
                     value={formData.unit}
-                    onChange={(e) => setFormData(prev => ({ ...prev, unit: e.target.value }))}
+                    onChange={(e) => setFormData(prev => ({ ...prev, unit: e.target.value.toUpperCase() }))}
                     placeholder=""
-                    className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-sm h-9 sm:h-10"
+                    className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-sm h-9 sm:h-10 uppercase"
                   />
                 </div>
               </div>
