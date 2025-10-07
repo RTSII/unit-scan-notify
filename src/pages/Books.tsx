@@ -139,6 +139,7 @@ const Books = () => {
             created_at
           )
         `)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       // If the join fails, fall back to separate queries
@@ -158,6 +159,7 @@ const Books = () => {
               created_at
             )
           `)
+          .eq('user_id', user.id)
           .order('created_at', { ascending: false });
 
         if (formsError) throw formsError;
