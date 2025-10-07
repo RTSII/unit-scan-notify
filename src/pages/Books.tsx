@@ -123,6 +123,8 @@ const Books = () => {
     try {
       // First, try to fetch with the join (including violation_photos)
       // Note: Using violation_forms_new table after normalization migration
+      // IMPORTANT: Fetches ALL forms from ALL users (not filtered by user_id)
+      // This allows all team members to view all violation forms
       // @ts-ignore - Supabase types need regeneration for violation_forms_new
       let { data, error } = await supabase
         .from('violation_forms_new')
@@ -139,7 +141,6 @@ const Books = () => {
             created_at
           )
         `)
-        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       // If the join fails, fall back to separate queries
@@ -148,6 +149,8 @@ const Books = () => {
 
         // Fetch violation forms with photos join
         // Note: Using violation_forms_new table after normalization migration
+        // IMPORTANT: Fetches ALL forms from ALL users (not filtered by user_id)
+        // This allows all team members to view all violation forms
         // @ts-ignore - Supabase types need regeneration for violation_forms_new
         const { data: formsData, error: formsError } = await supabase
           .from('violation_forms_new')
@@ -159,7 +162,6 @@ const Books = () => {
               created_at
             )
           `)
-          .eq('user_id', user.id)
           .order('created_at', { ascending: false });
 
         if (formsError) throw formsError;
