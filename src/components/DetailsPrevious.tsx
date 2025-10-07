@@ -16,7 +16,6 @@ import {
   MorphingPopoverContent,
 } from '../components/core/morphing-popover';
 import { motion } from 'motion/react';
-import type { PostgrestError } from '@supabase/supabase-js';
 
 interface ViolationFormData {
   unit_number: string;
@@ -32,6 +31,92 @@ interface ViolationFormData {
   itemsTrashChoice: string;
   balconyChoice: string;
 }
+
+interface PhotoRecord {
+  id: number;
+  storage_path: string;
+  created_at: string | null;
+}
+
+const MAX_PHOTOS = 4;
+
+const formatDateForInput = (isoDate: string | null): string => {
+  if (!isoDate) return '';
+  const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) return '';
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${month}/${day}`;
+};
+
+const formatTimeForInput = (
+  isoDate: string | null,
+): { time: string; ampm: 'AM' | 'PM' } => {
+  if (!isoDate) {
+    return { time: '', ampm: 'AM' };
+  }
+
+  const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) {
+    return { time: '', ampm: 'AM' };
+  }
+
+  let hours = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const ampm: 'AM' | 'PM' = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12 || 12;
+
+  const time = `${String(hours).padStart(2, '0')}:${minutes}`;
+  return { time, ampm };
+};
+
+const parseLocationSelection = (location: string | null) => {
+  const normalized = (location || '').toLowerCase();
+
+  const itemsTrashOutside =
+    normalized.includes('items left outside') || normalized.includes('trash left outside');
+  const itemsTrashChoice =
+    normalized.includes('trash left outside') ? 'trash' : itemsTrashOutside ? 'items' : '';
+
+  const balconyItems =
+    normalized.includes('balcony railing') || normalized.includes('front railing');
+  const balconyChoice =
+    normalized.includes('front railing') ? 'front' : balconyItems ? 'balcony' : '';
+
+  const parkingLotItems = normalized.includes('parking lot');
+
+  return {
+    violationTypes: {
+      itemsTrashOutside,
+      balconyItems,
+      parkingLotItems,
+    },
+    itemsTrashChoice,
+    balconyChoice,
+  };
+};
+
+const summarizeViolations = (form: ViolationFormData): string[] => {
+  const violations: string[] = [];
+
+  if (form.violationTypes.itemsTrashOutside) {
+    const choice = form.itemsTrashChoice || 'items';
+    violations.push(
+      choice === 'trash' ? 'Trash left outside unit' : 'Items left outside unit',
+    );
+  }
+
+  if (form.violationTypes.balconyItems) {
+    const choice = form.balconyChoice || 'balcony';
+    violations.push(`Items left on ${choice} railing`);
+  }
+
+  if (form.violationTypes.parkingLotItems) {
+    violations.push('Items left in Parking lot');
+  }
+
+  return violations;
+};
 
 export default function DetailsPrevious() {
   const navigate = useNavigate();
@@ -55,7 +140,8 @@ export default function DetailsPrevious() {
   });
 
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
-  const [existingPhotos, setExistingPhotos] = useState<string[]>([]);
+  const [existingPhotoRecords, setExistingPhotoRecords] = useState<PhotoRecord[]>([]);
+  const [photosToDelete, setPhotosToDelete] = useState<number[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isUnitValid, setIsUnitValid] = useState<boolean | null>(null);
 
@@ -108,8 +194,8 @@ export default function DetailsPrevious() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
 
-    // Limit to 4 photos total
-    const remainingSlots = 4 - selectedImages.length;
+    const retainedExistingCount = existingPhotoRecords.filter(record => !photosToDelete.includes(record.id)).length;
+    const remainingSlots = Math.max(0, 4 - retainedExistingCount - selectedImages.length);
     const filesToProcess = files.slice(0, remainingSlots);
 
     if (files.length > remainingSlots) {
@@ -126,8 +212,15 @@ export default function DetailsPrevious() {
       reader.readAsDataURL(file);
     });
 
-    // Reset the input value so the same file can be selected again if needed
     e.target.value = '';
+  };
+
+  const toggleExistingPhoto = (photoId: number) => {
+    setPhotosToDelete(prev =>
+      prev.includes(photoId)
+        ? prev.filter(id => id !== photoId)
+        : [...prev, photoId]
+    );
   };
 
   const removeImage = (index: number) => {
@@ -215,28 +308,33 @@ export default function DetailsPrevious() {
       setIsOpen(false);
     };
 
+    const retainedExistingCount = existingPhotoRecords.filter(
+      (record) => !photosToDelete.includes(record.id),
+    ).length;
+    const totalSelected = retainedExistingCount + selectedImages.length;
+
     return (
       <MorphingPopover open={isOpen} onOpenChange={setIsOpen}>
         <MorphingPopoverTrigger asChild>
           <button
             type="button"
-            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-full transition-all duration-300 ease-in-out min-h-[44px] min-w-[120px] transform-gpu ${selectedImages.length > 0 || isOpen
+            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-full transition-all duration-300 ease-in-out min-h-[44px] min-w-[120px] transform-gpu ${totalSelected > 0 || isOpen
               ? 'bg-vice-pink text-white shadow-lg shadow-vice-pink/30 scale-105'
               : 'bg-black/40 border border-vice-cyan/30 text-vice-cyan hover:bg-vice-pink/20 hover:shadow-md hover:shadow-vice-pink/20'
               }`}
           >
             <Camera className="w-4 h-4" />
             <span className="font-medium text-sm">
-              Photos ({selectedImages.length})
-            </span>
-          </button>
-        </MorphingPopoverTrigger>
-        <MorphingPopoverContent 
-          className="w-80 p-0 bg-black/90 border-vice-cyan/30"
-          side="bottom"
-          align="center"
-          avoidCollisions={false}
-        >
+                Photos ({totalSelected}/{MAX_PHOTOS})
+              </span>
+            </button>
+          </MorphingPopoverTrigger>
+          <MorphingPopoverContent 
+            className="w-80 p-0 bg-black/90 border-vice-cyan/30"
+            side="bottom"
+            align="center"
+            avoidCollisions={false}
+          >
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -264,18 +362,59 @@ export default function DetailsPrevious() {
               className="hidden"
             />
 
-            <Button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={selectedImages.length >= 4}
-              className="w-full bg-vice-cyan hover:bg-vice-cyan/80 text-black disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              {selectedImages.length >= 4 ? 'Max 4 Photos' : `Add from Album (${selectedImages.length}/4)`}
-            </Button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <Button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={totalSelected >= MAX_PHOTOS}
+                className="w-full bg-vice-cyan hover:bg-vice-cyan/80 text-black disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Photo Library
+              </Button>
+              <Button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={totalSelected >= MAX_PHOTOS}
+                variant="secondary"
+                className="w-full border border-vice-cyan/40 text-white hover:bg-vice-cyan/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Choose Files
+              </Button>
+            </div>
+
+            {totalSelected >= MAX_PHOTOS && (
+              <p className="text-xs text-vice-cyan text-center">
+                Maximum of {MAX_PHOTOS} photos per violation.
+              </p>
+            )}
+
+            {existingPhotoRecords.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-white text-sm font-medium">Existing Photos</h4>
+                <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
+                  {existingPhotoRecords.map(photo => {
+                    const isMarkedForDeletion = photosToDelete.includes(photo.id);
+                    return (
+                      <div key={photo.id} className="relative group">
+                        <img
+                          src={photo.storage_path}
+                          alt="Existing"
+                          className={`w-full h-20 object-cover rounded border ${isMarkedForDeletion ? 'border-red-500 opacity-60' : 'border-vice-cyan/30'}`}
+                        />
+                        <button
+                          onClick={() => toggleExistingPhoto(photo.id)}
+                          className={`absolute inset-0 flex items-center justify-center rounded ${isMarkedForDeletion ? 'bg-red-500/40 text-white' : 'bg-black/40 text-white opacity-0 group-hover:opacity-100'} transition-opacity`}
+                        >
+                          {isMarkedForDeletion ? 'Undo Remove' : 'Remove'}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {selectedImages.length > 0 && (
               <div className="space-y-2">
-                <h4 className="text-white text-sm font-medium">Selected Photos ({selectedImages.length}/4)</h4>
+                <h4 className="text-white text-sm font-medium">Selected Photos ({selectedImages.length})</h4>
                 <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
                   {selectedImages.map((image, index) => (
                     <div key={index} className="relative group">
@@ -311,21 +450,9 @@ export default function DetailsPrevious() {
     );
   };
 
-  const selectedViolations = Object.entries(formData.violationTypes)
-    .filter(([_, isSelected]) => isSelected)
-    .map(([type, _]) => {
-      switch (type) {
-        case 'itemsTrashOutside':
-          return formData.itemsTrashChoice ? `Items/trash left outside unit (${formData.itemsTrashChoice})` : 'Items/trash left outside unit';
-        case 'balconyItems':
-          return formData.balconyChoice ? `Items left on ${formData.balconyChoice} railing` : 'Items left on balcony/front railing';
-        case 'parkingLotItems':
-          return 'Items left in Parking lot';
-        default:
-          return '';
-      }
-    })
-    .filter(Boolean);
+  const selectedViolations = (() => {
+    return summarizeViolations(formData);
+  })();
 
   const handleSaveForm = async () => {
     if (!user) {
@@ -340,97 +467,132 @@ export default function DetailsPrevious() {
 
     setIsSaving(true);
     try {
-      const allPhotos = [...existingPhotos, ...selectedImages];
-      
-      // Convert date and time to occurred_at timestamp
-      let occurredAt = null;
-      if (formData.date) {
-        const [month, day] = formData.date.split('/');
-        const currentYear = new Date().getFullYear();
-        let dateStr = `${currentYear}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-        
-        if (formData.time) {
-          dateStr += `T${formData.time}:00`;
-        } else {
-          dateStr += 'T12:00:00';
-        }
-        
-        occurredAt = new Date(dateStr).toISOString();
+      const activeExistingPhotos = existingPhotoRecords.filter(
+        (record) => !photosToDelete.includes(record.id),
+      );
+      const totalPhotoCount = activeExistingPhotos.length + selectedImages.length;
+
+      if (totalPhotoCount > MAX_PHOTOS) {
+        toast.error('You can only attach up to 4 photos total.');
+        return;
       }
 
-      const formDataToSave = {
+      let occurredAt: string | null = null;
+      if (formData.date.trim()) {
+        const [monthPart, dayPart] = formData.date.split('/');
+        const month = Number(monthPart);
+        const day = Number(dayPart);
+
+        if (!Number.isNaN(month) && !Number.isNaN(day)) {
+          let hours = 12;
+          let minutes = 0;
+
+          if (formData.time) {
+            const [hourPart, minutePart] = formData.time.split(':');
+            const parsedHours = Number(hourPart);
+            const parsedMinutes = Number(minutePart);
+
+            if (!Number.isNaN(parsedHours)) {
+              hours = parsedHours;
+            }
+            if (!Number.isNaN(parsedMinutes)) {
+              minutes = parsedMinutes;
+            }
+          }
+
+          if (formData.ampm === 'PM' && hours < 12) {
+            hours += 12;
+          }
+          if (formData.ampm === 'AM' && hours === 12) {
+            hours = 0;
+          }
+
+          const timestamp = new Date(new Date().getFullYear(), month - 1, day, hours, minutes);
+          if (!Number.isNaN(timestamp.getTime())) {
+            occurredAt = timestamp.toISOString();
+          }
+        }
+      }
+
+      const locationSummary = selectedViolations.join(', ');
+
+      const formPayload = {
         user_id: user.id,
-        unit_number: formData.unit_number,
+        unit_number: formData.unit_number.toUpperCase(),
         occurred_at: occurredAt,
-        location: selectedViolations.join(', '),
-        description: formData.description,
-        status: 'saved'
+        location: locationSummary || null,
+        description: formData.description || null,
+        status: 'saved' as const,
       };
 
-      console.log('💾 SAVING FORM DATA:', formDataToSave);
+      const numericId = id ? Number(id) : null;
+      let savedFormId: number | null = null;
 
-      let error: PostgrestError | null = null;
-      let result;
-      
-      if (id) {
-        // @ts-ignore - Supabase types are outdated, using violation_forms_new after migration
-        result = await supabase
-          .from('violation_forms_new')
-          .update(formDataToSave)
-          .eq('id', id)
-          .select();
-        error = result.error;
-      } else {
-        // @ts-ignore - Supabase types are outdated, using violation_forms_new after migration
-        result = await supabase
-          .from('violation_forms_new')
-          .insert(formDataToSave)
-          .select();
-        error = result.error;
-      }
-
-      if (error) {
-        console.error('Supabase save error:', error);
-        toast.error(`Failed to save: ${error.message}`);
-        throw error;
-      }
-
-      console.log('✅ Form saved successfully!', result.data);
-      
-      if (result.data && result.data[0]) {
-        const savedForm = result.data[0];
-        const formId = savedForm.id;
-        
-        // Now save photos to violation_photos table
-        if (allPhotos.length > 0) {
-          console.log(`📸 Saving ${allPhotos.length} photos to violation_photos table...`);
-          
-          const photoInserts = allPhotos.map(photoBase64 => ({
-            violation_id: formId,
-            uploaded_by: user.id,
-            storage_path: photoBase64 // Store base64 for now (should upload to storage bucket later)
-          }));
-          
-          // @ts-ignore - violation_photos table exists but not in generated types
-          const { data: photosData, error: photosError } = await supabase
-            .from('violation_photos')
-            .insert(photoInserts)
-            .select();
-          
-          if (photosError) {
-            console.error('Photos save error:', photosError);
-            toast.error(`⚠️ Form saved but photos failed: ${photosError.message}`);
-          } else {
-            console.log('✅ Photos saved successfully!', photosData);
-            toast.success(`✅ Saved! Date: ${savedForm.occurred_at ? 'YES' : 'NO'}, Photos: ${photosData?.length || 0}`);
-          }
-        } else {
-          toast.success(`✅ Saved! Date: ${savedForm.occurred_at ? 'YES' : 'NO'}, Photos: 0`);
+      if (numericId !== null) {
+        if (Number.isNaN(numericId)) {
+          throw new Error('Invalid violation ID');
         }
+
+        // @ts-ignore - Supabase types are outdated, violation_forms not in generated types yet
+        const { data, error } = await supabase
+          .from('violation_forms')
+          .update(formPayload)
+          .eq('id', numericId)
+          .select();
+
+        if (error) {
+          throw error;
+        }
+
+        savedFormId = data?.[0]?.id ?? null;
       } else {
-        toast.success('Form saved!');
+        // @ts-ignore - Supabase types are outdated, violation_forms not in generated types yet
+        const { data, error } = await supabase
+          .from('violation_forms')
+          .insert(formPayload)
+          .select();
+
+        if (error) {
+          throw error;
+        }
+
+        savedFormId = data?.[0]?.id ?? null;
       }
-      
+
+      if (!savedFormId) {
+        throw new Error('Unable to determine saved violation ID');
+      }
+
+      if (photosToDelete.length > 0) {
+        // @ts-ignore - Supabase types are outdated, violation_photos not in generated types yet
+        const { error: deleteError } = await supabase
+          .from('violation_photos')
+          .delete()
+          .in('id', photosToDelete);
+
+        if (deleteError) {
+          throw deleteError;
+        }
+      }
+
+      if (selectedImages.length > 0) {
+        const photoPayloads = selectedImages.map((photoBase64) => ({
+          violation_id: savedFormId,
+          uploaded_by: user.id,
+          storage_path: photoBase64,
+        }));
+
+        // @ts-ignore - Supabase types are outdated, violation_photos not in generated types yet
+        const { error: insertPhotosError } = await supabase
+          .from('violation_photos')
+          .insert(photoPayloads);
+
+        if (insertPhotosError) {
+          throw insertPhotosError;
+        }
+      }
+
+      toast.success('Violation form saved successfully!');
       navigate('/books');
     } catch (error) {
       console.error('Error saving form:', error);
@@ -443,8 +605,8 @@ export default function DetailsPrevious() {
   const isFormValid = () => {
     const hasDate = formData.date.trim().length > 0;
     const hasUnit = formData.unit_number.trim() && formData.unit_number.length === 3;
-    const hasViolation = Object.values(formData.violationTypes).some(v => v) || formData.description.trim();
-    
+    const hasViolation = selectedViolations.length > 0 || formData.description.trim().length > 0;
+
     if (!hasDate) {
       console.warn('Form validation failed: Missing date');
     }
@@ -454,53 +616,70 @@ export default function DetailsPrevious() {
     if (!hasViolation) {
       console.warn('Form validation failed: No violation type selected');
     }
-    
+
     return hasDate && hasUnit && isUnitValid !== false && hasViolation;
   };
 
   useEffect(() => {
-    if (id) {
-      const fetchFormData = async () => {
-        const { data, error } = await supabase
-          .from('violation_forms')
-          .select('*')
-          .eq('id', id)
-          .single();
-
-        if (error) {
-          console.error('Error fetching form data:', error);
-          toast.error('Failed to load form data');
-          return;
-        }
-
-        if (data) {
-          const timeMatch = data.time?.match(/^(\d{1,2}:\d{2})\s*(AM|PM)$/i);
-          const time = timeMatch ? timeMatch[1] : '';
-          const ampm = timeMatch ? timeMatch[2].toUpperCase() : 'AM';
-
-          setFormData({
-            unit_number: data.unit_number || '',
-            date: data.date || '',
-            time: time,
-            ampm: ampm,
-            description: data.description || '',
-            violationTypes: {
-              itemsTrashOutside: data.location?.includes('Items/trash left outside unit') || false,
-              balconyItems: data.location?.includes('balcony') || data.location?.includes('front') || false,
-              parkingLotItems: data.location?.includes('Parking lot') || false,
-            },
-            itemsTrashChoice: data.location?.includes('(items)') ? 'items' : data.location?.includes('(trash)') ? 'trash' : '',
-            balconyChoice: data.location?.includes('balcony') ? 'balcony' : data.location?.includes('front') ? 'front' : '',
-          });
-
-          if (data.photos) {
-            setExistingPhotos(data.photos);
-          }
-        }
-      };
-
-      fetchFormData();
+    if (!id) {
+      return;
     }
+
+    const fetchFormData = async () => {
+      // @ts-ignore - Supabase types are outdated and do not include violation_photos join
+      const { data, error } = await supabase
+        .from('violation_forms')
+        .select(`
+          id,
+          unit_number,
+          occurred_at,
+          location,
+          description,
+          violation_photos (
+            id,
+            storage_path,
+            created_at
+          )
+        `)
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching form data:', error);
+        toast.error('Failed to load form data');
+        return;
+      }
+
+      if (!data) {
+        return;
+      }
+
+      const { time, ampm } = formatTimeForInput(data.occurred_at ?? null);
+      const locationSelections = parseLocationSelection(data.location ?? null);
+
+      setFormData({
+        unit_number: data.unit_number ?? '',
+        date: formatDateForInput(data.occurred_at ?? null),
+        time,
+        ampm,
+        description: data.description ?? '',
+        violationTypes: locationSelections.violationTypes,
+        itemsTrashChoice: locationSelections.itemsTrashChoice,
+        balconyChoice: locationSelections.balconyChoice,
+      });
+
+      const photoRecords: PhotoRecord[] = (data.violation_photos ?? []).map((photo: any) => ({
+        id: photo.id,
+        storage_path: photo.storage_path,
+        created_at: photo.created_at ?? null,
+      }));
+
+      setExistingPhotoRecords(photoRecords);
+      setPhotosToDelete([]);
+      setSelectedImages([]);
+    };
+
+    fetchFormData();
   }, [id]);
 
   return (

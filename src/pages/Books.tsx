@@ -122,12 +122,11 @@ const Books = () => {
 
     try {
       // First, try to fetch with the join (including violation_photos)
-      // Note: Using violation_forms_new table after normalization migration
       // IMPORTANT: Fetches ALL forms from ALL users (not filtered by user_id)
       // This allows all team members to view all violation forms
-      // @ts-ignore - Supabase types need regeneration for violation_forms_new
+      // @ts-ignore - Supabase types need regeneration for violation_forms
       let { data, error } = await supabase
-        .from('violation_forms_new')
+        .from('violation_forms')
         .select(`
           *,
           profiles!violation_forms_new_user_id_fkey (
@@ -148,12 +147,11 @@ const Books = () => {
         console.log('Join query failed, falling back to separate queries:', error);
 
         // Fetch violation forms with photos join
-        // Note: Using violation_forms_new table after normalization migration
         // IMPORTANT: Fetches ALL forms from ALL users (not filtered by user_id)
         // This allows all team members to view all violation forms
-        // @ts-ignore - Supabase types need regeneration for violation_forms_new
+        // @ts-ignore - Supabase types need regeneration for violation_forms
         const { data: formsData, error: formsError } = await supabase
-          .from('violation_forms_new')
+          .from('violation_forms')
           .select(`
             *,
             violation_photos (

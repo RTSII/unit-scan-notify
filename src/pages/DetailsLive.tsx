@@ -66,7 +66,7 @@ const DetailsLive = () => {
     // Prepare photos array - include captured image if available
     const photos = capturedImage ? [capturedImage] : [];
 
-    // Convert date and time to occurred_at timestamp for violation_forms_new
+    // Convert date and time to occurred_at timestamp for violation_forms
     const occurredAt = (() => {
       try {
         // Parse MM/DD format and HH:MM AM/PM format
@@ -94,9 +94,9 @@ const DetailsLive = () => {
     })();
 
     try {
-      // @ts-ignore - Supabase types need regeneration for violation_forms_new
+      // @ts-ignore - Supabase types need regeneration for violation_forms
       const { data: formResult, error } = await supabase
-        .from('violation_forms_new')
+        .from('violation_forms')
         .insert({
           user_id: user.id,
           unit_number: formData.unit.toUpperCase(),

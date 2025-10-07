@@ -1,80 +1,88 @@
 # 🎯 SPR Vice City - Priority Action Items
 
-**Date:** October 6, 2025  
+**Date:** October 7, 2025  
 **Status:** Active Development
 
 ---
 
 ## 🔴 CRITICAL - Fix Immediately
 
-### 1. **Export.tsx - Update to New Database Schema**
+### 1. **Admin.tsx - Switch to existing schema**
+
 **Priority:** 🔴 CRITICAL  
 **Status:** ❌ BROKEN  
-**Blocking:** Email/Print export functionality
+**Blocking:** Admin dashboards, delete workflow
 
 **Issue:**
-- Currently reads from old `violation_forms` table (line 69)
-- Doesn't join with `violation_photos` table
-- Photos won't be included in exports
-- May fail completely if old table is empty
 
-**Required Changes:**
-```typescript
-// Current (WRONG):
-.from('violation_forms')
-.select('*')
-
-// Should be:
-.from('violation_forms_new')
-.select(`
-  *,
-  violation_photos (
-    id,
-    storage_path,
-    created_at
-  )
-`)
-```
+- Still references non-existent `violation_forms_new`
+- Stats, presence, delete calls fail or return empty data
+- Needs to reuse the same query patterns as `DetailsLive.tsx` / `Books.tsx`
 
 **Action Items:**
-- [ ] Update database query to `violation_forms_new`
-- [ ] Add `violation_photos` join
-- [ ] Map photos array correctly
-- [ ] Test email export with photos
-- [ ] Test print export with photos
-- [ ] Verify on mobile device
 
-**Estimated Time:** 30-45 minutes  
+- [ ] Update all `supabase.from('violation_forms_new')` calls to `violation_forms`
+- [ ] Adjust profile join keys (`profiles!violation_forms_user_id_fkey`)
+- [ ] Ensure fetch fallback + delete use new table
+- [ ] Validate cards (this week/month/all) after change
+- [ ] Smoke test admin on mobile
+
+**Estimated Time:** 45-60 minutes  
 **Assigned To:** Next development session
+
+### 2. **Database Safeguards**
+
+**Priority:** 🔴 CRITICAL  
+**Status:** ⏳ TODO  
+**Blocking:** Data integrity, RLS enforcement
+
+**Issue:**
+
+- `violation_photos` lacks a foreign key to `violation_forms`
+- Need to confirm Row Level Security allows team-wide reads + uploader/admin writes
+
+**Action Items:**
+
+- [ ] Add FK: `ALTER TABLE violation_photos ADD CONSTRAINT ... FOREIGN KEY (violation_id) REFERENCES violation_forms (id) ON DELETE CASCADE;`
+- [ ] Review/adjust RLS policies for both tables
+- [ ] Document SQL change / apply via migration script
+- [ ] Re-test delete flows once FK exists
+
+**Estimated Time:** 30 minutes  
+**Assigned To:** Following Admin.tsx update
 
 ---
 
 ## 🟡 HIGH - Fix Soon
 
-### 2. **TypeScript Types Regeneration**
+### 3. **TypeScript Types Regeneration**
+
 **Priority:** 🟡 HIGH  
 **Status:** ⚠️ WORKAROUND IN PLACE  
 **Blocking:** Code quality, developer experience
 
 **Issue:**
-- Supabase types outdated (missing `violation_forms_new`, `violation_photos`)
+
+- Supabase types outdated (missing `violation_forms`, `violation_photos`)
 - Multiple `@ts-ignore` comments throughout codebase
 - Type safety compromised
 
 **Required Action:**
+
 ```bash
 npx supabase gen types typescript --project-id fvqojgifgevrwicyhmvj > src/integrations/supabase/types.ts
 ```
 
 **Action Items:**
+
 - [ ] Run Supabase type generation command
 - [ ] Review generated types
 - [ ] Remove `@ts-ignore` comments from:
-  - Books.tsx
-  - DetailsPrevious.tsx
-  - DetailsLive.tsx
-  - Admin.tsx
-  - Export.tsx (after fix)
+  - `src/pages/Books.tsx`
+  - `src/components/DetailsPrevious.tsx`
+  - `src/pages/DetailsLive.tsx`
+  - `src/pages/Admin.tsx`
+  - `src/pages/Export.tsx`
 - [ ] Fix any new type errors
 - [ ] Verify app still compiles and runs
 

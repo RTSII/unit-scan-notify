@@ -1,154 +1,79 @@
-# ✅ COMPLETED: Photo Display & Date Formatting - October 6, 2025
+# 🚧 Live Capture Fix Initiative — Status @ October 7, 2025
 
-## 🎉 All Critical Issues RESOLVED
+## 🔎 Snapshot
 
-### ✅ Database Migration Complete
+We pivoted away from the proposed `violation_forms_new` table and are realigning every page with the **existing** Supabase schema: `violation_forms` + `violation_photos`. The immediate goal is still the same—get Book Em / live capture saving reliably (forms + photos) and complete the user’s “steps 1–4”. We are midstream: several pages now target the correct tables, but types, admin tooling, and QA remain outstanding.
 
-**Normalized Structure Implemented:**
-- `violation_forms_new` table with `occurred_at` timestamp field
-- `violation_photos` table for normalized photo storage
-- Foreign key: `violation_photos.violation_id` → `violation_forms_new.id`
+## ✅ Progress Since October 6
 
-### ✅ All Pages Updated to Use New Schema
+- **Details capture flows updated**
+  - `src/pages/DetailsLive.tsx` saves into `violation_forms` and `violation_photos` using `occurred_at` + uppercase unit numbers.
+  - `src/components/DetailsPrevious.tsx` has been refactored to read/write the normalized schema, including editing existing photos (retain/delete/add) and the new centered photo picker UI.
 
-**Files Updated (4 total):**
-1. **Books.tsx** - Reads from `violation_forms_new` with `violation_photos` join ✅
-2. **DetailsPrevious.tsx** - Saves to `violation_forms_new` and `violation_photos` ✅
-3. **DetailsLive.tsx** - Saves to `violation_forms_new` and `violation_photos` ✅
-4. **Admin.tsx** - Reads from `violation_forms_new` with `violation_photos` join ✅
+- **Exports are unblocked**
+  - `src/pages/Export.tsx` now queries `violation_forms` with an eager `violation_photos` join so email/print exports include the photo set.
 
-## ✅ What's Working Now
+- **Books list partially aligned**
+  - `src/pages/Books.tsx` reads from `violation_forms` and joins `violation_photos`, restoring Books > Gallery visibility. (Type ignores remain until we regenerate types.)
 
-### 1. **Photo Display** ✅ FIXED
+## 🔄 In Progress
 
-**Solution Implemented:**
-- All pages now join with `violation_photos` table
-- Photos properly mapped from `violation_photos.storage_path` to `photos[]` array
-- ViolationCarousel displays actual photos (not placeholders)
+- **Admin console alignment**
+  - `src/pages/Admin.tsx` still references the deprecated `violation_forms_new` table. We need to update its queries (including stats, deletes, and fallback joins) to use `violation_forms`.
 
-### 2. **Date Formatting** ✅ FIXED
+- **Supabase type regeneration**
+  - Supabase JS types do not include `violation_forms`/`violation_photos`, forcing multiple `@ts-ignore`. Once schema references settle, run:
 
-**Solution Implemented:**
-- ViolationCarousel.tsx uses `occurred_at` timestamp
-- Formats to MM/DD display (e.g., "10/06")
-- Both legacy `date` field and new `occurred_at` supported
+    ```bash
+    npx supabase gen types typescript --project-id fvqojgifgevrwicyhmvj > src/integrations/supabase/types.ts
+    ```
 
-### 3. **Live Capture Workflow** ✅ FIXED
+  - Remove the ignores in `Books.tsx`, `DetailsLive.tsx`, `DetailsPrevious.tsx`, `Admin.tsx`, `Export.tsx`, and fix any new TS errors.
 
-**Solution Implemented:**
-- DetailsLive.tsx converts date/time to `occurred_at` timestamp
-- Unit field auto-converts to uppercase
-- Photos saved to `violation_photos` table
-- Form saves successfully and redirects to Books
+- **Database safeguards**
+  - Add the missing foreign key: `violation_photos.violation_id → violation_forms.id (ON DELETE CASCADE)`.
+  - Reconfirm Row Level Security rules cover team-wide reads and uploader/admin writes.
 
-### 4. **TypeScript Types** ⚠️ WORKAROUND IN PLACE
+- **Regression QA**
+  - Once the above are done, walk through: Capture → Book Em, Gallery edits, Books 3D carousel, Admin dashboards, Export email/print.
 
-**Current Status:**
-- `@ts-ignore` comments added for type safety
-- App works correctly at runtime
-- Types need regeneration (optional): `npx supabase gen types typescript --project-id fvqojgifgevrwicyhmvj > src/integrations/supabase/types.ts`
+## 🎯 Remaining “Steps 1–4” Checklist
 
-## 🚀 Future Enhancements
+1. **Point all queries at `violation_forms`**
+   - [x] DetailsLive
+   - [x] DetailsPrevious
+   - [x] Export
+   - [x] Books
+   - [ ] Admin *(next up)*
 
-### **Photo Storage Optimization** (FUTURE)
+2. **Add safeguards (FK + RLS review)**
+   - [ ] Add FK from `violation_photos.violation_id` to `violation_forms.id`
+   - [ ] Validate RLS policies
 
-**Current:** Photos stored as base64 strings in database (works but inefficient)
+3. **Regenerate Supabase types**
+   - [ ] Run type generator & remove `@ts-ignore`
 
-**Better Approach:**
-1. Upload photos to Supabase Storage bucket
-2. Store only the storage path/URL in `violation_photos.storage_path`
-3. Generate public URLs for display
-4. Reduces database size and improves performance
+4. **Full QA**
+   - [ ] Mobile live capture workflow
+   - [ ] Books/gallery review
+   - [ ] Admin stats + deletes
+   - [ ] Export email/print
 
-## 📊 Implementation Summary
+## 📋 Testing Checkpoints (to run after Admin + FK + types)
 
-### ✅ Completed (October 6, 2025)
+- **Live Capture**: Capture photo → Book Em redirect → ensure form + photo present in Books, with MM/DD date.
+- **Edit Previous**: Load an existing notice, remove/add photos, save, confirm retained and deleted photos behave.
+- **Books**: 3D carousel shows recent forms with photos and dates.
+- **Admin**: Stats populate, latest forms stack loads, delete button works.
+- **Export**: Email and print include descriptions + photos.
 
-1. **Database Schema Migration** ✅
-   - Migrated to `violation_forms_new` with `occurred_at` timestamp
-   - Created `violation_photos` table for normalized storage
+## 📝 Notes & Next Actions
 
-2. **Photo Display Integration** ✅
-   - Books.tsx joins with `violation_photos`
-   - Admin.tsx joins with `violation_photos`
-   - ViolationCarousel displays actual photos
-
-3. **Date Formatting** ✅
-   - All dates display as MM/DD format
-   - Supports both legacy and new schema
-
-4. **Form Save Workflows** ✅
-   - DetailsPrevious.tsx saves correctly
-   - DetailsLive.tsx saves correctly
-   - Both save to normalized tables
-
-5. **Unit Field Auto-Uppercase** ✅
-   - DetailsLive.tsx auto-converts to uppercase
-   - DetailsPrevious.tsx auto-converts to uppercase
-
-## 📝 Git Commit History (October 6, 2025)
-
-```bash
-1. Fix photo display and date formatting - Join violation_photos table
-2. CRITICAL FIX - Update all queries to use violation_forms_new table
-3. Fix DetailsLive.tsx - Update live capture workflow
-4. Fix Admin.tsx - Update admin panel with violation_photos join
-5. CRITICAL FIX - DetailsLive.tsx uppercase auto-format and save fix
-```
-
-## 🎯 Success Criteria - ALL MET ✅
-
-- [x] Photos display in carousel thumbnails
-- [x] Date shows as MM/DD format (not full timestamp)
-- [x] New forms created on mobile show photos and date correctly
-- [x] Live capture workflow works end-to-end
-- [x] Unit field auto-converts to uppercase
-- [x] Admin panel shows photos (not black placeholders)
-- [x] All pages use normalized database structure
-- [ ] TypeScript types regenerated (optional - app works with @ts-ignore)
-
-## 📱 Mobile Testing Checklist - READY FOR TESTING
-
-**Live Capture Workflow:**
-1. Dashboard → Capture
-2. Take photo → green checkmark
-3. Fill form (unit auto-uppercase)
-4. Select violation type
-5. Click "Book Em"
-6. Verify redirect to Books
-7. Verify photo and MM/DD date display
-
-**Previous Photos Workflow:**
-1. Dashboard → Details
-2. Add photos from gallery
-3. Fill form (unit auto-uppercase)
-4. Click "Book Em"
-5. Verify redirect to Books
-6. Verify photos and MM/DD date display
-
-## ⚠️ Known Limitations
-
-1. **TypeScript Types** - Outdated Supabase types
-   - Workaround: `@ts-ignore` comments in place
-   - App works correctly at runtime
-   - Optional: Regenerate types for cleaner code
-   
-2. **Base64 Photos** - Photos stored as base64 in database
-   - Works but inefficient for large photos
-   - Future enhancement: Move to Supabase Storage
-
-3. **Old Data** - Forms in old `violation_forms` table won't display
-   - New forms use `violation_forms_new` table
-   - Old data migration needed if historical data required
-
-## 📚 Resources
-
-- Supabase Docs: https://supabase.com/docs/guides/database/joins
-- React Router: https://reactrouter.com/
-- Framer Motion: https://www.framer.com/motion/
+- Update `docs/PRIORITY_TODO.md` after Admin + FK steps so the doc matches reality.
+- After types regenerate, sweep for any stale references to `_new` or legacy columns.
+- Coordinate Supabase DB changes (FK, RLS) with proper migration scripts or SQL runbooks.
 
 ---
 
-**Last Updated:** October 6, 2025 - 6:55 PM
-**Status:** ✅ ALL FIXES IMPLEMENTED AND PUSHED TO GITHUB
-**Next:** Comprehensive workflow review and integration testing
+**Last Updated:** October 7, 2025 – 4:10 PM ET  
+**Maintainer:** Cascade pair-programming session

@@ -74,7 +74,7 @@ export default function Export() {
     try {
       // @ts-ignore - Supabase types need regeneration for violation_forms_new
       const { data, error } = await supabase
-        .from('violation_forms_new')
+        .from('violation_forms')
         .select(`
           *,
           violation_photos (
@@ -83,7 +83,6 @@ export default function Export() {
             created_at
           )
         `)
-        .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
