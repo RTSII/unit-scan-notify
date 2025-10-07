@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../integrations/supabase/client';
+import type { Tables, TablesInsert, TablesUpdate } from '../integrations/supabase/types';
 import { useAuth } from '@/hooks/useAuth';
 import { Home, Camera, X, ArrowLeftIcon, Plus } from 'lucide-react';
 
@@ -16,6 +17,28 @@ import {
   MorphingPopoverContent,
 } from '../components/core/morphing-popover';
 import { motion } from 'motion/react';
+
+type ViolationFormRow = Tables<'violation_forms'>;
+type ViolationFormInsert = TablesInsert<'violation_forms'>;
+type ViolationFormUpdate = TablesUpdate<'violation_forms'>;
+type ViolationPhotoInsert = TablesInsert<'violation_photos'>;
+type ViolationPhotoRow = Tables<'violation_photos'>;
+type ViolationFormWithPhotos = ViolationFormRow & {
+  violation_photos?: ViolationPhotoRow[] | null;
+};
+
+const VIOLATION_FORM_WITH_PHOTOS = `
+  id,
+  unit_number,
+  occurred_at,
+  location,
+  description,
+  violation_photos (
+    id,
+    storage_path,
+    created_at
+  )
+` as const;
 
 interface ViolationFormData {
   unit_number: string;
@@ -515,14 +538,22 @@ export default function DetailsPrevious() {
       }
 
       const locationSummary = selectedViolations.join(', ');
-
-      const formPayload = {
-        user_id: user.id,
+      const basePayload = {
         unit_number: formData.unit_number.toUpperCase(),
         occurred_at: occurredAt,
         location: locationSummary || null,
         description: formData.description || null,
         status: 'saved' as const,
+      } satisfies Omit<ViolationFormInsert, 'user_id'>;
+
+      const insertPayload: ViolationFormInsert = {
+        user_id: user.id,
+        ...basePayload,
+      };
+
+      const updatePayload: ViolationFormUpdate = {
+        user_id: user.id,
+        ...basePayload,
       };
 
       const numericId = id ? Number(id) : null;
@@ -533,12 +564,12 @@ export default function DetailsPrevious() {
           throw new Error('Invalid violation ID');
         }
 
-        // @ts-ignore - Supabase types are outdated, violation_forms not in generated types yet
         const { data, error } = await supabase
           .from('violation_forms')
-          .update(formPayload)
+          .update(updatePayload)
           .eq('id', numericId)
-          .select();
+          .select()
+          .returns<ViolationFormRow[]>();
 
         if (error) {
           throw error;
@@ -546,11 +577,11 @@ export default function DetailsPrevious() {
 
         savedFormId = data?.[0]?.id ?? null;
       } else {
-        // @ts-ignore - Supabase types are outdated, violation_forms not in generated types yet
         const { data, error } = await supabase
           .from('violation_forms')
-          .insert(formPayload)
-          .select();
+          .insert(insertPayload)
+          .select()
+          .returns<ViolationFormRow[]>();
 
         if (error) {
           throw error;
@@ -564,7 +595,6 @@ export default function DetailsPrevious() {
       }
 
       if (photosToDelete.length > 0) {
-        // @ts-ignore - Supabase types are outdated, violation_photos not in generated types yet
         const { error: deleteError } = await supabase
           .from('violation_photos')
           .delete()
@@ -576,13 +606,12 @@ export default function DetailsPrevious() {
       }
 
       if (selectedImages.length > 0) {
-        const photoPayloads = selectedImages.map((photoBase64) => ({
+        const photoPayloads: ViolationPhotoInsert[] = selectedImages.map((photoBase64) => ({
           violation_id: savedFormId,
           uploaded_by: user.id,
           storage_path: photoBase64,
         }));
 
-        // @ts-ignore - Supabase types are outdated, violation_photos not in generated types yet
         const { error: insertPhotosError } = await supabase
           .from('violation_photos')
           .insert(photoPayloads);
@@ -625,24 +654,19 @@ export default function DetailsPrevious() {
       return;
     }
 
+    const numericIdParam = Number(id);
+    if (Number.isNaN(numericIdParam)) {
+      toast.error('Invalid violation ID');
+      return;
+    }
+
     const fetchFormData = async () => {
-      // @ts-ignore - Supabase types are outdated and do not include violation_photos join
       const { data, error } = await supabase
         .from('violation_forms')
-        .select(`
-          id,
-          unit_number,
-          occurred_at,
-          location,
-          description,
-          violation_photos (
-            id,
-            storage_path,
-            created_at
-          )
-        `)
-        .eq('id', id)
-        .single();
+        .select(VIOLATION_FORM_WITH_PHOTOS)
+        .eq('id', numericIdParam)
+        .single()
+        .returns<ViolationFormWithPhotos>();
 
       if (error) {
         console.error('Error fetching form data:', error);
@@ -668,7 +692,8 @@ export default function DetailsPrevious() {
         balconyChoice: locationSelections.balconyChoice,
       });
 
-      const photoRecords: PhotoRecord[] = (data.violation_photos ?? []).map((photo: any) => ({
+      const violationPhotos = Array.isArray(data.violation_photos) ? data.violation_photos : [];
+      const photoRecords: PhotoRecord[] = violationPhotos.map((photo) => ({
         id: photo.id,
         storage_path: photo.storage_path,
         created_at: photo.created_at ?? null,

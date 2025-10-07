@@ -22,32 +22,119 @@ import {
   ChevronUp,
   X
 } from "lucide-react";
+import type { Tables } from "../integrations/supabase/types";
+
+type ViolationFormRow = Tables<"violation_forms">;
+type ViolationPhotoRow = Tables<"violation_photos">;
+type ProfileRow = Tables<"profiles">;
+type ProfileSummary = Pick<ProfileRow, "email" | "full_name" | "role">;
+type ProfileLookup = Pick<ProfileRow, "user_id" | "email" | "full_name" | "role">;
+
+type ViolationFormWithRelations = ViolationFormRow & {
+  violation_photos?: ViolationPhotoRow[] | null;
+  profiles?: ProfileSummary | null;
+  date?: string | null;
+  time?: string | null;
+};
 
 interface SavedForm {
   id: string;
   user_id: string;
   unit_number: string;
-  date?: string; // Legacy field - may not exist in newer records
-  occurred_at?: string; // New field from migration
-  time: string;
-  location: string;
-  description: string;
-  photos?: string[];
-  status: string;
+  date: string | null;
+  occurred_at: string | null;
+  time: string | null;
+  location: string | null;
+  description: string | null;
+  photos: string[];
+  status: string | null;
   created_at: string;
-  // Add user profile information - make it optional since the join might fail
-  profiles?: {
-    email: string;
-    full_name: string | null;
-    role: string;
-  } | null;
-  // Add violation_photos join data
+  profiles?: ProfileSummary | null;
   violation_photos?: Array<{
     id: string;
     storage_path: string;
-    created_at: string;
+    created_at: string | null;
   }>;
 }
+
+const normalizeViolationForm = (
+  form: ViolationFormWithRelations,
+  fallbackProfile?: ProfileSummary | null
+): SavedForm => {
+  const violationPhotos = Array.isArray(form.violation_photos)
+    ? form.violation_photos
+    : [];
+
+  const legacyFields = form as unknown as {
+    date?: string | null;
+    time?: string | null;
+  };
+
+  const mergedProfile = form.profiles ?? fallbackProfile ?? null;
+  const normalizedProfile = mergedProfile
+    ? {
+        email: mergedProfile.email,
+        full_name: mergedProfile.full_name,
+        role: mergedProfile.role ?? "user",
+      }
+    : null;
+
+  return {
+    id: String(form.id),
+    user_id: form.user_id,
+    unit_number: form.unit_number ?? "",
+    date: legacyFields.date ?? null,
+    occurred_at: form.occurred_at ?? null,
+    time: legacyFields.time ?? null,
+    location: form.location ?? null,
+    description: form.description ?? null,
+    photos: violationPhotos
+      .map((photo) => photo?.storage_path)
+      .filter((path): path is string => typeof path === "string" && path.length > 0),
+    status: form.status ?? "saved",
+    created_at: form.created_at ?? new Date().toISOString(),
+    profiles: normalizedProfile,
+    violation_photos: violationPhotos.map((photo) => ({
+      id: String(photo?.id),
+      storage_path: photo?.storage_path ?? "",
+      created_at: photo?.created_at ?? null,
+    })),
+  };
+};
+
+const sanitizeForms = (rows: unknown): ViolationFormWithRelations[] => {
+  if (!Array.isArray(rows)) return [];
+
+  return rows.filter((row): row is ViolationFormWithRelations => {
+    if (!row || typeof row !== "object") return false;
+    if ("error" in row) return false;
+    return true;
+  });
+};
+
+const sanitizeProfiles = (rows: unknown): ProfileLookup[] => {
+  if (!Array.isArray(rows)) return [];
+
+  return rows.filter((row): row is ProfileLookup => {
+    if (!row || typeof row !== "object") return false;
+    if ("error" in row) return false;
+    return true;
+  });
+};
+
+const VIOLATION_FORM_JOIN = `
+  *,
+  profiles!violation_forms_user_id_fkey (
+    email,
+    full_name,
+    role
+  ),
+  violation_photos (
+    id,
+    storage_path,
+    created_at
+  )
+` as const;
 
 const Books = () => {
   const [forms, setForms] = useState<SavedForm[]>([]);
@@ -124,22 +211,9 @@ const Books = () => {
       // First, try to fetch with the join (including violation_photos)
       // IMPORTANT: Fetches ALL forms from ALL users (not filtered by user_id)
       // This allows all team members to view all violation forms
-      // @ts-ignore - Supabase types need regeneration for violation_forms
-      let { data, error } = await supabase
+      const { data, error } = await supabase
         .from('violation_forms')
-        .select(`
-          *,
-          profiles!violation_forms_new_user_id_fkey (
-            email,
-            full_name,
-            role
-          ),
-          violation_photos (
-            id,
-            storage_path,
-            created_at
-          )
-        `)
+        .select(VIOLATION_FORM_JOIN)
         .order('created_at', { ascending: false });
 
       // If the join fails, fall back to separate queries
@@ -149,8 +223,7 @@ const Books = () => {
         // Fetch violation forms with photos join
         // IMPORTANT: Fetches ALL forms from ALL users (not filtered by user_id)
         // This allows all team members to view all violation forms
-        // @ts-ignore - Supabase types need regeneration for violation_forms
-        const { data: formsData, error: formsError } = await supabase
+        const { data: formsDataRaw, error: formsError } = await supabase
           .from('violation_forms')
           .select(`
             *,
@@ -165,19 +238,28 @@ const Books = () => {
         if (formsError) throw formsError;
 
         // Fetch all profiles
-        const { data: profilesData, error: profilesError } = await supabase
+        const { data: rawProfiles, error: profilesError } = await supabase
           .from('profiles')
           .select('user_id, email, full_name, role');
 
         if (profilesError) throw profilesError;
 
+        const profilesData = sanitizeProfiles(rawProfiles);
+        const formsData = sanitizeForms(formsDataRaw);
+
         // Manually join the data and map photos
-        const formsWithProfiles = (formsData || []).map(form => ({
-          ...form,
-          // @ts-ignore - Supabase types need regeneration for violation_photos join
-          photos: form.violation_photos?.map(p => p.storage_path) || [],
-          profiles: profilesData?.find(profile => profile.user_id === form.user_id) || null
-        }));
+        const formsWithProfiles = formsData.map(form => {
+          const matchedProfile = profilesData.find(profile => profile.user_id === form.user_id) || null;
+          const profileSummary = matchedProfile
+            ? {
+                email: matchedProfile.email,
+                full_name: matchedProfile.full_name,
+                role: matchedProfile.role ?? "user",
+              }
+            : null;
+
+          return normalizeViolationForm(form, profileSummary);
+        });
 
         // Debug: See all fetched forms with details
         console.log('Forms fetched:', formsWithProfiles);
@@ -187,30 +269,24 @@ const Books = () => {
             id: f.id,
             unit: f.unit_number,
             date: f.date,
-            // @ts-ignore - occurred_at exists in database but not in generated types
             occurred_at: f.occurred_at,
             photos: f.photos,
-            photoCount: f.photos?.length || 0,
+            photoCount: f.photos.length,
             photoType: typeof f.photos,
-            firstPhoto: f.photos?.[0]?.substring(0, 50) + '...',
+            firstPhoto: f.photos[0] ? `${f.photos[0].substring(0, 50)}...` : null,
             location: f.location
           });
         });
 
         // Debug: See all fetched forms
         console.log('Forms fetched:', formsWithProfiles);
-        // @ts-ignore - Type assertion needed until Supabase types are regenerated
         setForms(formsWithProfiles);
       } else {
         // Map the data to include photos array from violation_photos join
-        const formsWithProfiles = (data || []).map(form => ({
-          ...form,
-          // @ts-ignore - Supabase types need regeneration for violation_photos join
-          photos: form.violation_photos?.map(p => p.storage_path) || []
-        }));
+        const typedData = sanitizeForms(data);
+        const formsWithProfiles = typedData.map(form => normalizeViolationForm(form));
         // Debug: See all fetched forms
         console.log('Forms fetched (with join):', formsWithProfiles);
-        // @ts-ignore - Type assertion needed until Supabase types are regenerated
         setForms(formsWithProfiles);
       }
     } catch (error) {

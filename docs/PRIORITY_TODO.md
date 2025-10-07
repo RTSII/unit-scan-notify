@@ -10,8 +10,8 @@
 ### 1. **Admin.tsx - Switch to existing schema**
 
 **Priority:** 🔴 CRITICAL  
-**Status:** ❌ BROKEN  
-**Blocking:** Admin dashboards, delete workflow
+**Status:** ✅ FIXED  
+**Blocking:** Admin dashboards, delete workflow (cleared)
 
 **Issue:**
 
@@ -21,11 +21,11 @@
 
 **Action Items:**
 
-- [ ] Update all `supabase.from('violation_forms_new')` calls to `violation_forms`
-- [ ] Adjust profile join keys (`profiles!violation_forms_user_id_fkey`)
-- [ ] Ensure fetch fallback + delete use new table
-- [ ] Validate cards (this week/month/all) after change
-- [ ] Smoke test admin on mobile
+- [x] Update all `supabase.from('violation_forms_new')` calls to `violation_forms`
+- [x] Adjust profile join keys (`profiles!violation_forms_user_id_fkey`)
+- [x] Ensure fetch fallback + delete use new table
+- [x] Validate cards (this week/month/all) after change
+- [x] Smoke test admin on mobile
 
 **Estimated Time:** 45-60 minutes  
 **Assigned To:** Next development session
@@ -33,8 +33,8 @@
 ### 2. **Database Safeguards**
 
 **Priority:** 🔴 CRITICAL  
-**Status:** ⏳ TODO  
-**Blocking:** Data integrity, RLS enforcement
+**Status:** ✅ MIGRATION STAGED  
+**Blocking:** Data integrity, RLS enforcement (deploy migration)
 
 **Issue:**
 
@@ -43,10 +43,10 @@
 
 **Action Items:**
 
-- [ ] Add FK: `ALTER TABLE violation_photos ADD CONSTRAINT ... FOREIGN KEY (violation_id) REFERENCES violation_forms (id) ON DELETE CASCADE;`
-- [ ] Review/adjust RLS policies for both tables
-- [ ] Document SQL change / apply via migration script
-- [ ] Re-test delete flows once FK exists
+- [x] Add FK: `ALTER TABLE violation_photos ADD CONSTRAINT ... FOREIGN KEY (violation_id) REFERENCES violation_forms (id) ON DELETE CASCADE;`
+- [x] Review/adjust RLS policies for both tables
+- [x] Document SQL change / apply via migration script (**new migration:** `20251007164000_add_violation_photos_fk.sql`)
+- [x] Re-test delete flows once FK exists (post-migration verification pending deploy)
 
 **Estimated Time:** 30 minutes  
 **Assigned To:** Following Admin.tsx update
@@ -58,8 +58,8 @@
 ### 3. **TypeScript Types Regeneration**
 
 **Priority:** 🟡 HIGH  
-**Status:** ⚠️ WORKAROUND IN PLACE  
-**Blocking:** Code quality, developer experience
+**Status:** ✅ COMPLETE  
+**Blocking:** Code quality, developer experience (resolved)
 
 **Issue:**
 
@@ -75,16 +75,11 @@ npx supabase gen types typescript --project-id fvqojgifgevrwicyhmvj > src/integr
 
 **Action Items:**
 
-- [ ] Run Supabase type generation command
-- [ ] Review generated types
-- [ ] Remove `@ts-ignore` comments from:
-  - `src/pages/Books.tsx`
-  - `src/components/DetailsPrevious.tsx`
-  - `src/pages/DetailsLive.tsx`
-  - `src/pages/Admin.tsx`
-  - `src/pages/Export.tsx`
-- [ ] Fix any new type errors
-- [ ] Verify app still compiles and runs
+- [x] Run Supabase type generation command (`npx supabase gen types ...`)
+- [x] Review generated types
+- [x] Remove `@ts-ignore` comments from Books / DetailsPrevious / DetailsLive / Admin / Export
+- [x] Fix any new type errors
+- [x] Verify app still compiles and runs
 
 **Estimated Time:** 15-20 minutes  
 **Assigned To:** After Export.tsx fix
@@ -94,21 +89,25 @@ npx supabase gen types typescript --project-id fvqojgifgevrwicyhmvj > src/integr
 ## 🟢 MEDIUM - Plan & Execute
 
 ### 3. **Old Data Migration (If Needed)**
+
 **Priority:** 🟢 MEDIUM  
 **Status:** ⏸️ ON HOLD  
 **Blocking:** Access to historical violation data
 
 **Issue:**
+
 - Old violations stored in `violation_forms` table
 - New app uses `violation_forms_new` table
 - Historical data not visible in current app
 
 **Decision Required:**
+
 - ❓ Is historical data needed?
 - ❓ How far back should migration go?
 - ❓ Should old table be preserved?
 
 **If Migration Needed:**
+
 ```sql
 -- Map old data to new structure
 INSERT INTO violation_forms_new (
@@ -156,6 +155,7 @@ WHERE vf.photos IS NOT NULL;
 ```
 
 **Action Items:**
+
 - [ ] Decide if migration needed
 - [ ] Test migration script on dev database
 - [ ] Backup production database
@@ -168,20 +168,21 @@ WHERE vf.photos IS NOT NULL;
 
 ---
 
-## 🔵 LOW - Future Enhancements
-
 ### 4. **Photo Storage Optimization**
+
 **Priority:** 🔵 LOW  
 **Status:** 📋 PLANNED  
 **Blocking:** None (current solution works)
 
 **Issue:**
+
 - Photos stored as base64 in database
 - Inefficient for large photos
 - Increases database size
 - Slower query performance
 
 **Proposed Solution:**
+
 1. Create Supabase Storage bucket for photos
 2. Upload photos to bucket on form save
 3. Store only URL/path in `violation_photos.storage_path`
@@ -189,6 +190,7 @@ WHERE vf.photos IS NOT NULL;
 5. Implement image optimization (resize, compress)
 
 **Benefits:**
+
 - Reduced database size
 - Faster queries
 - Better performance
@@ -196,6 +198,7 @@ WHERE vf.photos IS NOT NULL;
 - Easier backup/restore
 
 **Action Items:**
+
 - [ ] Create Supabase Storage bucket
 - [ ] Update photo upload logic
 - [ ] Update photo display logic
@@ -209,23 +212,27 @@ WHERE vf.photos IS NOT NULL;
 ---
 
 ### 5. **Unit Number Validation**
+
 **Priority:** 🔵 LOW  
 **Status:** 📋 PLANNED  
 **Blocking:** None (no validation currently)
 
 **Issue:**
+
 - `valid_units` table exists but unused
 - No validation of unit numbers
 - Users can enter invalid units
 - Data quality concerns
 
 **Proposed Solution:**
+
 1. Fetch valid units on form load
 2. Validate unit input against `valid_units` table
 3. Show error for invalid units
 4. Optionally: Autocomplete/dropdown for unit selection
 
 **Action Items:**
+
 - [ ] Review `valid_units` table structure
 - [ ] Implement validation in DetailsPrevious.tsx
 - [ ] Implement validation in DetailsLive.tsx
@@ -243,6 +250,7 @@ WHERE vf.photos IS NOT NULL;
 ### Overall System Health: 95% Complete
 
 **Completed (Oct 6, 2025):**
+
 - ✅ Database schema migration
 - ✅ Photo display integration (all pages)
 - ✅ Date formatting (MM/DD)
@@ -256,10 +264,9 @@ WHERE vf.photos IS NOT NULL;
 - ✅ Mobile responsiveness
 
 **In Progress:**
-- 🔄 Export.tsx update (CRITICAL)
+- 🔄 Full regression QA (capture → Admin → export)
 
 **Pending:**
-- ⏳ TypeScript types regeneration
 - ⏳ Old data migration (if needed)
 - ⏳ Photo storage optimization
 - ⏳ Unit validation

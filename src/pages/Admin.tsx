@@ -20,7 +20,6 @@ import {
   FileText,
   BarChart3,
   Home,
-  Trash2,
   User,
   ChevronDown
 } from 'lucide-react';
@@ -78,18 +77,24 @@ interface SavedForm {
   id: string;
   user_id: string;
   unit_number: string;
-  date: string;
-  time: string;
-  location: string;
-  description: string;
+  occurred_at?: string | null;
+  date?: string | null;
+  time?: string | null;
+  location: string | null;
+  description: string | null;
   photos: string[];
-  status: string;
+  status: string | null;
   created_at: string;
   profiles?: {
     email: string;
     full_name: string | null;
     role: string;
   } | null;
+  violation_photos?: Array<{
+    id: string;
+    storage_path: string;
+    created_at: string;
+  }>;
 }
 
 export default function Admin() {
@@ -115,6 +120,41 @@ export default function Admin() {
   const [profileExpanded, setProfileExpanded] = useState(false);
   const [activeUsers, setActiveUsers] = useState<{[key: string]: any}>({});
   const sectionsTopRef = useRef<HTMLDivElement>(null);
+
+  const normalizeFormRecord = (form: any, profileOverride?: Partial<Profile> | null): SavedForm => {
+    const violationPhotosRaw = Array.isArray(form?.violation_photos) ? form.violation_photos : [];
+    const rawProfile = form?.profiles ?? profileOverride ?? null;
+
+    const normalizedProfile = rawProfile
+      ? {
+          email: rawProfile.email ?? '',
+          full_name: rawProfile.full_name ?? null,
+          role: rawProfile.role ?? 'user',
+        }
+      : null;
+
+    return {
+      id: String(form.id),
+      user_id: form.user_id,
+      unit_number: form.unit_number ?? '',
+      occurred_at: form.occurred_at ?? null,
+      date: form.date ?? null,
+      time: form.time ?? null,
+      location: form.location ?? null,
+      description: form.description ?? null,
+      photos: violationPhotosRaw
+        .map((p: any) => p?.storage_path)
+        .filter((path: unknown): path is string => typeof path === 'string' && path.length > 0),
+      status: form.status ?? null,
+      created_at: form.created_at,
+      profiles: normalizedProfile,
+      violation_photos: violationPhotosRaw.map((p: any) => ({
+        id: String(p?.id),
+        storage_path: p?.storage_path,
+        created_at: p?.created_at,
+      })),
+    };
+  };
 
   // All useEffect hooks must be called before any conditional returns
   useEffect(() => {
@@ -288,12 +328,11 @@ export default function Admin() {
   const fetchViolationForms = async () => {
     try {
       // Fetch violation forms with user profile information
-      // @ts-ignore - Supabase types need regeneration for violation_forms_new
-      let { data, error } = await supabase
-        .from('violation_forms_new')
+      const { data, error } = await supabase
+        .from('violation_forms')
         .select(`
           *,
-          profiles!violation_forms_new_user_id_fkey (
+          profiles!violation_forms_user_id_fkey (
             email,
             full_name,
             role
@@ -304,16 +343,16 @@ export default function Admin() {
             created_at
           )
         `)
-        .order('created_at', { ascending: false }).limit(1000);
+        .order('created_at', { ascending: false })
+        .limit(1000);
 
       // If the join fails, fall back to separate queries
       if (error || !data) {
         console.log('Join query failed, falling back to separate queries:', error);
 
         // Fetch violation forms with photos
-        // @ts-ignore - Supabase types need regeneration for violation_forms_new
         const { data: formsData, error: formsError } = await supabase
-          .from('violation_forms_new')
+          .from('violation_forms')
           .select(`
             *,
             violation_photos (
@@ -326,30 +365,23 @@ export default function Admin() {
 
         if (formsError) throw formsError;
 
-        // Fetch all profiles
+        // Fetch all profiles (projection used by fallback join)
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
-          .select('user_id, email, full_name, role');
+          .select('user_id, email, full_name, role, created_at, updated_at');
 
         if (profilesError) throw profilesError;
 
         // Manually join the data and map photos
-        const formsWithProfiles = (formsData || []).map(form => ({
-          ...form,
-          // @ts-ignore - Supabase types need regeneration for violation_photos join
-          photos: form.violation_photos?.map(p => p.storage_path) || [],
-          profiles: profilesData?.find(profile => profile.user_id === form.user_id) || null
-        }));
+        const formsWithProfiles = (formsData || []).map((form) => {
+          const matchedProfile = profilesData?.find(profile => profile.user_id === form.user_id) || null;
+          return normalizeFormRecord(form, matchedProfile);
+        });
 
         setViolationForms(formsWithProfiles);
       } else {
         // Map the data to include photos array from violation_photos join
-        const formsWithProfiles = (data || []).map(form => ({
-          ...form,
-          // @ts-ignore - Supabase types need regeneration for violation_photos join
-          photos: form.violation_photos?.map(p => p.storage_path) || []
-        }));
-        // @ts-ignore - Type assertion needed until Supabase types are regenerated
+        const formsWithProfiles = (data || []).map((form) => normalizeFormRecord(form));
         setViolationForms(formsWithProfiles);
       }
     } catch (error: any) {
@@ -398,9 +430,8 @@ export default function Admin() {
       setUserActivity([]);
 
       // Fetch violation statistics for overall team metrics
-      // @ts-ignore - Supabase types need regeneration for violation_forms_new
       const { data: violationsData, error: violationsError } = await supabase
-        .from('violation_forms_new')
+        .from('violation_forms')
         .select('id, created_at, status');
 
       if (violationsError) throw violationsError;
@@ -497,11 +528,14 @@ export default function Admin() {
   const deleteViolationForm = async (formId: string) => {
     setDeletingFormId(formId);
     try {
-      // @ts-ignore - Supabase types need regeneration for violation_forms_new
+      const numericId = Number(formId);
+      if (Number.isNaN(numericId)) {
+        throw new Error('Invalid violation form id');
+      }
       const { error } = await supabase
-        .from('violation_forms_new')
+        .from('violation_forms')
         .delete()
-        .eq('id', formId);
+        .eq('id', numericId);
 
       if (error) throw error;
 

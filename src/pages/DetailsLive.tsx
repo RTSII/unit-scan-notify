@@ -7,11 +7,16 @@ import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Checkbox } from "../components/ui/checkbox";
 import { supabase } from "../integrations/supabase/client";
+import type { Tables, TablesInsert } from "../integrations/supabase/types";
 import { toast } from "sonner";
 import {
   TextureCard,
   TextureCardContent,
 } from "../components/ui/texture-card";
+
+type ViolationFormRow = Tables<"violation_forms">;
+type ViolationFormInsert = TablesInsert<"violation_forms">;
+type ViolationPhotoInsert = TablesInsert<"violation_photos">;
 
 const DetailsLive = () => {
   const { user, loading } = useAuth();
@@ -94,32 +99,34 @@ const DetailsLive = () => {
     })();
 
     try {
-      // @ts-ignore - Supabase types need regeneration for violation_forms
+      const locationSummary = selectedViolations.join(', ');
+      const formPayload: ViolationFormInsert = {
+        user_id: user.id,
+        unit_number: formData.unit.toUpperCase(),
+        occurred_at: occurredAt,
+        location: locationSummary || null,
+        description: formData.description || null,
+        status: 'saved',
+      };
+
       const { data: formResult, error } = await supabase
         .from('violation_forms')
-        .insert({
-          user_id: user.id,
-          unit_number: formData.unit.toUpperCase(),
-          occurred_at: occurredAt,
-          location: selectedViolations.join(', '),
-          description: formData.description,
-          status: 'saved'
-        })
-        .select();
+        .insert(formPayload)
+        .select()
+        .returns<ViolationFormRow[]>();
 
       if (error) throw error;
 
       // Save photos to violation_photos table if we have any
       if (photos.length > 0 && formResult && formResult[0]) {
         const formId = formResult[0].id;
-        
-        const photoRecords = photos.map(photoBase64 => ({
+
+        const photoRecords: ViolationPhotoInsert[] = photos.map(photoBase64 => ({
           violation_id: formId,
           uploaded_by: user.id,
           storage_path: photoBase64
         }));
 
-        // @ts-ignore - Supabase types need regeneration for violation_photos
         const { error: photosError } = await supabase
           .from('violation_photos')
           .insert(photoRecords);
