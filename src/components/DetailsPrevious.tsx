@@ -286,7 +286,7 @@ export default function DetailsPrevious() {
           </button>
         </MorphingPopoverTrigger>
         <MorphingPopoverContent 
-          className="w-80 p-0 bg-black/90 border-vice-cyan/30"
+          className="w-[calc(100vw-2rem)] max-w-md p-0 bg-black/90 border-vice-cyan/30"
           side="bottom"
           align="center"
           avoidCollisions={false}
@@ -303,7 +303,7 @@ export default function DetailsPrevious() {
               value={tempDescription}
               onChange={(e) => setTempDescription(e.target.value)}
               placeholder="Enter violation details..."
-              className="w-full h-32 p-3 bg-black/40 border border-vice-cyan/30 text-white placeholder:text-white/60 rounded-lg resize-none focus:outline-none focus:border-vice-pink"
+              className="w-full h-32 p-3 bg-black/40 border border-vice-cyan/30 text-white placeholder:text-white/60 rounded-lg resize-none focus:outline-none focus:border-vice-pink text-sm"
             />
             <div className="flex gap-2 justify-end">
               <Button
@@ -359,7 +359,7 @@ export default function DetailsPrevious() {
             </button>
           </MorphingPopoverTrigger>
           <MorphingPopoverContent 
-            className="w-80 p-0 bg-black/90 border-vice-cyan/30"
+            className="w-[calc(100vw-2rem)] max-w-md p-0 bg-black/90 border-vice-cyan/30"
             side="bottom"
             align="center"
             avoidCollisions={false}
@@ -391,11 +391,11 @@ export default function DetailsPrevious() {
               className="hidden"
             />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <Button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={totalSelected >= MAX_PHOTOS}
-                className="w-full bg-vice-cyan hover:bg-vice-cyan/80 text-black disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-vice-cyan hover:bg-vice-cyan/80 text-black disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm px-2"
               >
                 Photo Library
               </Button>
@@ -403,7 +403,7 @@ export default function DetailsPrevious() {
                 onClick={() => fileInputRef.current?.click()}
                 disabled={totalSelected >= MAX_PHOTOS}
                 variant="secondary"
-                className="w-full border border-vice-cyan/40 text-white hover:bg-vice-cyan/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full border border-vice-cyan/40 text-white hover:bg-vice-cyan/20 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm px-2"
               >
                 Choose Files
               </Button>
@@ -914,7 +914,7 @@ export default function DetailsPrevious() {
               </div>
 
               {/* Morphing Description and Photos Buttons - Combined Row */}
-              <div className="flex gap-3 justify-center">
+              <div className="flex flex-wrap gap-3 justify-center items-center px-2">
                 <DescriptionPopover />
                 <PhotosPopover />
               </div>
