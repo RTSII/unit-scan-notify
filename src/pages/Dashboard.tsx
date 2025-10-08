@@ -139,20 +139,24 @@ export default function Dashboard() {
     }
   ];
 
-  // Add Admin icon for admin users only
-  const menuItems = profile?.role === 'admin'
+  // Show Admin icon in the arc for admins; fallback-show for Rob while profile is loading
+  const isAdmin = profile?.role === 'admin';
+  const shouldShowAdmin = isAdmin || (profile === null && user?.email === 'rob@ursllc.com');
+
+  // Order with Admin taking Export's previous spot and Export shifting left
+  const menuItems = shouldShowAdmin
     ? [
-      ...baseMenuItems,
-      {
-        icon: <Settings className="w-5 h-5 xs:w-6 xs:h-6" />,
-        onClick: () => navigate('/admin'),
-        label: 'Admin'
-      }
-    ]
+        ...baseMenuItems,
+        {
+          icon: <Settings className="w-5 h-5 xs:w-6 xs:h-6" />,
+          onClick: () => navigate('/admin'),
+          label: 'Admin'
+        }
+      ]
     : baseMenuItems;
 
   // Debug: Show current menu count
-  console.log('Menu items count:', menuItems.length, 'Is admin:', profile?.role === 'admin');
+  console.log('Menu items count:', menuItems.length, 'Is admin:', isAdmin);
 
   // Responsive semi-circle arc configuration - 180 degrees around center orb
   const getButtonPosition = (index: number) => {
@@ -167,9 +171,9 @@ export default function Dashboard() {
     const radius = getRadius();
 
     const totalItems = menuItems.length;
-    const totalAngle = 180; // Total arc span in degrees (semi-circle)
+    const totalAngle = totalItems > 4 ? 150 : 170; // Tighter spacing when Admin is visible
     const angleStep = totalAngle / (totalItems > 1 ? totalItems - 1 : 1);
-    const startAngle = 180; // Start arc from directly above orb (180° = 12 o'clock position)
+    const startAngle = 180; // Start arc from directly above orb (12 o'clock)
 
     const angle = startAngle - (index * angleStep); // Sweep clockwise to form an upward arc above orb
 
