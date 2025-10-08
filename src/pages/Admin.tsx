@@ -187,6 +187,157 @@ export default function Admin() {
   const [activeUsers, setActiveUsers] = useState<PresenceState>({});
   const sectionsTopRef = useRef<HTMLDivElement>(null);
 
+  const fetchViolationForms = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('violation_forms')
+        .select(`
+          *,
+          profiles!violation_forms_user_id_fkey (
+            email,
+            full_name,
+            role
+          ),
+          violation_photos (
+            id,
+            storage_path,
+            created_at
+          )
+        `)
+        .order('created_at', { ascending: false })
+        .limit(1000)
+        .returns<JoinedViolationForm[]>();
+
+      if (!error && data) {
+        const formsWithProfiles = data.map((form) => normalizeFormRecord(form));
+        setViolationForms(formsWithProfiles);
+        return;
+      }
+
+      console.warn('Join query failed, using fallback profile join', error);
+
+      const { data: formsData, error: formsError } = await supabase
+        .from('violation_forms')
+        .select(`
+          *,
+          violation_photos (
+            id,
+            storage_path,
+            created_at
+          )
+        `)
+        .order('created_at', { ascending: false })
+        .limit(1000)
+        .returns<JoinedViolationForm[]>();
+
+      if (formsError) throw formsError;
+
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, email, full_name, role, created_at, updated_at')
+        .returns<ProfileRow[]>();
+
+      if (profilesError) throw profilesError;
+
+      const formsWithProfiles = (formsData ?? []).map((form) => {
+        const matchedProfile =
+          profilesData?.find((profile) => profile.user_id === form.user_id) ?? null;
+        return normalizeFormRecord(form, matchedProfile);
+      });
+
+      setViolationForms(formsWithProfiles);
+    } catch (error: unknown) {
+      console.error('Error fetching violation forms:', error);
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Failed to fetch violation forms",
+        variant: "destructive",
+      });
+    }
+  }, [toast]);
+
+  const fetchData = useCallback(async () => {
+    try {
+      const { data: invitesData, error: invitesError } = await supabase
+        .from('invites')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1000)
+        .returns<Invite[]>();
+
+      if (invitesError) throw invitesError;
+      setInvites(invitesData ?? []);
+
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1000)
+        .returns<ProfileRow[]>();
+
+      if (profilesError) throw profilesError;
+      const profileRows = profilesData ?? [];
+      setProfiles(
+        profileRows.map((profileRecord) => ({
+          user_id: profileRecord.user_id,
+          email: profileRecord.email,
+          full_name: profileRecord.full_name,
+          role: profileRecord.role ?? 'user',
+          created_at: profileRecord.created_at,
+          updated_at: profileRecord.updated_at,
+        }))
+      );
+
+      setUserActivity([]);
+
+      const { data: violationsData, error: violationsError } = await supabase
+        .from('violation_forms')
+        .select('id, created_at, status')
+        .returns<Pick<ViolationFormRow, 'id' | 'created_at' | 'status'>[]>();
+
+      if (violationsError) throw violationsError;
+
+      const violationRows = violationsData ?? [];
+      const now = new Date();
+      const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const thisWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+      const totalViolations = violationRows.length;
+      const completedViolations = violationRows.filter((row) => row.status === 'completed').length;
+
+      const statsPayload: ViolationStats = {
+        total_violations: totalViolations,
+        this_month: violationRows.filter(
+          (row) => new Date(row.created_at) >= thisMonth
+        ).length,
+        violations_this_week: violationRows.filter(
+          (row) => new Date(row.created_at) >= thisWeek
+        ).length,
+        pending_violations: violationRows.filter((row) => row.status === 'pending').length,
+        completed_violations: completedViolations,
+        draft_violations: violationRows.filter((row) => row.status === 'saved').length,
+        total_users: 0,
+        team_completion_rate:
+          totalViolations > 0
+            ? Math.round((completedViolations / totalViolations) * 100)
+            : 0,
+      };
+
+      setStats(statsPayload);
+      await fetchViolationForms();
+    } catch (error: unknown) {
+      console.error('Error fetching admin data:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to fetch admin data",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingData(false);
+    }
+  }, [fetchViolationForms, toast]);
+
   // All useEffect hooks must be called before any conditional returns
   useEffect(() => {
     if (profile?.role === 'admin') {
@@ -355,156 +506,6 @@ export default function Admin() {
       </Card>
     );
   };
-
-  const fetchViolationForms = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('violation_forms')
-        .select(`
-          *,
-          profiles!violation_forms_user_id_fkey (
-            email,
-            full_name,
-            role
-          ),
-          violation_photos (
-            id,
-            storage_path,
-            created_at
-          )
-        `)
-        .order('created_at', { ascending: false })
-        .limit(1000)
-        .returns<JoinedViolationForm[]>();
-
-      if (!error && data) {
-        const formsWithProfiles = data.map((form) => normalizeFormRecord(form));
-        setViolationForms(formsWithProfiles);
-        return;
-      }
-
-      console.warn('Join query failed, using fallback profile join', error);
-
-      const { data: formsData, error: formsError } = await supabase
-        .from('violation_forms')
-        .select(`
-          *,
-          violation_photos (
-            id,
-            storage_path,
-            created_at
-          )
-        `)
-        .order('created_at', { ascending: false })
-        .limit(1000)
-        .returns<JoinedViolationForm[]>();
-
-      if (formsError) throw formsError;
-
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('user_id, email, full_name, role, created_at, updated_at')
-        .returns<ProfileRow[]>();
-
-      if (profilesError) throw profilesError;
-
-      const formsWithProfiles = (formsData ?? []).map((form) => {
-        const matchedProfile =
-          profilesData?.find((profile) => profile.user_id === form.user_id) ?? null;
-        return normalizeFormRecord(form, matchedProfile);
-      });
-
-      setViolationForms(formsWithProfiles);
-    } catch (error: unknown) {
-      console.error('Error fetching violation forms:', error);
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to fetch violation forms",
-        variant: "destructive",
-      });
-    }
-  }, [toast]);
-
-  const fetchData = useCallback(async () => {
-    try {
-      const { data: invitesData, error: invitesError } = await supabase
-        .from('invites')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(1000)
-        .returns<Invite[]>();
-
-      if (invitesError) throw invitesError;
-      setInvites(invitesData ?? []);
-
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(1000)
-        .returns<ProfileRow[]>();
-
-      if (profilesError) throw profilesError;
-      const profileRows = profilesData ?? [];
-      setProfiles(
-        profileRows.map((profileRecord) => ({
-          user_id: profileRecord.user_id,
-          email: profileRecord.email,
-          full_name: profileRecord.full_name,
-          role: profileRecord.role ?? 'user',
-          created_at: profileRecord.created_at,
-          updated_at: profileRecord.updated_at,
-        }))
-      );
-
-      setUserActivity([]);
-
-      const { data: violationsData, error: violationsError } = await supabase
-        .from('violation_forms')
-        .select('id, created_at, status')
-        .returns<Pick<ViolationFormRow, 'id' | 'created_at' | 'status'>[]>();
-
-      if (violationsError) throw violationsError;
-
-      const violationRows = violationsData ?? [];
-      const now = new Date();
-      const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const thisWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-      const totalViolations = violationRows.length;
-      const completedViolations = violationRows.filter((row) => row.status === 'completed').length;
-
-      const statsPayload: ViolationStats = {
-        total_violations: totalViolations,
-        this_month: violationRows.filter(
-          (row) => row.created_at && new Date(row.created_at) >= thisMonth
-        ).length,
-        violations_this_week: violationRows.filter(
-          (row) => row.created_at && new Date(row.created_at) >= thisWeek
-        ).length,
-        pending_violations: violationRows.filter((row) => row.status === 'pending').length,
-        completed_violations: completedViolations,
-        draft_violations: violationRows.filter((row) => row.status === 'saved').length,
-        total_users: profileRows.length,
-        team_completion_rate:
-          totalViolations > 0 ? Math.round((completedViolations / totalViolations) * 100) : 0,
-      };
-
-      setStats(statsPayload);
-
-      await fetchViolationForms();
-    } catch (error: unknown) {
-      console.error('Admin data fetch error:', error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to fetch admin data",
-        variant: "destructive",
-      });
-    } finally {
-      setLoadingData(false);
-    }
-  }, [fetchViolationForms, toast]);
 
   const createInvite = async (e: React.FormEvent) => {
     e.preventDefault();

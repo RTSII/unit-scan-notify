@@ -6,7 +6,6 @@ import {
   useMotionValue,
   useTransform,
   Transition,
-  AnimationControls,
 } from "framer-motion"
 
 export const useIsomorphicLayoutEffect =
@@ -102,7 +101,7 @@ const Carousel = memo(
     isCarouselActive,
   }: {
     handleClick: (imgUrl: string, index: number) => void
-    controls: AnimationControls
+    controls: ReturnType<typeof useAnimation>
     cards: string[]
     isCarouselActive: boolean
   }) => {

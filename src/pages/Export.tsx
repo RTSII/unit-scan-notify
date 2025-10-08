@@ -83,8 +83,6 @@ export default function Export() {
         return {
           id: String(form.id),
           unit_number: normalizeUnit(form.unit_number ?? ''),
-          date: form.date ?? undefined,
-          time: form.time ?? undefined,
           occurred_at: form.occurred_at ?? undefined,
           location: form.location ?? '',
           description: form.description ?? '',

@@ -156,57 +156,6 @@ const Books = () => {
 
   const location = useLocation();
 
-  useEffect(() => {
-    fetchSavedForms();
-  }, [fetchSavedForms, user]);
-
-  // Refetch data when navigating to books page (e.g., after saving a new form)
-  useEffect(() => {
-    if (location.pathname === '/books' && !loading) {
-      console.log('Navigated to books page, refreshing data...');
-      fetchSavedForms();
-    }
-  }, [fetchSavedForms, location.pathname, loading]);
-
-  // Click outside handler for filter dropdown and card expansion
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      // Handle filter dropdown
-      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
-        setFilterOpen(false);
-      }
-
-      // Handle card expansion - collapse when clicking outside the cards container
-      if (cardsContainerRef.current && !cardsContainerRef.current.contains(event.target as Node)) {
-        setThisWeekExpanded(false);
-        setThisMonthExpanded(false);
-      }
-    };
-
-    if (filterOpen || thisWeekExpanded || thisMonthExpanded) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [filterOpen, thisWeekExpanded, thisMonthExpanded]);
-
-  // Handle single card expansion - only one can be open at a time
-  const handleWeekExpansion = (isExpanded: boolean) => {
-    if (isExpanded) {
-      setThisMonthExpanded(false); // Close month card when week opens
-    }
-    setThisWeekExpanded(isExpanded);
-  };
-
-  const handleMonthExpansion = (isExpanded: boolean) => {
-    if (isExpanded) {
-      setThisWeekExpanded(false); // Close week card when month opens
-    }
-    setThisMonthExpanded(isExpanded);
-  };
-
   const fetchSavedForms = useCallback(async () => {
     if (!user) return;
 
@@ -303,6 +252,58 @@ const Books = () => {
       setLoading(false);
     }
   }, [toast, user]);
+
+  useEffect(() => {
+    fetchSavedForms();
+  }, [fetchSavedForms, user]);
+
+  // Refetch data when navigating to books page (e.g., after saving a new form)
+  useEffect(() => {
+    if (location.pathname === '/books' && !loading) {
+      console.log('Navigated to books page, refreshing data...');
+      fetchSavedForms();
+    }
+  }, [fetchSavedForms, location.pathname, loading]);
+
+  // Click outside handler for filter dropdown and card expansion
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // Handle filter dropdown
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setFilterOpen(false);
+      }
+
+      // Handle card expansion - collapse when clicking outside the cards container
+      if (cardsContainerRef.current && !cardsContainerRef.current.contains(event.target as Node)) {
+        setThisWeekExpanded(false);
+        setThisMonthExpanded(false);
+      }
+    };
+
+    if (filterOpen || thisWeekExpanded || thisMonthExpanded) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [filterOpen, thisWeekExpanded, thisMonthExpanded]);
+
+  // Handle single card expansion - only one can be open at a time
+  const handleWeekExpansion = (isExpanded: boolean) => {
+    if (isExpanded) {
+      setThisMonthExpanded(false); // Close month card when week opens
+    }
+    setThisWeekExpanded(isExpanded);
+  };
+
+  const handleMonthExpansion = (isExpanded: boolean) => {
+    if (isExpanded) {
+      setThisWeekExpanded(false); // Close week card when month opens
+    }
+    setThisMonthExpanded(isExpanded);
+  };
+
 
   const applyFilters = (formsToFilter: SavedForm[]) => {
     let filtered = formsToFilter;
