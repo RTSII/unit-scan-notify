@@ -2,17 +2,15 @@
 
 import * as React from 'react';
 import * as PopoverPrimitive from '@radix-ui/react-popover';
-import { motion } from 'framer-motion';
+import { motion, Transition } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 const MorphingPopover = PopoverPrimitive.Root;
 
 const MorphingPopoverTrigger = React.forwardRef<
   React.ElementRef<typeof PopoverPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Trigger> & {
-    transition?: any;
-  }
->(({ className, transition, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Trigger>
+>(({ className, ...props }, ref) => (
   <PopoverPrimitive.Trigger
     ref={ref}
     className={cn(className)}
@@ -24,7 +22,7 @@ MorphingPopoverTrigger.displayName = PopoverPrimitive.Trigger.displayName;
 const MorphingPopoverContent = React.forwardRef<
   React.ElementRef<typeof PopoverPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> & {
-    transition?: any;
+    transition?: Transition;
   }
 >(({ className, align = 'center', sideOffset = 4, side = 'bottom', avoidCollisions = true, collisionPadding = 16, sticky = 'always', transition, ...props }, ref) => (
   <PopoverPrimitive.Portal>

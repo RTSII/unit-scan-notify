@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -27,7 +27,7 @@ export default function AdminInvites() {
   const [email, setEmail] = useState('');
   const [copiedTokens, setCopiedTokens] = useState<Set<string>>(new Set());
 
-  const fetchInvites = async () => {
+  const fetchInvites = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('invites')
@@ -36,16 +36,18 @@ export default function AdminInvites() {
 
       if (error) throw error;
       setInvites(data || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const description =
+        error instanceof Error ? error.message : 'Failed to fetch invites';
       toast({
         title: "Error",
-        description: "Failed to fetch invites",
+        description,
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     if (profile?.role === 'admin') {
@@ -53,7 +55,7 @@ export default function AdminInvites() {
     } else {
       setLoading(false);
     }
-  }, [profile]);
+  }, [profile, fetchInvites]);
 
   const createInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,10 +75,11 @@ export default function AdminInvites() {
         title: "Invite Created",
         description: `Invitation sent to ${email}`,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
       toast({
         title: "Failed to Create Invite",
-        description: error.message,
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -85,22 +88,27 @@ export default function AdminInvites() {
   };
 
   const copyInviteLink = async (token: string) => {
+    if (typeof window === 'undefined') return;
     const inviteLink = `${window.location.origin}/auth?invite=${token}`;
     try {
       await navigator.clipboard.writeText(inviteLink);
-      setCopiedTokens(prev => new Set([...prev, token]));
+      setCopiedTokens(prev => {
+        const next = new Set(prev);
+        next.add(token);
+        return next;
+      });
       toast({
         title: "Copied!",
         description: "Invite link copied to clipboard",
       });
       setTimeout(() => {
         setCopiedTokens(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(token);
-          return newSet;
+          const next = new Set(prev);
+          next.delete(token);
+          return next;
         });
       }, 2000);
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         title: "Failed to Copy",
         description: "Could not copy invite link",

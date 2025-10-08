@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Checkbox } from '../components/ui/checkbox';
 import { Separator } from '../components/ui/separator';
 import { useToast } from '../hooks/use-toast';
+import type { CheckedState } from '@radix-ui/react-checkbox';
 import { 
   Home, 
   Search, 
@@ -21,6 +22,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { normalizeUnit } from '@/utils/unitFormat';
+import type { Tables } from '@/integrations/supabase/types';
 
 interface ViolationForm {
   id: string;
@@ -32,48 +34,29 @@ interface ViolationForm {
   description: string;
   status: string;
   created_at: string;
-  photos?: string[]; // Photos array from violation_photos join
-  violation_photos?: Array<{
+  photos: string[]; // Photos array from violation_photos join
+  violation_photos: Array<{
     id: string;
     storage_path: string;
     created_at: string;
   }>;
 }
 
+type ViolationFormRow = Tables<'violation_forms'>;
+type ViolationPhotoRow = Tables<'violation_photos'>;
+
 export default function Export() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [forms, setForms] = useState<ViolationForm[]>([]);
-  const [filteredForms, setFilteredForms] = useState<ViolationForm[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedForms, setSelectedForms] = useState<string[]>([]);
   const [isThisWeekExpanded, setIsThisWeekExpanded] = useState(false);
-  const [thisWeekCount, setThisWeekCount] = useState(0);
 
-  // Redirect if not authenticated
-  if (!loading && !user) {
-    return <Navigate to="/auth" replace />;
-  }
-
-  useEffect(() => {
-    if (user) {
-      fetchForms();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    filterForms();
-  }, [forms, searchTerm, filterStatus]);
-
-  useEffect(() => {
-    calculateThisWeekCount();
-  }, [forms]);
-
-  const fetchForms = async () => {
+  const fetchForms = useCallback(async () => {
     try {
-      // @ts-ignore - Supabase types need regeneration for violation_forms_new
       const { data, error } = await supabase
         .from('violation_forms')
         .select(`
@@ -84,67 +67,102 @@ export default function Export() {
             created_at
           )
         `)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(500)
+        .returns<(ViolationFormRow & { violation_photos: ViolationPhotoRow[] | null })[]>();
 
       if (error) throw error;
-      
-      // Map photos array from violation_photos join
-      const formsWithPhotos = (data || []).map(form => ({
-        ...form,
-        unit_number: normalizeUnit(form.unit_number ?? ''),
-        // @ts-ignore - Supabase types need regeneration
-        photos: form.violation_photos?.map(p => p.storage_path) || []
-      }));
-      
-      // @ts-ignore - Type assertion needed
+
+      const formsWithPhotos: ViolationForm[] = (data ?? []).map((form) => {
+        const photosArray = Array.isArray(form.violation_photos)
+          ? form.violation_photos.filter(
+              (photo): photo is ViolationPhotoRow => Boolean(photo)
+            )
+          : [];
+
+        return {
+          id: String(form.id),
+          unit_number: normalizeUnit(form.unit_number ?? ''),
+          date: form.date ?? undefined,
+          time: form.time ?? undefined,
+          occurred_at: form.occurred_at ?? undefined,
+          location: form.location ?? '',
+          description: form.description ?? '',
+          status: form.status ?? 'saved',
+          created_at: form.created_at ?? new Date().toISOString(),
+          photos: photosArray
+            .map((photo) => photo.storage_path)
+            .filter((path): path is string => typeof path === 'string' && path.length > 0),
+          violation_photos: photosArray
+            .map((photo) => ({
+              id: String(photo.id),
+              storage_path: photo.storage_path ?? '',
+              created_at: photo.created_at ?? '',
+            }))
+            .filter((photo) => photo.storage_path.length > 0),
+        };
+      });
+
       setForms(formsWithPhotos);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching forms:', error);
       toast({
         title: "Error",
-        description: "Failed to load violation forms",
+        description:
+          error instanceof Error ? error.message : "Failed to load violation forms",
         variant: "destructive",
       });
     }
-  };
+  }, [toast]);
 
-  const filterForms = () => {
-    let filtered = forms;
+  useEffect(() => {
+    if (user) {
+      fetchForms();
+    }
+  }, [fetchForms, user]);
+
+  const filteredForms = useMemo(() => {
+    let filtered = [...forms];
 
     if (searchTerm) {
       const normalizedSearchUnit = normalizeUnit(searchTerm);
       const searchTermLower = searchTerm.toLowerCase();
 
-      filtered = filtered.filter(form =>
-        (normalizedSearchUnit.length > 0 && normalizeUnit(form.unit_number).includes(normalizedSearchUnit)) ||
-        form.unit_number.toLowerCase().includes(searchTermLower) ||
-        form.location.toLowerCase().includes(searchTermLower) ||
-        form.description.toLowerCase().includes(searchTermLower)
-      );
+      filtered = filtered.filter((form) => {
+        const normalizedUnit = normalizeUnit(form.unit_number);
+        const matchesNormalizedSearch =
+          normalizedSearchUnit.length > 0 && normalizedUnit.includes(normalizedSearchUnit);
+
+        return (
+          matchesNormalizedSearch ||
+          form.unit_number.toLowerCase().includes(searchTermLower) ||
+          form.location.toLowerCase().includes(searchTermLower) ||
+          form.description.toLowerCase().includes(searchTermLower)
+        );
+      });
     }
 
     if (filterStatus !== 'all') {
-      filtered = filtered.filter(form => form.status === filterStatus);
+      filtered = filtered.filter((form) => form.status === filterStatus);
     }
 
-    setFilteredForms(filtered);
-  };
+    return filtered;
+  }, [filterStatus, forms, searchTerm]);
 
-  const calculateThisWeekCount = () => {
+  const thisWeekCount = useMemo(() => {
     const now = new Date();
-    const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+    const startOfWeek = new Date(now);
     startOfWeek.setHours(0, 0, 0, 0);
+    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
 
-    const thisWeekForms = forms.filter(form => {
+    return forms.filter((form) => {
       const formDate = new Date(form.created_at);
       return formDate >= startOfWeek;
-    });
+    }).length;
+  }, [forms]);
 
-    setThisWeekCount(thisWeekForms.length);
-  };
-
-  const handleFormSelection = (formId: string, checked: boolean) => {
-    if (checked) {
+  const handleFormSelection = (formId: string, checked: CheckedState) => {
+    if (checked === true) {
       setSelectedForms(prev => [...prev, formId]);
     } else {
       setSelectedForms(prev => prev.filter(id => id !== formId));
@@ -279,6 +297,10 @@ export default function Export() {
     printWindow.document.close();
     printWindow.print();
   };
+
+  if (!loading && !user) {
+    return <Navigate to="/auth" replace />;
+  }
 
   if (loading) {
     return (
@@ -451,7 +473,7 @@ export default function Export() {
                     <div key={form.id} className="flex items-start gap-3 p-3 bg-black/20 rounded border border-vice-cyan/20">
                       <Checkbox
                         checked={selectedForms.includes(form.id)}
-                        onCheckedChange={(checked) => handleFormSelection(form.id, checked as boolean)}
+                        onCheckedChange={(checked) => handleFormSelection(form.id, checked)}
                         className="mt-1 border-vice-cyan/40 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink"
                       />
                       <div className="flex-1 min-w-0">

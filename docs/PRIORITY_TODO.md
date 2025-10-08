@@ -254,7 +254,7 @@ WHERE vf.photos IS NOT NULL;
 
 **In Progress:**
 
-- 🔄 Full regression QA (capture → Admin → export)
+- Full regression QA (capture + Admin + export) � Automated lint/build sweep completed Oct 8; mobile walkthrough still pending
 
 **Pending:**
 

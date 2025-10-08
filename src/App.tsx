@@ -34,7 +34,12 @@ function App() {
       if (typeof window !== 'undefined') {
         window.localStorage.setItem('toolbarEnabled', String(toolbarEnabled));
       }
-    } catch {}
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        // Persist failures are non-blocking (e.g. private browsing); surface in dev for visibility.
+        console.warn('Unable to persist toolbar preference', error);
+      }
+    }
   }, [toolbarEnabled]);
   return (
     <AuthProvider>

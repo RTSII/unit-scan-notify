@@ -35,54 +35,90 @@ export const BackgroundGradientAnimation = ({
 }) => {
   const interactiveRef = useRef<HTMLDivElement>(null);
 
-  const [curX, setCurX] = useState(0);
-  const [curY, setCurY] = useState(0);
-  const [tgX, setTgX] = useState(0);
-  const [tgY, setTgY] = useState(0);
+  const currentPosition = useRef({ x: 0, y: 0 });
+  const targetPosition = useRef({ x: 0, y: 0 });
   useEffect(() => {
-    document.body.style.setProperty(
-      "--gradient-background-start",
-      gradientBackgroundStart
-    );
-    document.body.style.setProperty(
-      "--gradient-background-end",
-      gradientBackgroundEnd
-    );
-    document.body.style.setProperty("--first-color", firstColor);
-    document.body.style.setProperty("--second-color", secondColor);
-    document.body.style.setProperty("--third-color", thirdColor);
-    document.body.style.setProperty("--fourth-color", fourthColor);
-    document.body.style.setProperty("--fifth-color", fifthColor);
-    document.body.style.setProperty("--pointer-color", pointerColor);
-    document.body.style.setProperty("--size", size);
-    document.body.style.setProperty("--blending-value", blendingValue);
-  }, []);
+    if (typeof document === "undefined") return;
+
+    const bodyStyle = document.body.style;
+    const cssVariables: Record<string, string> = {
+      "--gradient-background-start": gradientBackgroundStart,
+      "--gradient-background-end": gradientBackgroundEnd,
+      "--first-color": firstColor,
+      "--second-color": secondColor,
+      "--third-color": thirdColor,
+      "--fourth-color": fourthColor,
+      "--fifth-color": fifthColor,
+      "--pointer-color": pointerColor,
+      "--size": size,
+      "--blending-value": blendingValue,
+    };
+
+    Object.entries(cssVariables).forEach(([key, value]) => {
+      bodyStyle.setProperty(key, value);
+    });
+
+    return () => {
+      Object.keys(cssVariables).forEach((key) => {
+        bodyStyle.removeProperty(key);
+      });
+    };
+  }, [
+    blendingValue,
+    fifthColor,
+    firstColor,
+    fourthColor,
+    gradientBackgroundEnd,
+    gradientBackgroundStart,
+    pointerColor,
+    secondColor,
+    size,
+    thirdColor,
+  ]);
 
   useEffect(() => {
-    function move() {
-      if (!interactiveRef.current) {
-        return;
+    if (!interactive) return;
+
+    let frameId: number;
+
+    const animate = () => {
+      const { x: currentX, y: currentY } = currentPosition.current;
+      const { x: targetX, y: targetY } = targetPosition.current;
+
+      const nextX = currentX + (targetX - currentX) / 20;
+      const nextY = currentY + (targetY - currentY) / 20;
+
+      currentPosition.current = { x: nextX, y: nextY };
+
+      if (interactiveRef.current) {
+        interactiveRef.current.style.transform = `translate(${Math.round(
+          nextX
+        )}px, ${Math.round(nextY)}px)`;
       }
-      setCurX(curX + (tgX - curX) / 20);
-      setCurY(curY + (tgY - curY) / 20);
-      interactiveRef.current.style.transform = `translate(${Math.round(
-        curX
-      )}px, ${Math.round(curY)}px)`;
-    }
 
-    move();
-  }, [tgX, tgY]);
+      frameId = requestAnimationFrame(animate);
+    };
+
+    frameId = requestAnimationFrame(animate);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+    };
+  }, [interactive]);
 
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
     if (interactiveRef.current) {
       const rect = interactiveRef.current.getBoundingClientRect();
-      setTgX(event.clientX - rect.left);
-      setTgY(event.clientY - rect.top);
+      targetPosition.current = {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
+      };
     }
   };
 
   const [isSafari, setIsSafari] = useState(false);
   useEffect(() => {
+    if (typeof navigator === "undefined") return;
     setIsSafari(/^((?!chrome|android).)*safari/i.test(navigator.userAgent));
   }, []);
 

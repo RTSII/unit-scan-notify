@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const refreshProfile = async () => {
+  const refreshProfile = useCallback(async () => {
     if (!user) {
       setProfile(null);
       return;
@@ -57,24 +57,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('Error in refreshProfile:', error);
       setProfile(null);
     }
-  };
+  }, [user]);
 
   const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
-      const { error, data: { session }, data: { user } } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       if (error) throw error;
 
-      setSession(session);
-      setUser(user);
+      setSession(data.session);
+      setUser(data.user);
       await refreshProfile();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "An error occurred during sign in.";
       toast({
         title: "Error signing in",
-        description: error.message || "An error occurred during sign in.",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -85,28 +89,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = async (email: string, password: string, fullName?: string) => {
     try {
       setLoading(true);
-      const { error, data: { session }, data: { user } } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
       });
       if (error) throw error;
 
-      if (user && fullName) {
+      if (data.user && fullName) {
         const { error: profileError } = await supabase.from('profiles').insert({
-          user_id: user.id,
-          email: user.email,
+          user_id: data.user.id,
+          email: data.user.email,
           full_name: fullName,
         });
         if (profileError) throw profileError;
       }
 
-      setSession(session);
-      setUser(user);
+      setSession(data.session);
+      setUser(data.user);
       await refreshProfile();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "An error occurred during sign up.";
       toast({
         title: "Error signing up",
-        description: error.message || "An error occurred during sign up.",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -122,10 +130,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (error) throw error;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "An error occurred during Google sign in.";
       toast({
         title: "Error signing in with Google",
-        description: error.message || "An error occurred during Google sign in.",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -161,14 +173,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [refreshProfile]);
 
   // Refresh profile when user changes
   useEffect(() => {
     if (user) {
       refreshProfile();
     }
-  }, [user]);
+  }, [refreshProfile, user]);
 
   const signOut = async () => {
     try {
@@ -178,10 +190,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
       setSession(null);
       setProfile(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "An error occurred during sign out.";
       toast({
         title: "Error signing out",
-        description: error.message,
+        description: message,
         variant: "destructive",
       });
     }

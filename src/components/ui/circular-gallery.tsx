@@ -75,7 +75,7 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
       const update = () => setContainerHeight(el.clientHeight || 0);
       update();
       let ro: ResizeObserver | null = null;
-      const win: any = typeof window !== 'undefined' ? window : null;
+      const win = typeof window !== 'undefined' ? window : undefined;
       if (win && 'ResizeObserver' in win) {
         ro = new ResizeObserver(() => update());
         ro.observe(el);

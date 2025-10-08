@@ -3,11 +3,12 @@
 import {
   useState,
   useId,
-  useRef,
   useEffect,
   createContext,
   useContext,
   isValidElement,
+  ComponentType,
+  ReactNode,
 } from 'react';
 import {
   AnimatePresence,
@@ -68,7 +69,7 @@ function usePopoverLogic({
 }
 
 export type MorphingPopoverProps = {
-  children: React.ReactNode;
+  children: ReactNode;
   transition?: Transition;
   defaultOpen?: boolean;
   open?: boolean;
@@ -106,7 +107,7 @@ function MorphingPopover({
 
 export type MorphingPopoverTriggerProps = {
   asChild?: boolean;
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
 } & React.ComponentProps<typeof motion.button>;
 
@@ -125,7 +126,7 @@ function MorphingPopoverTrigger({
 
   if (asChild && isValidElement(children)) {
     const MotionComponent = motion.create(
-      children.type as React.ForwardRefExoticComponent<any>
+      children.type as ComponentType<Record<string, unknown>>
     );
     const childProps = children.props as Record<string, unknown>;
 
@@ -163,7 +164,7 @@ function MorphingPopoverTrigger({
 }
 
 export type MorphingPopoverContentProps = {
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
 } & React.ComponentProps<typeof motion.div>;
 
@@ -178,29 +179,30 @@ function MorphingPopoverContent({
       'MorphingPopoverContent must be used within MorphingPopover'
     );
 
-  const ref = useClickOutside<HTMLDivElement>(context.close);
+  const { close, isOpen, uniqueId, variants } = context;
+  const ref = useClickOutside<HTMLDivElement>(close);
 
   useEffect(() => {
-    if (!context.isOpen) return;
+    if (!isOpen) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') context.close();
+      if (event.key === 'Escape') close();
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [context.isOpen, context.close]);
+  }, [isOpen, close]);
 
   return (
     <AnimatePresence>
-      {context.isOpen && (
+      {isOpen && (
         <>
           <motion.div
             {...props}
             ref={ref}
-            layoutId={`popover-trigger-${context.uniqueId}`}
-            key={context.uniqueId}
-            id={`popover-content-${context.uniqueId}`}
+            layoutId={`popover-trigger-${uniqueId}`}
+            key={uniqueId}
+            id={`popover-content-${uniqueId}`}
             role='dialog'
             aria-modal='true'
             className={cn(
@@ -210,7 +212,7 @@ function MorphingPopoverContent({
             initial='initial'
             animate='animate'
             exit='exit'
-            variants={context.variants}
+            variants={variants}
           >
             {children}
           </motion.div>

@@ -6,6 +6,7 @@ import {
   useMotionValue,
   useTransform,
   Transition,
+  AnimationControls,
 } from "framer-motion"
 
 export const useIsomorphicLayoutEffect =
@@ -101,7 +102,7 @@ const Carousel = memo(
     isCarouselActive,
   }: {
     handleClick: (imgUrl: string, index: number) => void
-    controls: any
+    controls: AnimationControls
     cards: string[]
     isCarouselActive: boolean
   }) => {
@@ -198,7 +199,7 @@ function ThreeDPhotoCarousel() {
     console.log("Cards loaded:", cards)
   }, [cards])
 
-  const handleClick = (imgUrl: string) => {
+  const handleClick = (imgUrl: string, _index: number) => {
     setActiveImg(imgUrl)
     setIsCarouselActive(false)
     controls.stop()

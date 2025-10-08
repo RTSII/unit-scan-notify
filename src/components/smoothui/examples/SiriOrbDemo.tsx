@@ -53,7 +53,7 @@ const SiriOrbDemo: React.FC = () => {
                   size="sm"
                   key={option.value}
                   type="button"
-                  onClick={() => setSelectedSize(option.value as any)}
+                  onClick={() => setSelectedSize(option.value)}
                   className={`h-auto w-auto px-2 py-1 ${
                     selectedSize === option.value ? "" : "opacity-50"
                   }`}

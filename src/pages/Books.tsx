@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
@@ -158,7 +158,7 @@ const Books = () => {
 
   useEffect(() => {
     fetchSavedForms();
-  }, [user]);
+  }, [fetchSavedForms, user]);
 
   // Refetch data when navigating to books page (e.g., after saving a new form)
   useEffect(() => {
@@ -166,7 +166,7 @@ const Books = () => {
       console.log('Navigated to books page, refreshing data...');
       fetchSavedForms();
     }
-  }, [location.pathname, loading]);
+  }, [fetchSavedForms, location.pathname, loading]);
 
   // Click outside handler for filter dropdown and card expansion
   useEffect(() => {
@@ -207,7 +207,7 @@ const Books = () => {
     setThisMonthExpanded(isExpanded);
   };
 
-  const fetchSavedForms = async () => {
+  const fetchSavedForms = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -292,7 +292,7 @@ const Books = () => {
         console.log('Forms fetched (with join):', formsWithProfiles);
         setForms(formsWithProfiles);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching forms:', error);
       toast({
         title: "Error",
@@ -302,7 +302,7 @@ const Books = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast, user]);
 
   const applyFilters = (formsToFilter: SavedForm[]) => {
     let filtered = formsToFilter;

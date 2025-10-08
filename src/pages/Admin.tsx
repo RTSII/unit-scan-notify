@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../integrations/supabase/client';
@@ -28,6 +28,7 @@ import {
   motion
 } from "framer-motion";
 import { ViolationCarousel3D } from '../components/ViolationCarousel';
+import type { Tables } from '../integrations/supabase/types';
 
 interface Invite {
   id: string;
@@ -97,6 +98,71 @@ interface SavedForm {
   }>;
 }
 
+type PresencePayload = {
+  user_id: string;
+  name: string;
+  role: string;
+  online_at: string;
+};
+
+type PresenceState = Record<string, PresencePayload[]>;
+
+type ViolationFormRow = Tables<'violation_forms'>;
+type ViolationPhotoRow = Tables<'violation_photos'>;
+type ProfileRow = Tables<'profiles'>;
+type JoinedViolationForm = ViolationFormRow & {
+  violation_photos?: ViolationPhotoRow[] | null;
+  profiles?: Pick<ProfileRow, 'email' | 'full_name' | 'role'> | null;
+  date?: string | null;
+  time?: string | null;
+};
+
+const normalizeFormRecord = (
+  form: JoinedViolationForm,
+  profileOverride?: Pick<ProfileRow, 'email' | 'full_name' | 'role'> | null
+): SavedForm => {
+  const violationPhotosRaw: ViolationPhotoRow[] = Array.isArray(form?.violation_photos)
+    ? (form.violation_photos ?? []).filter(
+        (photo): photo is ViolationPhotoRow => Boolean(photo)
+      )
+    : [];
+  const rawProfile = form?.profiles ?? profileOverride ?? null;
+
+  const normalizedProfile = rawProfile
+    ? {
+        email: rawProfile.email ?? '',
+        full_name: rawProfile.full_name ?? null,
+        role: rawProfile.role ?? 'user',
+      }
+    : null;
+
+  const photos = violationPhotosRaw
+    .map((photo) => photo.storage_path)
+    .filter((path): path is string => typeof path === 'string' && path.length > 0);
+
+  return {
+    id: String(form.id),
+    user_id: form.user_id,
+    unit_number: form.unit_number ?? '',
+    occurred_at: form.occurred_at ?? null,
+    date: form.date ?? null,
+    time: form.time ?? null,
+    location: form.location ?? null,
+    description: form.description ?? null,
+    photos,
+    status: form.status ?? null,
+    created_at: form.created_at ?? new Date().toISOString(),
+    profiles: normalizedProfile,
+    violation_photos: violationPhotosRaw
+      .map((photo) => ({
+        id: String(photo.id),
+        storage_path: photo.storage_path ?? '',
+        created_at: photo.created_at ?? '',
+      }))
+      .filter((photo) => photo.storage_path.length > 0),
+  };
+};
+
 export default function Admin() {
   const { user, loading, profile } = useAuth();
   const navigate = useNavigate();
@@ -118,50 +184,15 @@ export default function Admin() {
 
   // Profile card state
   const [profileExpanded, setProfileExpanded] = useState(false);
-  const [activeUsers, setActiveUsers] = useState<{[key: string]: any}>({});
+  const [activeUsers, setActiveUsers] = useState<PresenceState>({});
   const sectionsTopRef = useRef<HTMLDivElement>(null);
-
-  const normalizeFormRecord = (form: any, profileOverride?: Partial<Profile> | null): SavedForm => {
-    const violationPhotosRaw = Array.isArray(form?.violation_photos) ? form.violation_photos : [];
-    const rawProfile = form?.profiles ?? profileOverride ?? null;
-
-    const normalizedProfile = rawProfile
-      ? {
-          email: rawProfile.email ?? '',
-          full_name: rawProfile.full_name ?? null,
-          role: rawProfile.role ?? 'user',
-        }
-      : null;
-
-    return {
-      id: String(form.id),
-      user_id: form.user_id,
-      unit_number: form.unit_number ?? '',
-      occurred_at: form.occurred_at ?? null,
-      date: form.date ?? null,
-      time: form.time ?? null,
-      location: form.location ?? null,
-      description: form.description ?? null,
-      photos: violationPhotosRaw
-        .map((p: any) => p?.storage_path)
-        .filter((path: unknown): path is string => typeof path === 'string' && path.length > 0),
-      status: form.status ?? null,
-      created_at: form.created_at,
-      profiles: normalizedProfile,
-      violation_photos: violationPhotosRaw.map((p: any) => ({
-        id: String(p?.id),
-        storage_path: p?.storage_path,
-        created_at: p?.created_at,
-      })),
-    };
-  };
 
   // All useEffect hooks must be called before any conditional returns
   useEffect(() => {
     if (profile?.role === 'admin') {
       fetchData();
     }
-  }, [profile]);
+  }, [fetchData, profile?.role]);
 
   // Set up real-time presence tracking
   useEffect(() => {
@@ -172,19 +203,19 @@ export default function Admin() {
     // Subscribe to presence changes
     channel
       .on('presence', { event: 'sync' }, () => {
-        const newState = channel.presenceState();
+        const newState = channel.presenceState() as PresenceState;
         setActiveUsers(newState);
       })
-      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-        console.log('User joined:', key, newPresences);
+      .on('presence', { event: 'join' }, ({ key }: { key: string }) => {
+        console.log('User joined:', key);
       })
-      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-        console.log('User left:', key, leftPresences);
+      .on('presence', { event: 'leave' }, ({ key }: { key: string }) => {
+        console.log('User left:', key);
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
           // Track current user presence
-          const userPresence = {
+          const userPresence: PresencePayload = {
             user_id: user.id,
             name: profile?.full_name || user.email || 'Unknown',
             role: profile?.role || 'user',
@@ -325,9 +356,8 @@ export default function Admin() {
     );
   };
 
-  const fetchViolationForms = async () => {
+  const fetchViolationForms = useCallback(async () => {
     try {
-      // Fetch violation forms with user profile information
       const { data, error } = await supabase
         .from('violation_forms')
         .select(`
@@ -344,132 +374,137 @@ export default function Admin() {
           )
         `)
         .order('created_at', { ascending: false })
-        .limit(1000);
+        .limit(1000)
+        .returns<JoinedViolationForm[]>();
 
-      // If the join fails, fall back to separate queries
-      if (error || !data) {
-        console.log('Join query failed, falling back to separate queries:', error);
-
-        // Fetch violation forms with photos
-        const { data: formsData, error: formsError } = await supabase
-          .from('violation_forms')
-          .select(`
-            *,
-            violation_photos (
-              id,
-              storage_path,
-              created_at
-            )
-          `)
-          .order('created_at', { ascending: false }).limit(1000);
-
-        if (formsError) throw formsError;
-
-        // Fetch all profiles (projection used by fallback join)
-        const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
-          .select('user_id, email, full_name, role, created_at, updated_at');
-
-        if (profilesError) throw profilesError;
-
-        // Manually join the data and map photos
-        const formsWithProfiles = (formsData || []).map((form) => {
-          const matchedProfile = profilesData?.find(profile => profile.user_id === form.user_id) || null;
-          return normalizeFormRecord(form, matchedProfile);
-        });
-
+      if (!error && data) {
+        const formsWithProfiles = data.map((form) => normalizeFormRecord(form));
         setViolationForms(formsWithProfiles);
-      } else {
-        // Map the data to include photos array from violation_photos join
-        const formsWithProfiles = (data || []).map((form) => normalizeFormRecord(form));
-        setViolationForms(formsWithProfiles);
+        return;
       }
-    } catch (error: any) {
+
+      console.warn('Join query failed, using fallback profile join', error);
+
+      const { data: formsData, error: formsError } = await supabase
+        .from('violation_forms')
+        .select(`
+          *,
+          violation_photos (
+            id,
+            storage_path,
+            created_at
+          )
+        `)
+        .order('created_at', { ascending: false })
+        .limit(1000)
+        .returns<JoinedViolationForm[]>();
+
+      if (formsError) throw formsError;
+
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, email, full_name, role, created_at, updated_at')
+        .returns<ProfileRow[]>();
+
+      if (profilesError) throw profilesError;
+
+      const formsWithProfiles = (formsData ?? []).map((form) => {
+        const matchedProfile =
+          profilesData?.find((profile) => profile.user_id === form.user_id) ?? null;
+        return normalizeFormRecord(form, matchedProfile);
+      });
+
+      setViolationForms(formsWithProfiles);
+    } catch (error: unknown) {
       console.error('Error fetching violation forms:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch violation forms",
+        description:
+          error instanceof Error ? error.message : "Failed to fetch violation forms",
         variant: "destructive",
       });
     }
-  };
+  }, [toast]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
-      // Fetch invites
       const { data: invitesData, error: invitesError } = await supabase
         .from('invites')
         .select('*')
-        .order('created_at', { ascending: false }).limit(1000);
+        .order('created_at', { ascending: false })
+        .limit(1000)
+        .returns<Invite[]>();
 
       if (invitesError) throw invitesError;
-      setInvites(invitesData || []);
+      setInvites(invitesData ?? []);
 
-      // Fetch user profiles
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
-        .order('created_at', { ascending: false }).limit(1000);
+        .order('created_at', { ascending: false })
+        .limit(1000)
+        .returns<ProfileRow[]>();
 
       if (profilesError) throw profilesError;
-      setProfiles(profilesData || []);
+      const profileRows = profilesData ?? [];
+      setProfiles(
+        profileRows.map((profileRecord) => ({
+          user_id: profileRecord.user_id,
+          email: profileRecord.email,
+          full_name: profileRecord.full_name,
+          role: profileRecord.role ?? 'user',
+          created_at: profileRecord.created_at,
+          updated_at: profileRecord.updated_at,
+        }))
+      );
 
-      // Fetch user activity summary (includes individual user stats)
-      // Temporarily commented out due to TypeScript type issues with database views
-      // Will be re-enabled once types are updated or alternative access method is found
-      /*
-      const { data: userActivityData, error: userActivityError } = await supabase
-        .from('user_activity_summary')
-        .select('*')
-        .order('total_violations', { ascending: false });
-
-      if (userActivityError) throw userActivityError;
-      setUserActivity(userActivityData || []);
-      */
-      // Temporary workaround - set empty array
       setUserActivity([]);
 
-      // Fetch violation statistics for overall team metrics
       const { data: violationsData, error: violationsError } = await supabase
         .from('violation_forms')
-        .select('id, created_at, status');
+        .select('id, created_at, status')
+        .returns<Pick<ViolationFormRow, 'id' | 'created_at' | 'status'>[]>();
 
       if (violationsError) throw violationsError;
 
+      const violationRows = violationsData ?? [];
       const now = new Date();
       const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const thisWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-      const totalViolations = violationsData?.length || 0;
-      const completedViolations = violationsData?.filter(v => v.status === 'completed').length || 0;
+      const totalViolations = violationRows.length;
+      const completedViolations = violationRows.filter((row) => row.status === 'completed').length;
 
-      const stats: ViolationStats = {
+      const statsPayload: ViolationStats = {
         total_violations: totalViolations,
-        this_month: violationsData?.filter(v => new Date(v.created_at) >= thisMonth).length || 0,
-        violations_this_week: violationsData?.filter(v => new Date(v.created_at) >= thisWeek).length || 0,
-        pending_violations: violationsData?.filter(v => v.status === 'pending').length || 0,
+        this_month: violationRows.filter(
+          (row) => row.created_at && new Date(row.created_at) >= thisMonth
+        ).length,
+        violations_this_week: violationRows.filter(
+          (row) => row.created_at && new Date(row.created_at) >= thisWeek
+        ).length,
+        pending_violations: violationRows.filter((row) => row.status === 'pending').length,
         completed_violations: completedViolations,
-        draft_violations: violationsData?.filter(v => v.status === 'saved').length || 0,
-        total_users: profilesData?.length || 0,
-        team_completion_rate: totalViolations > 0 ? Math.round((completedViolations / totalViolations) * 100) : 0
+        draft_violations: violationRows.filter((row) => row.status === 'saved').length,
+        total_users: profileRows.length,
+        team_completion_rate:
+          totalViolations > 0 ? Math.round((completedViolations / totalViolations) * 100) : 0,
       };
 
-      setStats(stats);
+      setStats(statsPayload);
 
-      // Fetch violation forms for display
       await fetchViolationForms();
-
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Admin data fetch error:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch admin data",
+        description: error instanceof Error ? error.message : "Failed to fetch admin data",
         variant: "destructive",
       });
     } finally {
       setLoadingData(false);
     }
-  };
+  }, [fetchViolationForms, toast]);
 
   const createInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -489,10 +524,12 @@ export default function Admin() {
         title: "Invite Created",
         description: `Invitation sent to ${email}`,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : 'An unexpected error occurred';
       toast({
         title: "Failed to Create Invite",
-        description: error.message,
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -501,25 +538,44 @@ export default function Admin() {
   };
 
   const copyInviteLink = async (token: string) => {
+    if (
+      typeof window === 'undefined' ||
+      typeof navigator === 'undefined' ||
+      !navigator.clipboard
+    ) {
+      toast({
+        title: "Clipboard Unavailable",
+        description: "Unable to copy invite link in this environment.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const inviteLink = `${window.location.origin}/auth?invite=${token}`;
     try {
       await navigator.clipboard.writeText(inviteLink);
-      setCopiedTokens(prev => new Set([...prev, token]));
+      setCopiedTokens(prev => {
+        const next = new Set(prev);
+        next.add(token);
+        return next;
+      });
       toast({
         title: "Copied!",
         description: "Invite link copied to clipboard",
       });
       setTimeout(() => {
         setCopiedTokens(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(token);
-          return newSet;
+          const next = new Set(prev);
+          next.delete(token);
+          return next;
         });
       }, 2000);
-    } catch (error) {
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Could not copy invite link";
       toast({
         title: "Failed to copy",
-        description: "Could not copy invite link",
+        description: message,
         variant: "destructive",
       });
     }
@@ -546,11 +602,13 @@ export default function Admin() {
         title: "Success",
         description: "Violation form deleted successfully",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting violation form:', error);
+      const message =
+        error instanceof Error ? error.message : "Failed to delete violation form";
       toast({
         title: "Error",
-        description: "Failed to delete violation form",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -618,6 +676,11 @@ export default function Admin() {
     );
   }
 
+  const baseSections: Array<'week' | 'month' | 'all'> = ['week', 'month', 'all'];
+  const orderedSections = activeSection
+    ? [activeSection, ...baseSections.filter((section) => section !== activeSection)]
+    : baseSections;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue p-4 pb-safe">
       {/* Header */}
@@ -645,14 +708,8 @@ export default function Admin() {
 
         {/* Violation Forms Section with Dropdown Style - Active section floats to top */}
         <div className="space-y-4">
-          {(
-            activeSection
-              ? [activeSection, 'week', 'month', 'all'].filter(
-                  (s, idx, arr) => s !== null && arr.indexOf(s as any) === idx
-                ).filter((s) => s !== activeSection).unshift && ['week','month','all'] && [activeSection, ...(['week','month','all'] as const).filter(s => s !== activeSection)]
-              : (['week','month','all'] as const)
-          ).map((section) => (
-            <div key={section}>{renderSection(section as 'week'|'month'|'all')}</div>
+          {orderedSections.map((section) => (
+            <div key={section}>{renderSection(section)}</div>
           ))}
         </div>
 

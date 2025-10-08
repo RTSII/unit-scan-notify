@@ -11,13 +11,22 @@ import { SiriOrb } from '../components/ui/siri-orb';
 // Import the background image properly
 import backgroundImage from '/2.png';
 
+type PresencePayload = {
+  user_id: string;
+  name: string;
+  role: string;
+  online_at: string;
+};
+
+type PresenceState = Record<string, PresencePayload[]>;
+
 export default function Dashboard() {
   const { user, loading, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [profileExpanded, setProfileExpanded] = useState(false);
-  const [activeUsers, setActiveUsers] = useState<Record<string, any[]>>({});
+  const [activeUsers, setActiveUsers] = useState<PresenceState>({});
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   // Subscribe to presence for active users
@@ -26,23 +35,24 @@ export default function Dashboard() {
 
     const channel = supabase.channel('admin-presence')
       .on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState();
+        const state = channel.presenceState() as PresenceState;
         setActiveUsers(state);
       })
-      .on('presence', { event: 'join' }, ({ newPresences }) => {
+      .on('presence', { event: 'join' }, ({ newPresences }: { newPresences?: PresencePayload[] }) => {
         console.log('New user joined:', newPresences);
       })
-      .on('presence', { event: 'leave' }, ({ leftPresences }) => {
+      .on('presence', { event: 'leave' }, ({ leftPresences }: { leftPresences?: PresencePayload[] }) => {
         console.log('User left:', leftPresences);
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
-          await channel.track({
+          const payload: PresencePayload = {
             user_id: user.id,
             name: profile?.full_name || user.email || 'User',
             role: profile?.role || 'user',
             online_at: new Date().toISOString(),
-          });
+          };
+          await channel.track(payload);
         }
       });
 
@@ -246,8 +256,8 @@ export default function Dashboard() {
                           {Object.keys(activeUsers).length === 0 ? (
                             <div className="text-gray-400 text-xs">No other users currently active</div>
                           ) : (
-                            Object.entries(activeUsers).map(([key, presences]) => 
-                              presences.map((presence: any, index: number) => {
+                            Object.entries(activeUsers).map(([key, presences]) =>
+                              presences.map((presence, index) => {
                                 // Don't show current user in the list
                                 if (presence.user_id === user?.id) return null;
                                 
