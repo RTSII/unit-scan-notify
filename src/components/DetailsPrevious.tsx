@@ -289,7 +289,8 @@ export default function DetailsPrevious() {
           className="w-[calc(100vw-2rem)] max-w-md p-0 bg-black/90 border-vice-cyan/30"
           side="bottom"
           align="center"
-          avoidCollisions={false}
+          sideOffset={8}
+          collisionPadding={16}
         >
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -359,11 +360,11 @@ export default function DetailsPrevious() {
             </button>
           </MorphingPopoverTrigger>
           <MorphingPopoverContent 
-            className="w-[calc(100vw-2rem)] max-w-md p-0 bg-black/90 border-vice-cyan/30 left-1/2 -translate-x-1/2"
+            className="w-[calc(100vw-2rem)] max-w-md p-0 bg-black/90 border-vice-cyan/30"
             side="bottom"
             align="center"
             sideOffset={8}
-            avoidCollisions={false}
+            collisionPadding={16}
           >
           <motion.div
             initial={{ opacity: 0, y: 10 }}
