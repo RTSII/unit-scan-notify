@@ -359,9 +359,10 @@ export default function DetailsPrevious() {
             </button>
           </MorphingPopoverTrigger>
           <MorphingPopoverContent 
-            className="w-[calc(100vw-2rem)] max-w-md p-0 bg-black/90 border-vice-cyan/30"
+            className="w-[calc(100vw-2rem)] max-w-md p-0 bg-black/90 border-vice-cyan/30 left-1/2 -translate-x-1/2"
             side="bottom"
             align="center"
+            sideOffset={8}
             avoidCollisions={false}
           >
           <motion.div
