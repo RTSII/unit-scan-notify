@@ -23,6 +23,7 @@ import {
   X
 } from "lucide-react";
 import type { Tables } from "../integrations/supabase/types";
+import { normalizeUnit } from "@/utils/unitFormat";
 
 type ViolationFormRow = Tables<"violation_forms">;
 type ViolationPhotoRow = Tables<"violation_photos">;
@@ -79,10 +80,12 @@ const normalizeViolationForm = (
       }
     : null;
 
+  const normalizedUnit = normalizeUnit(form.unit_number ?? "");
+
   return {
     id: String(form.id),
     user_id: form.user_id,
-    unit_number: form.unit_number ?? "",
+    unit_number: normalizedUnit,
     date: legacyFields.date ?? null,
     occurred_at: form.occurred_at ?? null,
     time: legacyFields.time ?? null,
@@ -306,12 +309,16 @@ const Books = () => {
 
     // Apply search filter (now includes user names)
     if (searchTerm) {
+      const normalizedSearchUnit = normalizeUnit(searchTerm);
+      const searchTermLower = searchTerm.toLowerCase();
+
       filtered = filtered.filter(form =>
-        form.unit_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        form.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        form.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        form.profiles?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        form.profiles?.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
+        (normalizedSearchUnit.length > 0 && normalizeUnit(form.unit_number).includes(normalizedSearchUnit)) ||
+        form.unit_number?.toLowerCase().includes(searchTermLower) ||
+        form.description?.toLowerCase().includes(searchTermLower) ||
+        form.location?.toLowerCase().includes(searchTermLower) ||
+        form.profiles?.email?.toLowerCase().includes(searchTermLower) ||
+        form.profiles?.full_name?.toLowerCase().includes(searchTermLower)
       );
     }
 

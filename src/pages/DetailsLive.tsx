@@ -13,6 +13,12 @@ import {
   TextureCard,
   TextureCardContent,
 } from "../components/ui/texture-card";
+import {
+  normalizeUnit,
+  isValidUnit,
+  UNIT_FORMAT_DESCRIPTION,
+  UNIT_FORMAT_HINT,
+} from "@/utils/unitFormat";
 
 type ViolationFormRow = Tables<"violation_forms">;
 type ViolationFormInsert = TablesInsert<"violation_forms">;
@@ -23,6 +29,7 @@ const DetailsLive = () => {
   const navigate = useNavigate();
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string>('');
+  const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
     date: '',
     unit: '',
@@ -37,6 +44,15 @@ const DetailsLive = () => {
     description: ''
   });
 
+  const handleUnitChange = (value: string) => {
+    const normalized = normalizeUnit(value);
+
+    setFormData(prev => ({
+      ...prev,
+      unit: normalized,
+    }));
+  };
+
   const saveForm = async () => {
     if (!user) return;
 
@@ -44,8 +60,15 @@ const DetailsLive = () => {
     const hasViolations = Object.values(formData.violationTypes).some(violation => violation);
     const hasDescription = formData.description.trim().length > 0;
 
-    if (!formData.unit.trim()) {
+    const unitValue = formData.unit.trim();
+
+    if (!unitValue) {
       toast.error('Unit number is required');
+      return;
+    }
+
+    if (!isValidUnit(unitValue)) {
+      toast.error(`Unit number must follow the format ${UNIT_FORMAT_DESCRIPTION}.`);
       return;
     }
 
@@ -54,12 +77,15 @@ const DetailsLive = () => {
       return;
     }
 
+    if (isSaving) return;
+
     // Get violation types as an array of selected options
-    const selectedViolations = [];
+    const selectedViolations: string[] = [];
     if (formData.violationTypes.itemsTrashOutside) {
       const choice = formData.itemsTrashChoice || 'items';
       selectedViolations.push(`${choice === 'items' ? 'Items' : 'Trash'} left outside Unit`);
     }
+
     if (formData.violationTypes.balconyItems) {
       const location = formData.balconyChoice || 'balcony';
       selectedViolations.push(`Items left on ${location} railing`);
@@ -99,10 +125,11 @@ const DetailsLive = () => {
     })();
 
     try {
+      setIsSaving(true);
       const locationSummary = selectedViolations.join(', ');
       const formPayload: ViolationFormInsert = {
         user_id: user.id,
-        unit_number: formData.unit.toUpperCase(),
+        unit_number: normalizeUnit(unitValue),
         occurred_at: occurredAt,
         location: locationSummary || null,
         description: formData.description || null,
@@ -144,7 +171,10 @@ const DetailsLive = () => {
       navigate('/books');
     } catch (error) {
       console.error('Error saving form:', error);
-      toast.error('Failed to save form');
+      const message = error instanceof Error ? error.message : 'Failed to save form';
+      toast.error(message);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -231,11 +261,12 @@ const DetailsLive = () => {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-vice-cyan font-medium text-xs sm:text-sm text-center block">Unit</label>
+                  <label className="text-vice-cyan font-medium text-xs sm:text-sm text-center block">Unit ({UNIT_FORMAT_HINT})</label>
                   <Input
                     value={formData.unit}
-                    onChange={(e) => setFormData(prev => ({ ...prev, unit: e.target.value.toUpperCase() }))}
+                    onChange={(e) => handleUnitChange(e.target.value)}
                     placeholder=""
+                    maxLength={3}
                     className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-sm h-9 sm:h-10 uppercase"
                   />
                 </div>
@@ -255,7 +286,7 @@ const DetailsLive = () => {
                           setFormData(prev => ({
                             ...prev,
                             violationTypes: { ...prev.violationTypes, itemsTrashOutside: !!checked },
-                            itemsTrashChoice: checked ? '' : ''
+                            itemsTrashChoice: checked ? 'items' : ''
                           }))
                         }
                         className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink"
@@ -298,7 +329,7 @@ const DetailsLive = () => {
                           setFormData(prev => ({
                             ...prev,
                             violationTypes: { ...prev.violationTypes, balconyItems: !!checked },
-                            balconyChoice: checked ? '' : ''
+                            balconyChoice: checked ? 'balcony' : ''
                           }))
                         }
                         className="border-vice-cyan/50 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink"
@@ -380,15 +411,24 @@ const DetailsLive = () => {
         <div className="flex justify-center">
           <Button
             onClick={saveForm}
-            disabled={!formData.unit.trim() || (!Object.values(formData.violationTypes).some(v => v) && !formData.description.trim())}
+            disabled={isSaving}
             className="bg-vice-pink hover:bg-vice-pink/80 text-white px-8 py-3 rounded-full font-semibold text-base flex items-center justify-center gap-2 min-h-[48px] mx-auto"
           >
-            <Plus className="w-5 h-5" />
-            Book Em
-            {photoCount > 0 && (
-              <span className="bg-white/20 rounded-full px-2 py-1 text-xs ml-1">
-                {photoCount}
-              </span>
+            {isSaving ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Plus className="w-5 h-5" />
+                Book Em
+                {photoCount > 0 && (
+                  <span className="bg-white/20 rounded-full px-2 py-1 text-xs ml-1">
+                    {photoCount}
+                  </span>
+                )}
+              </>
             )}
           </Button>
         </div>

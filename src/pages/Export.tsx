@@ -20,6 +20,7 @@ import {
   X
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { normalizeUnit } from '@/utils/unitFormat';
 
 interface ViolationForm {
   id: string;
@@ -90,6 +91,7 @@ export default function Export() {
       // Map photos array from violation_photos join
       const formsWithPhotos = (data || []).map(form => ({
         ...form,
+        unit_number: normalizeUnit(form.unit_number ?? ''),
         // @ts-ignore - Supabase types need regeneration
         photos: form.violation_photos?.map(p => p.storage_path) || []
       }));
@@ -110,10 +112,14 @@ export default function Export() {
     let filtered = forms;
 
     if (searchTerm) {
+      const normalizedSearchUnit = normalizeUnit(searchTerm);
+      const searchTermLower = searchTerm.toLowerCase();
+
       filtered = filtered.filter(form =>
-        form.unit_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        form.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        form.description.toLowerCase().includes(searchTerm.toLowerCase())
+        (normalizedSearchUnit.length > 0 && normalizeUnit(form.unit_number).includes(normalizedSearchUnit)) ||
+        form.unit_number.toLowerCase().includes(searchTermLower) ||
+        form.location.toLowerCase().includes(searchTermLower) ||
+        form.description.toLowerCase().includes(searchTermLower)
       );
     }
 

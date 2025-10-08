@@ -214,34 +214,23 @@ WHERE vf.photos IS NOT NULL;
 ### 5. **Unit Number Validation**
 
 **Priority:** 🔵 LOW  
-**Status:** 📋 PLANNED  
-**Blocking:** None (no validation currently)
+**Status:** ✅ COMPLETE  
+**Blocking:** Data quality (cleared)
 
-**Issue:**
+**Accomplishments:**
 
-- `valid_units` table exists but unused
-- No validation of unit numbers
-- Users can enter invalid units
-- Data quality concerns
+- Added shared helpers (`normalizeUnit`, `isValidUnit`) in `src/utils/unitFormat.ts`
+- Enforced letter-number-letter validation in `DetailsLive.tsx` and `DetailsPrevious.tsx`
+- Normalized unit display/search across Books, Export, and Admin carousels
+- Surfaced inline hints/toasts using the shared format description
 
-**Proposed Solution:**
+**Follow-ups (optional):**
 
-1. Fetch valid units on form load
-2. Validate unit input against `valid_units` table
-3. Show error for invalid units
-4. Optionally: Autocomplete/dropdown for unit selection
+- [ ] Consider autocomplete backed by `valid_units`
+- [ ] Evaluate adding API-side enforcement
 
-**Action Items:**
-
-- [ ] Review `valid_units` table structure
-- [ ] Implement validation in DetailsPrevious.tsx
-- [ ] Implement validation in DetailsLive.tsx
-- [ ] Add user-friendly error messages
-- [ ] Consider autocomplete UI
-- [ ] Test validation logic
-
-**Estimated Time:** 1 hour  
-**Assigned To:** Future sprint
+**Estimated Time:** N/A  
+**Assigned To:** Completed by engineering (Oct 8, 2025)
 
 ---
 
@@ -264,12 +253,13 @@ WHERE vf.photos IS NOT NULL;
 - ✅ Mobile responsiveness
 
 **In Progress:**
+
 - 🔄 Full regression QA (capture → Admin → export)
 
 **Pending:**
+
 - ⏳ Old data migration (if needed)
 - ⏳ Photo storage optimization
-- ⏳ Unit validation
 
 ---
 
@@ -280,6 +270,7 @@ WHERE vf.photos IS NOT NULL;
 **Goal:** Fix all critical issues, achieve 100% functionality
 
 **Must Complete:**
+
 1. ✅ Fix Export.tsx database integration
 2. ✅ Test email export
 3. ✅ Test print export
@@ -288,6 +279,7 @@ WHERE vf.photos IS NOT NULL;
 6. ✅ Full mobile testing
 
 **Success Criteria:**
+
 - [ ] All workflows tested and working
 - [ ] Zero broken features
 - [ ] No TypeScript errors
@@ -301,6 +293,7 @@ WHERE vf.photos IS NOT NULL;
 **Goal:** Enhancements and optimizations
 
 **Planned:**
+
 1. Photo storage optimization
 2. Unit number validation
 3. Performance improvements
@@ -329,6 +322,6 @@ WHERE vf.photos IS NOT NULL;
 
 ---
 
-**Last Updated:** October 6, 2025 - 7:05 PM  
-**Next Update:** After Export.tsx fix  
-**Status:** 1 Critical Issue Remaining
+**Last Updated:** October 8, 2025 - 1:15 AM  
+**Next Update:** After regression QA sweep  
+**Status:** QA outstanding (capture → Admin → export)

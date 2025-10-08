@@ -17,6 +17,13 @@ import {
   MorphingPopoverContent,
 } from '../components/core/morphing-popover';
 import { motion } from 'motion/react';
+import {
+  normalizeUnit,
+  normalizeAndValidateUnit,
+  isValidUnit,
+  UNIT_FORMAT_HINT,
+  UNIT_FORMAT_DESCRIPTION,
+} from '@/utils/unitFormat';
 
 type ViolationFormRow = Tables<'violation_forms'>;
 type ViolationFormInsert = TablesInsert<'violation_forms'>;
@@ -191,16 +198,15 @@ export default function DetailsPrevious() {
   };
 
   // Unit validation and formatting
-  const handleUnitChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toUpperCase().slice(0, 3);
-    setFormData(prev => ({ ...prev, unit_number: value }));
+  const handleUnitChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { unit, isValid } = normalizeAndValidateUnit(e.target.value);
 
-    if (value.length === 3) {
-      // Remove the valid_units table query since it doesn't exist
-      // Just allow any 3-character unit number for now
-      setIsUnitValid(true);
-    } else {
+    setFormData((prev) => ({ ...prev, unit_number: unit }));
+
+    if (unit.length === 0) {
       setIsUnitValid(null);
+    } else {
+      setIsUnitValid(isValid);
     }
   };
 
@@ -488,6 +494,15 @@ export default function DetailsPrevious() {
       return;
     }
 
+    const { unit: normalizedUnit, isValid } = normalizeAndValidateUnit(formData.unit_number);
+
+    setIsUnitValid(normalizedUnit.length === 0 ? null : isValid);
+
+    if (!isValid) {
+      toast.error(`Unit number must follow the format ${UNIT_FORMAT_DESCRIPTION}.`);
+      return;
+    }
+
     setIsSaving(true);
     try {
       const activeExistingPhotos = existingPhotoRecords.filter(
@@ -539,7 +554,7 @@ export default function DetailsPrevious() {
 
       const locationSummary = selectedViolations.join(', ');
       const basePayload = {
-        unit_number: formData.unit_number.toUpperCase(),
+        unit_number: normalizedUnit,
         occurred_at: occurredAt,
         location: locationSummary || null,
         description: formData.description || null,
@@ -633,7 +648,8 @@ export default function DetailsPrevious() {
 
   const isFormValid = () => {
     const hasDate = formData.date.trim().length > 0;
-    const hasUnit = formData.unit_number.trim() && formData.unit_number.length === 3;
+    const normalizedUnit = normalizeUnit(formData.unit_number);
+    const hasUnit = normalizedUnit.length === 3 && isValidUnit(normalizedUnit);
     const hasViolation = selectedViolations.length > 0 || formData.description.trim().length > 0;
 
     if (!hasDate) {
@@ -681,8 +697,10 @@ export default function DetailsPrevious() {
       const { time, ampm } = formatTimeForInput(data.occurred_at ?? null);
       const locationSelections = parseLocationSelection(data.location ?? null);
 
+      const { unit: normalizedUnit, isValid } = normalizeAndValidateUnit(data.unit_number ?? '');
+
       setFormData({
-        unit_number: data.unit_number ?? '',
+        unit_number: normalizedUnit,
         date: formatDateForInput(data.occurred_at ?? null),
         time,
         ampm,
@@ -691,6 +709,8 @@ export default function DetailsPrevious() {
         itemsTrashChoice: locationSelections.itemsTrashChoice,
         balconyChoice: locationSelections.balconyChoice,
       });
+
+      setIsUnitValid(normalizedUnit.length === 0 ? null : isValid);
 
       const violationPhotos = Array.isArray(data.violation_photos) ? data.violation_photos : [];
       const photoRecords: PhotoRecord[] = violationPhotos.map((photo) => ({
@@ -773,7 +793,7 @@ export default function DetailsPrevious() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-vice-cyan font-medium text-sm text-center block">Unit</Label>
+                  <Label className="text-vice-cyan font-medium text-sm text-center block">Unit ({UNIT_FORMAT_HINT})</Label>
                   <div className="relative">
                     <Input
                       value={formData.unit_number}

@@ -25,9 +25,9 @@ This project, "SPR Vice City," is a mobile-first web application for managing pr
 - **Purpose:** The main landing page and navigation hub for authenticated users.
 - **Functionality:**
     - Displays a dynamic, radial menu for navigating to different sections of the app.
-    - Menu items include `Books`, `Capture`, `Details`, `Export`, and a conditional `Admin` button for users with the 'admin' role.
+    - Menu items include `Books`, `Capture`, `Details`, `Export`, and a conditional `Admin` button for Rob, the sole 'admin'.
     - Features a user avatar that opens a dropdown menu with user information and a sign-out button.
-    - The UI is heavily styled with a "Vaporwave" aesthetic, including a background image and a central "Siri-like" orb to toggle the navigation menu.
+    - The UI is heavily styled with a "Synthwave" aesthetic, including a background image and a central "Siri-like" orb to toggle the navigation menu.
 
 ### `Auth.tsx`
 - **Purpose:** Handles user authentication.
@@ -38,7 +38,7 @@ This project, "SPR Vice City," is a mobile-first web application for managing pr
     - Features a background gradient animation and a "glassmorphism" effect for the UI components.
 
 ### `Capture.tsx`
-- **Purpose:** Provides a dedicated interface for capturing photos of violations.
+- **Purpose:** Provides a dedicated interface for capturing "live" violations and take photos to document them.
 - **Functionality:**
     - Wraps the `CameraCapture` component, which presumably handles the device camera integration.
     - Allows users to take pictures that can be attached to violation forms.
@@ -46,7 +46,6 @@ This project, "SPR Vice City," is a mobile-first web application for managing pr
 ### `DetailsLive.tsx`
 - **Purpose:** A form for creating new violation notices in real-time.
 - **Functionality:**
-    - Automatically populates the current date and time.
     - Includes fields for `Unit Number`, `Violation Type`, and a `Description`.
     - Violation types are pre-defined and can be selected via checkboxes (e.g., "Items/Trash left outside Unit").
     - The form can be saved, which creates a new entry in the `violation_forms` table.
