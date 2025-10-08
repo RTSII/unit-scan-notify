@@ -914,7 +914,7 @@ export default function DetailsPrevious() {
               </div>
 
               {/* Morphing Description and Photos Buttons - Combined Row */}
-              <div className="flex flex-wrap gap-3 justify-center items-center px-2">
+              <div className="flex gap-3 justify-center items-center">
                 <DescriptionPopover />
                 <PhotosPopover />
               </div>
