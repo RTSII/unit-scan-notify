@@ -404,8 +404,7 @@ export default function DetailsPrevious() {
               <Button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={totalSelected >= MAX_PHOTOS}
-                variant="secondary"
-                className="w-full border border-vice-cyan/40 text-white hover:bg-vice-cyan/20 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm px-2"
+                className="w-full bg-vice-cyan hover:bg-vice-cyan/80 text-black disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm px-2"
               >
                 Choose Files
               </Button>
