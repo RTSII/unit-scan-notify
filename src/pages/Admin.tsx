@@ -341,11 +341,11 @@ export default function Admin() {
 
   // All useEffect hooks must be called before any conditional returns
   useEffect(() => {
-    if (profile?.role === 'admin' && !hasFetchedDataRef.current) {
+    if (user && !hasFetchedDataRef.current) {
       hasFetchedDataRef.current = true;
       fetchData();
     }
-  }, [profile?.role]);
+  }, [user]);
 
   // Set up real-time presence tracking
   useEffect(() => {
@@ -646,8 +646,8 @@ export default function Admin() {
     );
   };
 
-  // Show loading while checking auth or profile
-  if (loading || (user && !profile)) {
+  // Show loading while checking auth
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue flex items-center justify-center">
         <div className="text-center">
