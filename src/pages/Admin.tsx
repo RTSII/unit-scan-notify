@@ -186,6 +186,7 @@ export default function Admin() {
   const [profileExpanded, setProfileExpanded] = useState(false);
   const [activeUsers, setActiveUsers] = useState<PresenceState>({});
   const sectionsTopRef = useRef<HTMLDivElement>(null);
+  const hasFetchedDataRef = useRef(false);
 
   const fetchViolationForms = useCallback(async () => {
     try {
@@ -340,10 +341,11 @@ export default function Admin() {
 
   // All useEffect hooks must be called before any conditional returns
   useEffect(() => {
-    if (profile?.role === 'admin') {
+    if (profile?.role === 'admin' && !hasFetchedDataRef.current) {
+      hasFetchedDataRef.current = true;
       fetchData();
     }
-  }, [fetchData, profile?.role]);
+  }, [profile?.role]);
 
   // Set up real-time presence tracking
   useEffect(() => {
