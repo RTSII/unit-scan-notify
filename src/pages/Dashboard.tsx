@@ -171,11 +171,14 @@ export default function Dashboard() {
     const radius = getRadius();
 
     const totalItems = menuItems.length;
-    const totalAngle = totalItems > 4 ? 150 : 170; // Tighter spacing when Admin is visible
+    // Create a horizontal arc above the orb - from 135° (upper left) to 45° (upper right)
+    // This places Books and Admin at the same height
+    const startAngle = 135; // Upper left
+    const endAngle = 45; // Upper right
+    const totalAngle = startAngle - endAngle; // 90° arc
     const angleStep = totalAngle / (totalItems > 1 ? totalItems - 1 : 1);
-    const startAngle = 180; // Start arc from directly above orb (12 o'clock)
 
-    const angle = startAngle - (index * angleStep); // Sweep clockwise to form an upward arc above orb
+    const angle = startAngle - (index * angleStep); // Sweep from left to right
 
     // Convert to radians
     const radians = (angle * Math.PI) / 180;
