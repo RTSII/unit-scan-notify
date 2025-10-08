@@ -173,14 +173,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     return () => subscription.unsubscribe();
-  }, [refreshProfile]);
-
-  // Refresh profile when user changes
-  useEffect(() => {
-    if (user) {
-      refreshProfile();
-    }
-  }, [refreshProfile, user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const signOut = async () => {
     try {
