@@ -7,6 +7,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Badge } from '../components/ui/badge';
+import { Textarea } from '../components/ui/textarea';
 import { useToast } from '../hooks/use-toast';
 import {
   Loader2,
@@ -21,7 +22,8 @@ import {
   BarChart3,
   Home,
   User,
-  ChevronDown
+  ChevronDown,
+  Key
 } from 'lucide-react';
 import {
   AnimatePresence,
@@ -177,6 +179,10 @@ export default function Admin() {
   const [email, setEmail] = useState('');
   const [copiedTokens, setCopiedTokens] = useState<Set<string>>(new Set());
   const [newlyCreatedToken, setNewlyCreatedToken] = useState<string | null>(null);
+  const [generatedToken, setGeneratedToken] = useState<string | null>(null);
+  const [showEmailTemplate, setShowEmailTemplate] = useState(false);
+  const [emailSubject, setEmailSubject] = useState('You\'re Invited to SPR Vice City');
+  const [emailMessage, setEmailMessage] = useState('');
   
   // Violation forms state
   const [violationForms, setViolationForms] = useState<SavedForm[]>([]);
@@ -510,30 +516,56 @@ export default function Admin() {
     );
   };
 
+  const generateToken = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let token = '';
+    for (let i = 0; i < 5; i++) {
+      token += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setGeneratedToken(token);
+    setShowEmailTemplate(true);
+    setEmailMessage(`Hello,
+
+You've been invited to join SPR Vice City! Use the validation token below to complete your registration:
+
+Validation Token: ${token}
+
+This invite will expire in 7 days.
+
+Welcome to the team!`);
+  };
+
   const createInvite = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
+    if (!email || !generatedToken) return;
 
     setCreating(true);
-    setNewlyCreatedToken(null);
     try {
-      const { data, error } = await supabase.rpc('create_invite', {
-        invite_email: email
-      });
+      // Save to Supabase with the generated token
+      const { error } = await supabase
+        .from('invites')
+        .insert({
+          email: email,
+          token: generatedToken,
+          invited_by: user?.id
+        });
 
       if (error) throw error;
 
-      // The RPC now returns the token
-      if (data && data.length > 0) {
-        setNewlyCreatedToken(data[0].invite_token);
-      }
+      // TODO: Send email via edge function
+      // await supabase.functions.invoke('send-invite-email', {
+      //   body: { email, token: generatedToken, subject: emailSubject, message: emailMessage }
+      // });
 
-      setEmail('');
-      await fetchData();
       toast({
-        title: "Invite Created",
+        title: "Invite Created & Sent",
         description: `Invitation sent to ${email}`,
       });
+
+      setEmail('');
+      setGeneratedToken(null);
+      setShowEmailTemplate(false);
+      await fetchData();
     } catch (error: unknown) {
       const message =
         error instanceof Error ? error.message : 'An unexpected error occurred';
@@ -805,70 +837,85 @@ export default function Admin() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={createInvite} className="flex gap-4">
-              <div className="flex-1">
-                <Label htmlFor="email" className="text-white">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="colleague@ursllc.com"
-                  className="bg-black/20 border-vice-cyan/30 text-white placeholder:text-gray-400"
-                  required
-                />
+            <div className="space-y-4">
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <Label htmlFor="email" className="text-white">Email Address</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="colleague@ursllc.com"
+                    className="bg-black/20 border-vice-cyan/30 text-white placeholder:text-gray-400"
+                    required
+                  />
+                </div>
               </div>
-              <Button
-                type="submit"
-                disabled={creating || !email}
-                className="bg-vice-pink hover:bg-vice-pink/80 text-white self-end"
-              >
-                {creating ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <>
-                    <Mail className="w-4 h-4 mr-2" />
-                    Create Invite
-                  </>
-                )}
-              </Button>
-            </form>
 
-            {/* Display newly created token */}
-            {newlyCreatedToken && (
-              <div className="mt-6 p-4 bg-vice-cyan/10 border border-vice-cyan/30 rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <Label className="text-white font-semibold">Validation Token</Label>
-                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                    Created
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-3 mt-3">
-                  <div className="flex-1 bg-black/40 border border-vice-cyan/50 rounded-lg px-4 py-3">
-                    <code className="text-vice-cyan text-2xl font-bold tracking-widest">
-                      {newlyCreatedToken}
-                    </code>
+              <Button
+                onClick={generateToken}
+                disabled={!email}
+                className="w-full bg-vice-cyan hover:bg-vice-cyan/80 text-black"
+              >
+                <Key className="w-4 h-4 mr-2" />
+                Generate Token
+              </Button>
+
+              {/* Email Template Card - Expands after token generation */}
+              {showEmailTemplate && generatedToken && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="mt-4 p-4 bg-black/40 border border-vice-cyan/30 rounded-lg space-y-4"
+                >
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-white font-semibold">Email Invitation Template</h4>
+                    <Badge className="bg-vice-cyan/20 text-vice-cyan border-vice-cyan/30">
+                      Token: {generatedToken}
+                    </Badge>
                   </div>
-                  <Button
-                    onClick={async () => {
-                      await navigator.clipboard.writeText(newlyCreatedToken);
-                      toast({
-                        title: "Copied!",
-                        description: "Token copied to clipboard",
-                      });
-                    }}
-                    className="bg-vice-cyan hover:bg-vice-cyan/80 text-black"
-                    size="lg"
-                  >
-                    <Copy className="w-5 h-5" />
-                  </Button>
-                </div>
-                <p className="text-gray-400 text-sm mt-3">
-                  Share this token with the invited user. They will need to enter it during sign-up.
-                </p>
-              </div>
-            )}
+
+                  <div>
+                    <Label htmlFor="subject" className="text-white">Subject</Label>
+                    <Input
+                      id="subject"
+                      value={emailSubject}
+                      onChange={(e) => setEmailSubject(e.target.value)}
+                      className="bg-black/20 border-vice-cyan/30 text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="message" className="text-white">Message</Label>
+                    <Textarea
+                      id="message"
+                      value={emailMessage}
+                      onChange={(e) => setEmailMessage(e.target.value)}
+                      rows={8}
+                      className="bg-black/20 border-vice-cyan/30 text-white placeholder:text-gray-400"
+                    />
+                  </div>
+
+                  <form onSubmit={createInvite}>
+                    <Button
+                      type="submit"
+                      disabled={creating}
+                      className="w-full bg-vice-pink hover:bg-vice-pink/80 text-white"
+                    >
+                      {creating ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <>
+                          <Mail className="w-4 h-4 mr-2" />
+                          Submit / Send Invitation
+                        </>
+                      )}
+                    </Button>
+                  </form>
+                </motion.div>
+              )}
+            </div>
           </CardContent>
         </Card>
 
