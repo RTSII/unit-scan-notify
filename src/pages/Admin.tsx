@@ -870,7 +870,18 @@ Welcome to the team!`);
                   className="mt-4 p-4 bg-black/40 border border-vice-cyan/30 rounded-lg space-y-4"
                 >
                   <div className="flex items-center justify-between">
-                    <h4 className="text-white font-semibold">Email Invitation Template</h4>
+                    <Button
+                      onClick={() => {
+                        setShowEmailTemplate(false);
+                        setGeneratedToken(null);
+                        setEmail('');
+                      }}
+                      variant="ghost"
+                      size="sm"
+                      className="text-gray-400 hover:text-white hover:bg-white/10"
+                    >
+                      Cancel
+                    </Button>
                     <Badge className="bg-vice-cyan/20 text-vice-cyan border-vice-cyan/30">
                       Token: {generatedToken}
                     </Badge>
