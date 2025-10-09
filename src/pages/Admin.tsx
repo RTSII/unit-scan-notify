@@ -176,6 +176,7 @@ export default function Admin() {
   const [creating, setCreating] = useState(false);
   const [email, setEmail] = useState('');
   const [copiedTokens, setCopiedTokens] = useState<Set<string>>(new Set());
+  const [newlyCreatedToken, setNewlyCreatedToken] = useState<string | null>(null);
   
   // Violation forms state
   const [violationForms, setViolationForms] = useState<SavedForm[]>([]);
@@ -514,12 +515,18 @@ export default function Admin() {
     if (!email) return;
 
     setCreating(true);
+    setNewlyCreatedToken(null);
     try {
-      const { error } = await supabase.rpc('create_invite', {
+      const { data, error } = await supabase.rpc('create_invite', {
         invite_email: email
       });
 
       if (error) throw error;
+
+      // The RPC now returns the token
+      if (data && data.length > 0) {
+        setNewlyCreatedToken(data[0].invite_token);
+      }
 
       setEmail('');
       await fetchData();
@@ -826,6 +833,42 @@ export default function Admin() {
                 )}
               </Button>
             </form>
+
+            {/* Display newly created token */}
+            {newlyCreatedToken && (
+              <div className="mt-6 p-4 bg-vice-cyan/10 border border-vice-cyan/30 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-white font-semibold">Validation Token</Label>
+                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    Created
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-3 mt-3">
+                  <div className="flex-1 bg-black/40 border border-vice-cyan/50 rounded-lg px-4 py-3">
+                    <code className="text-vice-cyan text-2xl font-bold tracking-widest">
+                      {newlyCreatedToken}
+                    </code>
+                  </div>
+                  <Button
+                    onClick={async () => {
+                      await navigator.clipboard.writeText(newlyCreatedToken);
+                      toast({
+                        title: "Copied!",
+                        description: "Token copied to clipboard",
+                      });
+                    }}
+                    className="bg-vice-cyan hover:bg-vice-cyan/80 text-black"
+                    size="lg"
+                  >
+                    <Copy className="w-5 h-5" />
+                  </Button>
+                </div>
+                <p className="text-gray-400 text-sm mt-3">
+                  Share this token with the invited user. They will need to enter it during sign-up.
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
