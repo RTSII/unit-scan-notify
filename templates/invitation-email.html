@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>SPR Vice City Invitation</title>
+    <style>
+        /* CSS resets and base styles for better email client rendering */
+        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+        body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; background-color: #1a1130; }
+
+        /* A simple media query for mobile responsiveness */
+        @media screen and (max-width: 600px) {
+            .content-table {
+                width: 100% !important;
+                min-width: 100% !important;
+            }
+        }
+    </style>
+</head>
+<body style="margin: 0 !important; padding: 0 !important; background-color: #1a1130;">
+    <!-- Main Email Body Table -->
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+            <td align="center" style="padding: 20px 0;">
+                <!-- Centered Content Table -->
+                <table border="0" cellpadding="0" cellspacing="0" width="600" class="content-table" style="min-width: 600px; background-color: #2a1a4c; border-radius: 12px; box-shadow: 0 0 25px rgba(255, 0, 255, 0.5);">
+                    <!-- Header/Logo Section -->
+                    <tr>
+                        <td align="center" style="padding: 40px 20px 30px 20px;">
+                            <!-- SPR Vice City Logo -->
+                            <img src="{{LOGO_URL}}" alt="SPR Vice City Logo" width="190" style="display: block; width: 190px; font-family: Arial, sans-serif; color: #ffffff; font-size: 24px;">
+                        </td>
+                    </tr>
+                    <!-- Main Content Section -->
+                    <tr>
+                        <td align="center" style="padding: 0 30px 30px 30px; font-family: 'Poppins', Arial, sans-serif; color: #e0d8ff; font-size: 16px; line-height: 1.6;">
+                            <h1 style="font-size: 28px; font-weight: 600; color: #00f2ff; margin: 0 0 20px 0; text-shadow: 0 0 8px rgba(0, 242, 255, 0.7);">You're Invited!</h1>
+                            <p style="margin: 0 0 25px 0;">
+                                Please click the link below to register for access to SPR Vice City.
+                            </p>
+                             <p style="font-family: 'Poppins', Arial, sans-serif; color: #e0d8ff; font-size: 16px; line-height: 1.6; margin: 0 0 15px 0;">
+                                You will be required to enter the following Token for verification:
+                            </p>
+                            <!-- Token Box with Copy Button -->
+                            <div style="max-width: 400px; margin: 0 auto 25px auto;">
+                                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #1a1130; border: 1px dashed #00f2ff; border-radius: 8px;">
+                                    <tr>
+                                        <!-- The token text -->
+                                        <td id="verificationToken" align="center" style="color: #00f2ff; padding: 15px 20px; font-size: 18px; font-family: 'Courier New', Courier, monospace; letter-spacing: 2px; white-space: nowrap;">
+                                            {{VERIFICATION_TOKEN}}
+                                        </td>
+                                        <!-- The copy button cell -->
+                                        <td align="center" width="80" style="padding-right: 15px;">
+                                            <!-- IMPORTANT: The 'onclick' Javascript for this button will be disabled by most email clients for security. -->
+                                            <a href="#" onclick="copyToken(this); return false;" title="Copy to clipboard" style="background-color: #00f2ff; color: #1a1130; text-decoration: none; padding: 8px 12px; border-radius: 5px; font-family: Arial, sans-serif; font-size: 14px; font-weight: bold;">
+                                                Copy
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <!-- End Token Box -->
+                            <!-- CTA Button -->
+                            <table border="0" cellspacing="0" cellpadding="0">
+                                <tr>
+                                    <td align="center" style="border-radius: 8px;" bgcolor="#f900a8">
+                                        <a href="{{SIGNUP_URL}}" target="_blank" style="font-size: 18px; font-family: 'Poppins', Arial, sans-serif; color: #ffffff; text-decoration: none; border-radius: 8px; padding: 14px 28px; border: 1px solid #f900a8; display: inline-block; font-weight: bold; text-shadow: 0 0 10px rgba(0, 0, 0, 0.4);">Register Now</a>
+                                    </td>
+                                </tr>
+                            </table>
+                            <!-- Sign-up URL display -->
+                            <p style="margin: 25px 0 0 0; font-size: 14px; color: #a094c7;">
+                                Or copy and paste this link into your browser:<br>
+                                <a href="{{SIGNUP_URL}}" target="_blank" style="color: #00f2ff; text-decoration: underline; word-break: break-all;">{{SIGNUP_URL}}</a>
+                            </p>
+                        </td>
+                    </tr>
+                    <!-- Footer Section -->
+                    <tr>
+                        <td align="center" style="padding: 0 30px 40px 30px; font-family: 'Poppins', Arial, sans-serif; color: #a094c7; font-size: 14px; line-height: 1.5;">
+                             <p style="margin: 25px 0 0 0; border-top: 1px solid #4a3a6c; padding-top: 30px;">
+                                If the link does not work, please try copy/pasting the address into your preferred Web browser. This link is valid for 7 days from the receipt of this invitation.
+                            </p>
+                            <p style="margin: 20px 0 0 0;">
+                                Best regards,<br>Rob Steen
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <!-- 
+      IMPORTANT: JAVASCRIPT IN EMAIL
+      The following script will be blocked or stripped by most major email clients (Gmail, Outlook, etc.) for security reasons.
+      This copy functionality will only work when this HTML is viewed in an environment that allows JavaScript, such as a web browser.
+      For email, users will still need to manually select and copy the token.
+    -->
+    <script>
+        function copyToken(button) {
+            const tokenElement = document.getElementById('verificationToken');
+            const tokenText = tokenElement.innerText || tokenElement.textContent;
+            
+            // Use the modern Clipboard API if available, as it's more secure
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(tokenText).then(function() {
+                    // Visual feedback: change button text
+                    button.innerText = 'Copied!';
+                    setTimeout(() => { button.innerText = 'Copy'; }, 2000);
+                }).catch(function(err) {
+                    console.error('Failed to copy with Clipboard API: ', err);
+                    fallbackCopy(tokenText, button); // Fallback if API fails
+                });
+            } else {
+                // Fallback for older browsers or insecure contexts
+                fallbackCopy(tokenText, button);
+            }
+        }
+
+        function fallbackCopy(text, button) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            
+            // Make the textarea invisible and add it to the DOM
+            textArea.style.position = 'fixed';
+            textArea.style.top = 0;
+            textArea.style.left = 0;
+            textArea.style.width = '2em';
+            textArea.style.height = '2em';
+            textArea.style.padding = 0;
+            textArea.style.border = 'none';
+            textArea.style.outline = 'none';
+            textArea.style.boxShadow = 'none';
+            textArea.style.background = 'transparent';
+
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    button.innerText = 'Copied!';
+                    setTimeout(() => { button.innerText = 'Copy'; }, 2000);
+                }
+            } catch (err) {
+                console.error('Fallback copy failed: ', err);
+            }
+
+            document.body.removeChild(textArea);
+        }
+    </script>
+</body>
+</html>
