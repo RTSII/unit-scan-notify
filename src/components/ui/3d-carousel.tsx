@@ -185,17 +185,24 @@ const Carousel = memo(
 
 const hiddenMask = `repeating-linear-gradient(to right, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 30px, rgba(0,0,0,1) 30px, rgba(0,0,0,1) 30px)`
 const visibleMask = `repeating-linear-gradient(to right, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 0px, rgba(0,0,0,1) 0px, rgba(0,0,0,1) 30px)`
-function ThreeDPhotoCarousel() {
+function ThreeDPhotoCarousel({
+  cards: externalCards,
+}: {
+  cards?: string[]
+}) {
   const [activeImg, setActiveImg] = useState<string | null>(null)
   const [isCarouselActive, setIsCarouselActive] = useState(true)
   const controls = useAnimation()
   const cards = useMemo(
-    () => keywords.map((keyword) => `https://picsum.photos/200/300?${keyword}`),
-    []
+    () =>
+      externalCards && externalCards.length > 0
+        ? externalCards
+        : keywords.map((keyword) => `https://picsum.photos/200/300?${keyword}`),
+    [externalCards]
   )
 
   useEffect(() => {
-    console.log("Cards loaded:", cards)
+    console.log("3D Carousel cards loaded:", cards?.length ?? 0)
   }, [cards])
 
   const handleClick = (imgUrl: string, _index: number) => {

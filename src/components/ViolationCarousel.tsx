@@ -54,7 +54,12 @@ export function mapFormsToCarouselItems(forms: FormLike[]): CarouselItem[] {
   });
 }
 
-export const ViolationCarousel3D: React.FC<{ forms: FormLike[]; onDelete?: (formId: string) => void }> = ({ forms, onDelete }) => {
+export const ViolationCarousel3D: React.FC<{
+  forms: FormLike[];
+  onDelete?: (formId: string) => void;
+  heightClass?: string;
+  containerClassName?: string;
+}> = ({ forms, onDelete, heightClass, containerClassName }) => {
   const [activeForm, setActiveForm] = useState<FormLike | null>(null);
   const [isCarouselActive, setIsCarouselActive] = useState(true);
   const [selectedForDelete, setSelectedForDelete] = useState(false);
@@ -192,11 +197,11 @@ export const ViolationCarousel3D: React.FC<{ forms: FormLike[]; onDelete?: (form
   };
 
   return (
-    <div className="w-full" id="carousel-container">
+    <div className={`w-full ${containerClassName ?? ''}`.trim()} id="carousel-container">
       <motion.div layout className="relative">
 
         <div 
-          className="relative h-[200px] w-full overflow-hidden rounded-xl bg-black/20 py-4"
+          className={`relative ${heightClass ?? 'h-[200px]'} w-full overflow-hidden rounded-xl bg-black/20 py-4`}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >

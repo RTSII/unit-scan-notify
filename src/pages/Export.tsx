@@ -7,6 +7,7 @@ import { Input } from '../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Checkbox } from '../components/ui/checkbox';
 import { Separator } from '../components/ui/separator';
+import { ViolationCarousel3D } from "../components/ViolationCarousel";
 import { useToast } from '../hooks/use-toast';
 import type { CheckedState } from '@radix-ui/react-checkbox';
 import { 
@@ -23,7 +24,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { normalizeUnit } from '@/utils/unitFormat';
 import type { Tables } from '@/integrations/supabase/types';
-import { ViolationCarousel3D, type FormLike } from '../components/ViolationCarousel';
+ 
 
 interface ViolationForm {
   id: string;
@@ -52,9 +53,10 @@ export default function Export() {
   const { toast } = useToast();
   const [forms, setForms] = useState<ViolationForm[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterPeriod, setFilterPeriod] = useState('thisWeek');
+  // Time filter: this_week | this_month | all
+  const [timeFilter, setTimeFilter] = useState<'this_week' | 'this_month' | 'all'>('this_week');
   const [selectedForms, setSelectedForms] = useState<string[]>([]);
-  const [isThisWeekExpanded, setIsThisWeekExpanded] = useState(false);
+  const [isThisWeekExpanded, setIsThisWeekExpanded] = useState(true);
 
   const fetchForms = useCallback(async () => {
     try {
@@ -123,25 +125,6 @@ export default function Export() {
   const filteredForms = useMemo(() => {
     let filtered = [...forms];
 
-    // Time-based filtering
-    const now = new Date();
-    if (filterPeriod === 'thisWeek') {
-      const startOfWeek = new Date(now);
-      startOfWeek.setHours(0, 0, 0, 0);
-      startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
-      filtered = filtered.filter((form) => {
-        const formDate = new Date(form.created_at);
-        return formDate >= startOfWeek;
-      });
-    } else if (filterPeriod === 'thisMonth') {
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      filtered = filtered.filter((form) => {
-        const formDate = new Date(form.created_at);
-        return formDate >= startOfMonth;
-      });
-    }
-    // 'all' shows all forms
-
     // Search filtering
     if (searchTerm) {
       const normalizedSearchUnit = normalizeUnit(searchTerm);
@@ -161,8 +144,23 @@ export default function Export() {
       });
     }
 
+    // Time-based filtering
+    if (timeFilter !== 'all') {
+      const now = new Date();
+      let startDate: Date;
+      if (timeFilter === 'this_week') {
+        startDate = new Date(now);
+        startDate.setHours(0, 0, 0, 0);
+        startDate.setDate(startDate.getDate() - startDate.getDay());
+      } else {
+        // this_month
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      }
+      filtered = filtered.filter((form) => new Date(form.created_at) >= startDate);
+    }
+
     return filtered;
-  }, [filterPeriod, forms, searchTerm]);
+  }, [timeFilter, forms, searchTerm]);
 
   const thisWeekCount = useMemo(() => {
     const now = new Date();
@@ -175,6 +173,23 @@ export default function Export() {
       return formDate >= startOfWeek;
     }).length;
   }, [forms]);
+
+  // Compute forms for the carousel strictly by timeFilter (independent of search)
+  const carouselForms = useMemo(() => {
+    if (timeFilter === 'all') return forms;
+    const now = new Date();
+    let startDate: Date;
+    if (timeFilter === 'this_week') {
+      startDate = new Date(now);
+      startDate.setHours(0, 0, 0, 0);
+      startDate.setDate(startDate.getDate() - startDate.getDay());
+    } else {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+    return forms.filter((form) => new Date(form.created_at) >= startDate);
+  }, [forms, timeFilter]);
+
+  
 
   const handleFormSelection = (formId: string, checked: CheckedState) => {
     if (checked === true) {
@@ -368,64 +383,61 @@ export default function Export() {
 
         <div className="p-4 space-y-4">
           {/* Search and Filter */}
-          <div className="flex gap-3">
-            <div className="relative flex-1">
+          <div className="max-w-2xl mx-auto">
+          <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-center">
+            <div className="relative flex-[2] md:max-w-[480px]">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-vice-cyan/60" />
               <Input
                 placeholder="Search for notices..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink"
+                className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink min-h-[44px] rounded-lg shadow-[0_0_0_1px_rgba(0,255,255,0.15)] focus:shadow-[0_0_0_2px_rgba(255,20,147,0.35)]"
               />
             </div>
-            
-            <Select value={filterPeriod} onValueChange={setFilterPeriod}>
-              <SelectTrigger className="w-40 bg-black/30 border-vice-cyan/30 text-white">
+
+            {/* Time filter */}
+            <Select value={timeFilter} onValueChange={(v) => setTimeFilter(v as any)}>
+              <SelectTrigger className="w-full md:w-56 bg-black/30 border-vice-cyan/30 text-white min-h-[44px] rounded-lg justify-start">
                 <Filter className="h-4 w-4 mr-2 text-vice-cyan/60" />
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-black/90 border-vice-cyan/30">
-                <SelectItem value="thisWeek" className="text-white hover:bg-vice-cyan/20">This Week</SelectItem>
-                <SelectItem value="thisMonth" className="text-white hover:bg-vice-cyan/20">This Month</SelectItem>
+              <SelectContent className="bg-black/90 border-vice-cyan/30 min-w-[14rem]">
+                <SelectItem value="this_week" className="text-white hover:bg-vice-cyan/20">This Week</SelectItem>
+                <SelectItem value="this_month" className="text-white hover:bg-vice-cyan/20">This Month</SelectItem>
                 <SelectItem value="all" className="text-white hover:bg-vice-cyan/20">All Forms</SelectItem>
               </SelectContent>
             </Select>
           </div>
+          </div>
 
           {/* Export Selection Card */}
-          <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-white text-lg">Select Notice(s) to Export</CardTitle>
+          <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.35)] max-w-7xl mx-auto">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-vice-cyan">
+                    {timeFilter === 'this_week' ? 'This Week' : timeFilter === 'this_month' ? 'This Month' : 'All Forms'}
+                  </p>
+                  <CardTitle className="text-white text-lg">{filteredForms.length}</CardTitle>
+                </div>
+                <Clock className="w-6 h-6 text-vice-pink" />
+              </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Selected Notices Display */}
-              <div className="min-h-[100px] space-y-2">
-                {selectedForms.length === 0 ? (
-                  <div className="py-4">
-                    {filteredForms.length > 0 ? (
-                      <ViolationCarousel3D 
-                        forms={filteredForms.map(form => ({
-                          id: form.id,
-                          unit_number: form.unit_number,
-                          date: form.date,
-                          occurred_at: form.occurred_at,
-                          photos: form.photos,
-                          description: form.description,
-                          location: form.location,
-                          time: form.time,
-                          status: form.status
-                        } as FormLike))}
-                      />
-                    ) : (
-                      <p className="text-vice-cyan/60 text-center py-8">No notices found</p>
-                    )}
-                  </div>
-                ) : (
-                  selectedForms.map(formId => {
+            <CardContent className="pt-2">
+              {/* 3D Carousel (enlarged and centered) */}
+              <div className="my-2 sm:my-3 -mx-2 sm:mx-0 flex items-center justify-center">
+                <div className="w-full max-w-5xl">
+                  <ViolationCarousel3D forms={carouselForms} heightClass="h-[260px] sm:h-[320px]" containerClassName="mx-auto" />
+                </div>
+              </div>
+              {/* Selected Notices Display (only when selections exist) */}
+              {selectedForms.length > 0 && (
+                <div className="space-y-2 touch-manipulation mt-2">
+                  {selectedForms.map(formId => {
                     const form = forms.find(f => f.id === formId);
                     if (!form) return null;
                     return (
-                      <div key={formId} className="flex items-center justify-between bg-black/20 p-3 rounded border border-vice-cyan/20">
+                      <div key={formId} className="flex items-center justify-between bg-black/20 p-3 rounded-lg border border-vice-cyan/20">
                         <div>
                           <p className="text-white font-medium">Unit {form.unit_number}</p>
                           <p className="text-vice-cyan/80 text-sm">
@@ -442,17 +454,17 @@ export default function Export() {
                         </Button>
                       </div>
                     );
-                  })
-                )}
-              </div>
+                  })}
+                </div>
+              )}
 
-              <Separator className="bg-vice-cyan/20" />
+              {selectedForms.length > 0 && <Separator className="bg-vice-cyan/20 my-2" />}
 
               {/* Export Actions */}
-              <div className="flex gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mt-2">
                 <Button
                   onClick={handleEmailExport}
-                  className="flex-1 bg-gradient-to-r from-vice-cyan to-vice-blue hover:from-vice-blue hover:to-vice-cyan text-white"
+                  className="flex-1 bg-gradient-to-r from-vice-cyan to-vice-blue hover:from-vice-blue hover:to-vice-cyan text-white min-h-[44px] rounded-lg"
                   disabled={selectedForms.length === 0}
                 >
                   <Mail className="h-4 w-4 mr-2" />
@@ -461,7 +473,7 @@ export default function Export() {
                 
                 <Button
                   onClick={handlePrintExport}
-                  className="flex-1 bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink text-white"
+                  className="flex-1 bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink text-white min-h-[44px] rounded-lg"
                   disabled={selectedForms.length === 0}
                 >
                   <Printer className="h-4 w-4 mr-2" />
@@ -475,74 +487,6 @@ export default function Export() {
                 </p>
               )}
             </CardContent>
-          </Card>
-
-          {/* This Week Card */}
-          <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm">
-            <CardHeader 
-              className="cursor-pointer"
-              onClick={() => setIsThisWeekExpanded(!isThisWeekExpanded)}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Clock className="h-5 w-5 text-vice-pink" />
-                  <div>
-                    <CardTitle className="text-white text-lg">This Week</CardTitle>
-                    <p className="text-vice-cyan/80 text-sm">{thisWeekCount} forms</p>
-                  </div>
-                </div>
-                {isThisWeekExpanded ? (
-                  <ChevronUp className="h-5 w-5 text-vice-cyan" />
-                ) : (
-                  <ChevronDown className="h-5 w-5 text-vice-cyan" />
-                )}
-              </div>
-            </CardHeader>
-            
-            {isThisWeekExpanded && (
-              <CardContent className="pt-0">
-                <div className="space-y-3">
-                  {filteredForms.map((form) => (
-                    <div key={form.id} className="flex items-start gap-3 p-3 bg-black/20 rounded border border-vice-cyan/20">
-                      <Checkbox
-                        checked={selectedForms.includes(form.id)}
-                        onCheckedChange={(checked) => handleFormSelection(form.id, checked)}
-                        className="mt-1 border-vice-cyan/40 data-[state=checked]:bg-vice-pink data-[state=checked]:border-vice-pink"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <h3 className="text-white font-medium">Unit {form.unit_number}</h3>
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            form.status === 'submitted' 
-                              ? 'bg-green-500/20 text-green-400' 
-                              : 'bg-yellow-500/20 text-yellow-400'
-                          }`}>
-                            {form.status}
-                          </span>
-                        </div>
-                        <p className="text-vice-cyan/80 text-sm mb-1">
-                          {form.occurred_at ? (
-                            new Date(form.occurred_at).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) + ' at ' +
-                            new Date(form.occurred_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
-                          ) : (
-                            `${form.date} at ${form.time}`
-                          )}
-                        </p>
-                        <p className="text-vice-cyan/80 text-sm mb-1">{form.location}</p>
-                        <p className="text-white/90 text-sm">{form.description}</p>
-                        {form.photos && form.photos.length > 0 && (
-                          <p className="text-vice-pink text-xs mt-1">📷 {form.photos.length} photo(s)</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {filteredForms.length === 0 && (
-                    <p className="text-vice-cyan/60 text-center py-4">No forms found</p>
-                  )}
-                </div>
-              </CardContent>
-            )}
           </Card>
         </div>
       </div>

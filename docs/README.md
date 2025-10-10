@@ -1,6 +1,6 @@
 # 📚 SPR Vice City - Documentation Index
 
-**Last Updated:** October 8, 2025  
+**Last Updated:** October 10, 2025  
 **Version:** 3.1.0
 
 ---
@@ -109,6 +109,11 @@ This folder contains all technical documentation for the SPR Vice City violation
 - Visual specifications
 - Behavioral specifications
 - Integration guide
+
+**[3d-carousel.md](3d-carousel.md)**
+- Unified Books/Export usage
+- Quick-start API notes (heightClass, containerClassName)
+- Time-filter pattern reference
 
 ---
 

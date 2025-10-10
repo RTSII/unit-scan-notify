@@ -13,20 +13,31 @@
   - Densification to maintain continuous, well-populated ring feel
   - 140px high track container with `overflow-hidden`
   - Unique `layoutId` per face for smooth modal transitions
-  - Only-one-open-at-a-time behavior for collapsible sections; click-outside collapse
-
 # SPR Vice City - Changelog
 
 All notable changes to the SPR Vice City project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+and this project adheres to [semantic Versioning](https://semver.org/spec/v2.0.0.html).
+ 
+## [3.2.0] - 2025-10-10
 
+### UI Unification
+- Books and Export now share a unified, single-card 3D carousel layout.
+- Card headers show the current time filter label (This Week | This Month | All Forms) and total form count.
+- Search and Filter menus centered and consistent across both pages.
 
-## [2.1.6] - 2025-01-XX
+### Behavior Changes
+- Removed Books page collapsible sections (This Week/This Month) in favor of a single time-filter-driven carousel.
+- Placeholders auto-fill the carousel to maintain a dense ring, matching Export behavior.
 
-### 🚀 **FEATURE RELEASE - Enhanced Form Interactions & Mobile UX**
+### Component Updates
+- `ViolationCarousel3D` now supports `heightClass` and `containerClassName` props for flexible sizing.
 
+### Documentation
+- Updated `docs/UI_3D_CAROUSEL_SPEC.md` to reflect the unified standard and new props.
+- Added `docs/3d-carousel.md` with quick-start usage for unified Books/Export pattern.
+- Updated docs index references where applicable.
 This release introduces morphing popover components for Description and Photos sections, auto-formatting for date/time inputs, and improved unit validation with visual feedback.
 
 ### ✨ **Added**

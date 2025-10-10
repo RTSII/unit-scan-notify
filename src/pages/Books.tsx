@@ -2,9 +2,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
-import { Badge } from "../components/ui/badge";
 import { Input } from "../components/ui/input";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../components/ui/collapsible";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { useAuth } from "../hooks/useAuth";
 import { supabase } from "../integrations/supabase/client";
 import { useToast } from "../hooks/use-toast";
@@ -143,15 +142,11 @@ const Books = () => {
   const [forms, setForms] = useState<SavedForm[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterOpen, setFilterOpen] = useState(false);
-  const [selectedFilter, setSelectedFilter] = useState("all");
-  const [thisWeekExpanded, setThisWeekExpanded] = useState(false);
-  const [thisMonthExpanded, setThisMonthExpanded] = useState(false);
-  const [showFullLibrary, setShowFullLibrary] = useState(false);
+  // Time filter like Export: this_week | this_month | all
+  const [timeFilter, setTimeFilter] = useState<'this_week' | 'this_month' | 'all'>("this_week");
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const filterRef = useRef<HTMLDivElement>(null);
   const cardsContainerRef = useRef<HTMLDivElement>(null);
 
   const location = useLocation();
@@ -265,44 +260,9 @@ const Books = () => {
     }
   }, [fetchSavedForms, location.pathname, loading]);
 
-  // Click outside handler for filter dropdown and card expansion
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      // Handle filter dropdown
-      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
-        setFilterOpen(false);
-      }
+  // No collapsibles now; no click-outside behavior needed
 
-      // Handle card expansion - collapse when clicking outside the cards container
-      if (cardsContainerRef.current && !cardsContainerRef.current.contains(event.target as Node)) {
-        setThisWeekExpanded(false);
-        setThisMonthExpanded(false);
-      }
-    };
-
-    if (filterOpen || thisWeekExpanded || thisMonthExpanded) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [filterOpen, thisWeekExpanded, thisMonthExpanded]);
-
-  // Handle single card expansion - only one can be open at a time
-  const handleWeekExpansion = (isExpanded: boolean) => {
-    if (isExpanded) {
-      setThisMonthExpanded(false); // Close month card when week opens
-    }
-    setThisWeekExpanded(isExpanded);
-  };
-
-  const handleMonthExpansion = (isExpanded: boolean) => {
-    if (isExpanded) {
-      setThisWeekExpanded(false); // Close week card when month opens
-    }
-    setThisMonthExpanded(isExpanded);
-  };
+  // No collapsible handlers needed
 
 
   const applyFilters = (formsToFilter: SavedForm[]) => {
@@ -323,27 +283,24 @@ const Books = () => {
       );
     }
 
-    // Apply status filter
-    if (selectedFilter !== "all") {
-      filtered = filtered.filter(form => form.status === selectedFilter);
-    }
-
     return filtered;
   };
 
-  const filteredForms = applyFilters(forms);
-
-  const getThisWeekForms = () => {
+  // Time-filtered set for the carousel matching Export.tsx
+  const filteredForms = (() => {
+    const base = applyFilters(forms);
+    if (timeFilter === 'all') return base;
     const now = new Date();
-    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    return applyFilters(forms.filter(form => new Date(form.created_at) >= weekAgo));
-  };
-
-  const getThisMonthForms = () => {
-    const now = new Date();
-    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    return applyFilters(forms.filter(form => new Date(form.created_at) >= monthAgo));
-  };
+    let startDate: Date;
+    if (timeFilter === 'this_week') {
+      startDate = new Date(now);
+      startDate.setHours(0, 0, 0, 0);
+      startDate.setDate(startDate.getDate() - startDate.getDay());
+    } else {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+    return base.filter(form => new Date(form.created_at) >= startDate);
+  })();
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -409,162 +366,57 @@ const Books = () => {
 
       {/* Main Content Container */}
       <div className="w-full max-w-7xl mx-auto px-4 pb-6">
-        {/* Search and Filter - Centered */}
+        {/* Search and Filter - Centered (consistent with Export.tsx) */}
         <div className="py-4">
-          <div className="flex flex-col items-center gap-4 max-w-2xl mx-auto">
-            <div className="relative w-full max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-vice-cyan" />
-              <Input
-                placeholder="Search by unit, description, location, or team member..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-black/30 border-vice-cyan/50 text-white placeholder:text-vice-cyan/70 min-h-[44px] w-full"
-              />
-            </div>
+          <div className="max-w-2xl mx-auto">
+            <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-center">
+              <div className="relative flex-[2] md:max-w-[480px] w-full">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-vice-cyan/80" />
+                <Input
+                  placeholder="Search by unit, description, location, or team member..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 bg-black/30 border-vice-cyan/50 text-white placeholder:text-vice-cyan/70 min-h-[44px] w-full rounded-lg shadow-[0_0_0_1px_rgba(0,255,255,0.15)] focus:shadow-[0_0_0_2px_rgba(255,20,147,0.35)]"
+                />
+              </div>
 
-            <div className="relative" ref={filterRef}>
-              <Collapsible open={filterOpen} onOpenChange={setFilterOpen}>
-                <CollapsibleTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20 min-h-[44px] px-6"
-                  >
-                    <Filter className="w-4 h-4 mr-2" />
-                    Filter
-                    {filterOpen ? <ChevronUp className="w-4 h-4 ml-2" /> : <ChevronDown className="w-4 h-4 ml-2" />}
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="absolute left-1/2 transform -translate-x-1/2 top-full mt-2 z-10 w-48">
-                  <Card className="bg-black/90 border-vice-cyan/50 backdrop-blur-sm">
-                    <CardContent className="p-3 space-y-2">
-                      {["all", "saved", "completed"].map((filter) => (
-                        <Button
-                          key={filter}
-                          variant={selectedFilter === filter ? "default" : "ghost"}
-                          size="sm"
-                          onClick={() => {
-                            setSelectedFilter(filter);
-                            setFilterOpen(false);
-                          }}
-                          className="w-full justify-start text-white hover:bg-vice-cyan/20 min-h-[44px]"
-                        >
-                          {filter === "all" ? "All Forms" : filter.charAt(0).toUpperCase() + filter.slice(1)}
-                        </Button>
-                      ))}
-                    </CardContent>
-                  </Card>
-                </CollapsibleContent>
-              </Collapsible>
+              <Select value={timeFilter} onValueChange={(v) => setTimeFilter(v as 'this_week' | 'this_month' | 'all')}>
+                <SelectTrigger className="w-full md:w-56 bg-black/30 border-vice-cyan/50 text-white min-h-[44px] rounded-lg justify-start">
+                  <Filter className="w-4 h-4 mr-2 text-vice-cyan/80" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-black/90 border-vice-cyan/50 min-w-[14rem]">
+                  <SelectItem value="this_week" className="text-white hover:bg-vice-cyan/20">This Week</SelectItem>
+                  <SelectItem value="this_month" className="text-white hover:bg-vice-cyan/20">This Month</SelectItem>
+                  <SelectItem value="all" className="text-white hover:bg-vice-cyan/20">All Forms</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
-
-        {/* Dashboard Stats - Vertically Stacked and Centered */}
-        <div className="py-4">
-          <div className="flex flex-col items-center gap-4 w-full" ref={cardsContainerRef}>
-            {/* This Week Card */}
-            <div className={`w-full ${thisWeekExpanded ? 'order-first max-w-7xl' : 'max-w-[560px]'} mx-auto transition-all duration-300`}>
-              <Collapsible open={thisWeekExpanded} onOpenChange={handleWeekExpansion} className="w-full">
-                <CollapsibleTrigger asChild>
-                  <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm hover:border-vice-pink/50 transition-colors cursor-pointer w-full">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-xs font-medium text-vice-cyan">This Week</p>
-                          <p className="text-lg font-bold text-white">
-                            {getThisWeekForms().length}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-6 h-6 text-vice-pink" />
-                          {thisWeekExpanded ? <ChevronUp className="w-4 h-4 text-vice-cyan" /> : <ChevronDown className="w-4 h-4 text-vice-cyan" />}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="mt-4 flex justify-center">
-                  <div className="w-full">
-                    <ViolationCarousel3D forms={getThisWeekForms()} />
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
+        {/* Single expanded carousel card (matches Export sizing) */}
+        <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.35)] max-w-7xl mx-auto">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-vice-cyan">
+                  {timeFilter === 'this_week' ? 'This Week' : timeFilter === 'this_month' ? 'This Month' : 'All Forms'}
+                </p>
+                <CardTitle className="text-white text-lg">{filteredForms.length}</CardTitle>
+              </div>
+              <Clock className="w-6 h-6 text-vice-pink" />
             </div>
-
-            {/* This Month Card */}
-            <div className={`w-full ${thisMonthExpanded && !thisWeekExpanded ? 'order-first max-w-7xl' : 'max-w-[560px]'} mx-auto transition-all duration-300`}>
-              <Collapsible open={thisMonthExpanded} onOpenChange={handleMonthExpansion} className="w-full">
-                <CollapsibleTrigger asChild>
-                  <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm hover:border-vice-pink/50 transition-colors cursor-pointer w-full">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-xs font-medium text-vice-cyan">This Month</p>
-                          <p className="text-lg font-bold text-white">
-                            {getThisMonthForms().length}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-6 h-6 text-vice-pink" />
-                          {thisMonthExpanded ? <ChevronUp className="w-4 h-4 text-vice-cyan" /> : <ChevronDown className="w-4 h-4 text-vice-cyan" />}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="mt-4 flex justify-center">
-                  <div className="w-full">
-                    <ViolationCarousel3D forms={getThisMonthForms()} />
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-            </div>
-          </div>
-        </div>
-        <div className="flex justify-center py-6">
-          <Button
-            onClick={() => setShowFullLibrary(true)}
-            variant="outline"
-            size="lg"
-            className="bg-black/30 border-vice-cyan/50 text-white hover:bg-vice-cyan/20 px-8 py-3 min-h-[44px]"
-          >
-            <BookOpen className="w-6 h-6 mr-2" />
-            All Forms
-          </Button>
-        </div>
-      </div>
-
-      {/* All Forms Modal */}
-      {showFullLibrary && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-gradient-to-br from-vice-purple/20 via-black/90 to-vice-blue/20 border border-vice-cyan/30 rounded-lg w-full max-w-7xl max-h-[90dvh] overflow-hidden">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-vice-cyan/30">
-              <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-3">
-                <BookOpen className="w-6 h-6 sm:w-8 sm:h-8 text-vice-pink" />
-                <span className="truncate">All Forms ({forms.length})</span>
-              </h2>
-              <Button
-                onClick={() => setShowFullLibrary(false)}
-                variant="ghost"
-                size="sm"
-                className="text-white hover:bg-vice-cyan/20 min-h-[44px] min-w-[44px] flex-shrink-0"
-              >
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
-
-            {/* Modal Content with Carousel */}
-            <div className="overflow-y-auto max-h-[calc(90dvh-120px)] p-4 sm:p-6">
-              <div className="flex justify-center">
-                <div className="w-full max-w-4xl">
-                  <ViolationCarousel3D forms={forms} />
-                </div>
+          </CardHeader>
+          <CardContent className="pt-2">
+            <div className="my-2 sm:my-3 -mx-2 sm:mx-0 flex items-center justify-center">
+              <div className="w-full max-w-5xl">
+                <ViolationCarousel3D forms={filteredForms} heightClass="h-[260px] sm:h-[320px]" containerClassName="mx-auto" />
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </CardContent>
+        </Card>
+
+      </div>
     </div>
   );
 };

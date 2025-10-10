@@ -1,6 +1,6 @@
-# 3D Carousel UI Spec (Admin Style)
+# 3D Carousel UI Spec (Unified Books/Export)
 
-This document defines the canonical visual and behavioral spec for the 3D carousel used across this project. The implementation in `src/pages/Admin.tsx` is the reference look-and-feel. Apply this spec anywhere a 3D carousel is requested.
+This document defines the canonical visual and behavioral spec for the 3D carousel used across this project. As of this update, the unified reference look-and-feel lives on `src/pages/Books.tsx` and `src/pages/Export.tsx` using `ViolationCarousel3D`.
 
 
 ## Purpose
@@ -12,29 +12,32 @@ This document defines the canonical visual and behavioral spec for the 3D carous
 
 ## Visual Spec
 - Container
-  - `div.relative.h-[140px].w-full.overflow-hidden.rounded-xl.bg-black/20`
+  - Default card container (Books/Export): `div.relative.h-[200px].w-full.overflow-hidden.rounded-xl.bg-black/20`
+  - Export/Books can pass a taller height via the component prop (see Component API). Typical heights:
+    - Mobile: `h-[240px]–h-[260px]`
+    - Desktop: `h-[300px]–h-[320px]`
   - Inner wrapper with perspective and 3D preservation:
     - `div.flex.h-full.items-center.justify-center.bg-black/10`
     - Inline style: `{ perspective: '1000px', transformStyle: 'preserve-3d', willChange: 'transform' }`
 - Cylinder dimensions
-  - `cylinderWidth`: 1100 (mobile ≤640px), 1800 (desktop)
+  - `cylinderWidth`: ~1400 (mobile ≤640px), ~2000 (desktop)
   - `radius = cylinderWidth / (2 * Math.PI)`
 - Density and face sizing
-  - `targetFaces`: 16 (mobile), 22 (desktop)
-  - Densification: If there are fewer items than `targetFaces`, duplicate items/placeholders to reach `targetFaces`.
-  - `maxThumb`: 64 (mobile), 80 (desktop)
-  - `faceWidth = min(maxThumb, cylinderWidth / targetFaces)`
+  - `targetFaces`: 12 (mobile), 16 (desktop)
+  - Densification: If there are fewer items than `targetFaces`, duplicate items and include placeholders to reach `targetFaces`.
+  - `maxThumb`: 80 (mobile), 120 (desktop)
+  - `faceWidth = min(maxThumb, cylinderWidth / max(targetFaces, 1))`
 - Face placement (for each face i)
   - Face element classes: `absolute flex h-full origin-center items-center justify-center rounded-2xl p-0.5 sm:p-1`
   - Style per-face: `{ width: faceWidth, transform: rotateY(i * (360/faceCount)) translateZ(radius) }`
 - Thumbnail card
   - Structure:
     - `div.relative.w-full.aspect-square` containing:
-      - `motion.img.pointer-events-none.w-full.rounded-2xl.object-cover.aspect-square.ring-1.ring-vice-cyan/40.shadow-[0_0_6px_#00ffff40,0_0_12px_#ff149340]`
-      - Neon cyan overlay (bottom-left, stacked):
-        - `div.absolute.inset-x-1.bottom-1.flex.flex-col.items-start.gap-0.5`
-        - Top line: `Unit {unit}` → `text-[10px] sm:text-xs font-semibold text-vice-cyan drop-shadow-[0_0_2px_#00ffff]`
-        - Bottom line: `{date}` → `text-[10px] sm:text-xs text-vice-cyan/90 drop-shadow-[0_0_2px_#00ffff]`
+      - `motion.img.pointer-events-none.w-full.rounded-2xl.object-cover.aspect-square.ring-2.ring-vice-pink.shadow-[0_0_12px_#ff1493,0_0_24px_#ff149350]`
+      - Neon cyan overlay (bottom center, stacked):
+        - `div.absolute.inset-x-0.bottom-0.flex.flex-col.items-center.justify-center.gap-1.pb-2`
+        - Date: `text-xs font-semibold text-vice-cyan bg-black/90 rounded px-2 py-1`
+        - Unit: `text-sm font-bold text-vice-cyan bg-black/90 rounded px-2 py-1`
   - Placeholder card (no image):
     - `div.w-full.rounded-2xl.bg-black/70.ring-1.ring-vice-pink/50.shadow-[0_0_6px_#ff149380,0_0_10px_#00ffff60].aspect-square`
 
@@ -55,17 +58,13 @@ This document defines the canonical visual and behavioral spec for the 3D carous
 ## Responsiveness
 - Use `useMediaQuery('(max-width: 640px)')` to choose mobile/desktop constants.
 - Square thumbnails enforced by `aspect-square` + `w-full` (no `h-full`).
-- Container stays at `h-[140px]` with `overflow-hidden` to avoid bleed.
+- Container stays at `h-[200px]` by default with `overflow-hidden` to avoid bleed and can be overridden by props.
 
 
-## Behavior in Sections (Admin reference)
-- When used in multiple collapsible sections (e.g., This Week, This Month):
-  - Only one section may be expanded at a time.
-  - Clicking outside of the violations area collapses all.
-  - **Active Section Positioning**: When a section is expanded, it automatically moves to the top position within the sections container for improved visibility and user experience.
-  - **Dynamic Reordering**: Use CSS flexbox `order-first` class on the expanded section's container to move it to the top of the flex column.
-  - **Return to Default**: When collapsed or when another section becomes active, sections return to their natural order.
-- Reference: see `src/pages/Admin.tsx` — `AdminViolationCarousel` and the surrounding expand/collapse logic.
+## Unified single-card usage (Books/Export)
+- Books and Export now display a single, expanded carousel card.
+- The card header shows the current time filter label (This Week, This Month, All Forms) and the total form count for that scope.
+- The carousel always displays items for the selected time scope. Placeholders (black squares with neon ring) are used to fill remaining faces.
 
 
 ## Data contract
@@ -75,7 +74,19 @@ This document defines the canonical visual and behavioral spec for the 3D carous
   - `date: string` (ISO; will be formatted)
   - `photos: string[]` (first photo used as thumbnail)
   - Optional `description` (not shown on face) and `status` etc.
-- If a form lacks photos, a placeholder face is shown.
+- If a form lacks photos, a placeholder face is shown. Placeholders are also used to densify the ring.
+
+## Component API (ViolationCarousel3D)
+- File: `src/components/ViolationCarousel.tsx`
+- Props:
+  - `forms: FormLike[]` — required
+  - `onDelete?: (formId: string) => void` — optional
+  - `heightClass?: string` — optional; Tailwind height classes to override default height
+  - `containerClassName?: string` — optional; additional classes on outer container
+
+## Time filter pattern
+- Pages using the carousel should provide a time filter Select (`this_week | this_month | all`) and map it to the forms collection prior to rendering `ViolationCarousel3D`.
+- See: `src/pages/Books.tsx`, `src/pages/Export.tsx` for reference.
 
 
 ## Integration Checklist
@@ -106,9 +117,10 @@ This document defines the canonical visual and behavioral spec for the 3D carous
 
 
 ## File references
-- `src/pages/Admin.tsx` — authoritative reference (`AdminViolationCarousel`).
-- `src/pages/Books.tsx` — same visual and behavior after recent updates.
-- `src/components/ui/3d-carousel.tsx` — `useMediaQuery` and base carousel utilities.
+- `src/pages/Books.tsx` — unified single-card usage with time filter.
+- `src/pages/Export.tsx` — unified single-card usage with time filter.
+- `src/components/ViolationCarousel.tsx` — primary implementation.
+- `src/components/ui/3d-carousel.tsx` — `useMediaQuery` hook.
 
 
 ## Theming
