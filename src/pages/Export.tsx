@@ -23,6 +23,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { normalizeUnit } from '@/utils/unitFormat';
 import type { Tables } from '@/integrations/supabase/types';
+import { ViolationCarousel3D, type FormLike } from '../components/ViolationCarousel';
 
 interface ViolationForm {
   id: string;
@@ -51,7 +52,7 @@ export default function Export() {
   const { toast } = useToast();
   const [forms, setForms] = useState<ViolationForm[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterPeriod, setFilterPeriod] = useState('thisWeek');
   const [selectedForms, setSelectedForms] = useState<string[]>([]);
   const [isThisWeekExpanded, setIsThisWeekExpanded] = useState(false);
 
@@ -122,6 +123,26 @@ export default function Export() {
   const filteredForms = useMemo(() => {
     let filtered = [...forms];
 
+    // Time-based filtering
+    const now = new Date();
+    if (filterPeriod === 'thisWeek') {
+      const startOfWeek = new Date(now);
+      startOfWeek.setHours(0, 0, 0, 0);
+      startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+      filtered = filtered.filter((form) => {
+        const formDate = new Date(form.created_at);
+        return formDate >= startOfWeek;
+      });
+    } else if (filterPeriod === 'thisMonth') {
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      filtered = filtered.filter((form) => {
+        const formDate = new Date(form.created_at);
+        return formDate >= startOfMonth;
+      });
+    }
+    // 'all' shows all forms
+
+    // Search filtering
     if (searchTerm) {
       const normalizedSearchUnit = normalizeUnit(searchTerm);
       const searchTermLower = searchTerm.toLowerCase();
@@ -140,12 +161,8 @@ export default function Export() {
       });
     }
 
-    if (filterStatus !== 'all') {
-      filtered = filtered.filter((form) => form.status === filterStatus);
-    }
-
     return filtered;
-  }, [filterStatus, forms, searchTerm]);
+  }, [filterPeriod, forms, searchTerm]);
 
   const thisWeekCount = useMemo(() => {
     const now = new Date();
@@ -362,15 +379,15 @@ export default function Export() {
               />
             </div>
             
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-32 bg-black/30 border-vice-cyan/30 text-white">
+            <Select value={filterPeriod} onValueChange={setFilterPeriod}>
+              <SelectTrigger className="w-40 bg-black/30 border-vice-cyan/30 text-white">
                 <Filter className="h-4 w-4 mr-2 text-vice-cyan/60" />
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-black/90 border-vice-cyan/30">
-                <SelectItem value="all" className="text-white hover:bg-vice-cyan/20">All</SelectItem>
-                <SelectItem value="saved" className="text-white hover:bg-vice-cyan/20">Saved</SelectItem>
-                <SelectItem value="submitted" className="text-white hover:bg-vice-cyan/20">Submitted</SelectItem>
+                <SelectItem value="thisWeek" className="text-white hover:bg-vice-cyan/20">This Week</SelectItem>
+                <SelectItem value="thisMonth" className="text-white hover:bg-vice-cyan/20">This Month</SelectItem>
+                <SelectItem value="all" className="text-white hover:bg-vice-cyan/20">All Forms</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -384,7 +401,25 @@ export default function Export() {
               {/* Selected Notices Display */}
               <div className="min-h-[100px] space-y-2">
                 {selectedForms.length === 0 ? (
-                  <p className="text-vice-cyan/60 text-center py-8">No notices selected</p>
+                  <div className="py-4">
+                    {filteredForms.length > 0 ? (
+                      <ViolationCarousel3D 
+                        forms={filteredForms.map(form => ({
+                          id: form.id,
+                          unit_number: form.unit_number,
+                          date: form.date,
+                          occurred_at: form.occurred_at,
+                          photos: form.photos,
+                          description: form.description,
+                          location: form.location,
+                          time: form.time,
+                          status: form.status
+                        } as FormLike))}
+                      />
+                    ) : (
+                      <p className="text-vice-cyan/60 text-center py-8">No notices found</p>
+                    )}
+                  </div>
                 ) : (
                   selectedForms.map(formId => {
                     const form = forms.find(f => f.id === formId);
