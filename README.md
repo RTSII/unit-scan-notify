@@ -25,7 +25,7 @@
 ### 🔥 Major System Overhaul
 
 #### **Database Migration Complete**
-- ✅ Migrated from `violation_forms` to `violation_forms_new`
+- ✅ Migrated to normalized `violation_forms` + `violation_photos`
 - ✅ Normalized photo storage in `violation_photos` table
 - ✅ Changed from `date`/`time` fields to `occurred_at` timestamp
 - ✅ All pages updated to use new schema
@@ -135,9 +135,9 @@
 
 ### **Tables**
 
-#### 1. `violation_forms_new` (Primary Table)
+#### 1. `violation_forms` (Primary Table)
 ```sql
-CREATE TABLE violation_forms_new (
+CREATE TABLE violation_forms (
   id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   old_uuid_id UUID,  -- For migration tracking
   user_id UUID NOT NULL REFERENCES auth.users(id),
@@ -155,7 +155,7 @@ CREATE TABLE violation_forms_new (
 ```sql
 CREATE TABLE violation_photos (
   id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-  violation_id BIGINT NOT NULL REFERENCES violation_forms_new(id) ON DELETE CASCADE,
+  violation_id BIGINT NOT NULL REFERENCES violation_forms(id) ON DELETE CASCADE,
   uploaded_by UUID NOT NULL REFERENCES auth.users(id),
   storage_path TEXT NOT NULL,  -- Base64 or URL
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -200,7 +200,7 @@ CREATE TABLE valid_units (
 
 ### **Row Level Security (RLS) Policies**
 
-#### **violation_forms_new**
+#### **violation_forms**
 - ✅ All users can SELECT all forms (team visibility)
 - ✅ Users can INSERT their own forms
 - ✅ Users can UPDATE their own forms
@@ -236,39 +236,36 @@ CREATE TABLE valid_units (
    - Optional description
    ↓ Click "Book Em"
 5. Save Process:
-   - Convert date/time → occurred_at timestamp
-   - Insert to violation_forms_new
-   - Get form ID
-   - Insert photos to violation_photos
+  - Convert date/time → occurred_at timestamp
+  - Insert to violation_forms
+  - Get form ID
+  - Insert photos to violation_photos
    ↓ Navigate to Books.tsx
 6. Books.tsx
-   - Fetch all violation_forms_new (ALL users)
-   - Join with violation_photos
-   - Join with profiles (user attribution)
+  - Fetch all violation_forms (ALL users)
+  - Join with violation_photos
+  - Join with profiles (user attribution)
    - Display in 3D carousel with photos and MM/DD dates
 ```
 
 ### Workflow 2: Gallery Photos → Save → Display
 ```
-1. Dashboard (Index.tsx)
-   ↓ Click "Details"
-2. DetailsPrevious.tsx
-   - Upload photos from device gallery
-   - Auto-populate date/time
+{{ ... }}
    - Unit field (auto-uppercase)
    - Select violation types
    - Optional description
    ↓ Click "Book Em"
 3. Save Process:
-   - Convert date/time → occurred_at timestamp
-   - Insert to violation_forms_new
-   - Get form ID
-   - Insert photos to violation_photos
+  - Convert date/time → occurred_at timestamp
+  - Insert to violation_forms
+  - Get form ID
+  - Insert photos to violation_photos
    ↓ Navigate to Books.tsx
 4. Books.tsx displays form with photos
 ```
 
 ### Workflow 3: View & Search Violations
+{{ ... }}
 ```
 1. Dashboard → Books.tsx
 2. Fetch all violations (ALL users)
@@ -446,7 +443,7 @@ npm run migrate
 ### Completed Features (100%)
 
 **Database**
-- [x] Normalized schema with violation_forms_new
+- [x] Normalized schema with violation_forms
 - [x] Separate violation_photos table
 - [x] RLS policies configured
 - [x] All migrations applied

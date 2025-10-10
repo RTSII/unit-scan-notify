@@ -69,10 +69,10 @@
 ```typescript
 // Books.tsx - fetchSavedForms()
 const { data, error } = await supabase
-  .from('violation_forms_new')
+  .from('violation_forms')
   .select(`
     *,
-    profiles!violation_forms_new_user_id_fkey (
+    profiles!violation_forms_user_id_fkey (
       email,
       full_name,
       role
@@ -154,7 +154,7 @@ if (user?.role !== 'admin') {
 
 ### Current Implementation
 
-**violation_forms_new table:**
+**violation_forms table:**
 - Users can INSERT their own forms
 - Users can SELECT all forms (team visibility)
 - Users can UPDATE their own forms
@@ -170,25 +170,25 @@ if (user?.role !== 'admin') {
 ```sql
 -- Allow all authenticated users to view all forms
 CREATE POLICY "Users can view all violation forms"
-ON violation_forms_new FOR SELECT
+ON violation_forms FOR SELECT
 TO authenticated
 USING (true);
 
 -- Allow users to create their own forms
 CREATE POLICY "Users can create their own forms"
-ON violation_forms_new FOR INSERT
+ON violation_forms FOR INSERT
 TO authenticated
 WITH CHECK (auth.uid() = user_id);
 
 -- Allow users to update their own forms
 CREATE POLICY "Users can update their own forms"
-ON violation_forms_new FOR UPDATE
+ON violation_forms FOR UPDATE
 TO authenticated
 USING (auth.uid() = user_id);
 
 -- Only admin can delete forms
 CREATE POLICY "Only admin can delete forms"
-ON violation_forms_new FOR DELETE
+ON violation_forms FOR DELETE
 TO authenticated
 USING (
   EXISTS (

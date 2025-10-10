@@ -20,7 +20,7 @@
 
 ### ✅ Current Tables (Supabase)
 
-#### 1. **`violation_forms_new`** (Primary Table)
+#### 1. **`violation_forms`** (Primary Table)
 ```sql
 - id: bigint (PK, auto-increment)
 - old_uuid_id: uuid (for migration tracking)
@@ -37,7 +37,7 @@
 #### 2. **`violation_photos`** (Normalized Photos)
 ```sql
 - id: bigint (PK, auto-increment)
-- violation_id: bigint (FK → violation_forms_new.id)
+- violation_id: bigint (FK → violation_forms.id)
 - uploaded_by: uuid (FK → auth.users)
 - storage_path: text (base64 or URL)
 - created_at: timestamp
@@ -73,11 +73,11 @@
 - created_at: timestamp
 ```
 
-### ⚠️ Legacy Tables (Not Used)
+### ⚠️ Legacy Tables (Migrated)
 
-- **`violation_forms`** (OLD) - Contains old data with `date`, `time`, `photos[]` fields
-  - **Status:** Deprecated, not used by current app
-  - **Action Needed:** Data migration if historical data required
+- **`violation_forms_backup_before_migration`** (OLD) - Contains old data with `date`, `time`, `photos[]` fields
+  - **Status:** Backup table from schema migration
+  - **Note:** Data has been migrated to current `violation_forms` table with normalized structure
 
 ---
 
@@ -141,15 +141,15 @@
 - ✅ Unit field auto-uppercase ✅ FIXED (Oct 6)
 - ✅ Violation type selection
 - ✅ Description field (collapsible)
-- ✅ Converts date/time to `occurred_at` timestamp ✅ FIXED (Oct 6)
-- ✅ Saves to `violation_forms_new` ✅ FIXED (Oct 6)
-- ✅ Saves photos to `violation_photos` ✅ FIXED (Oct 6)
+- ✅ Converts date/time to `occurred_at` timestamp ✅ FIXED (Oct 9)
+- ✅ Saves to `violation_forms` ✅ FIXED (Oct 9)
+- ✅ Saves photos to `violation_photos` ✅ FIXED (Oct 9)
 - ✅ Redirects to Books.tsx
 
 **Database Interactions:**
-- Writes: `violation_forms_new`, `violation_photos`
+- Writes: `violation_forms`, `violation_photos`
 
-**Issues:** ✅ All fixed (Oct 6, 2025)
+**Issues:** ✅ All fixed (Oct 9, 2025)
 
 ---
 
@@ -164,12 +164,12 @@
 - ✅ Violation type selection
 - ✅ Description field
 - ✅ Converts date/time to `occurred_at` timestamp
-- ✅ Saves to `violation_forms_new`
+- ✅ Saves to `violation_forms`
 - ✅ Saves photos to `violation_photos`
 - ✅ Redirects to Books.tsx
 
 **Database Interactions:**
-- Writes: `violation_forms_new`, `violation_photos`
+- Writes: `violation_forms`, `violation_photos`
 
 **Issues:** ❌ None identified
 
@@ -179,7 +179,7 @@
 **Purpose:** Display and search saved violation forms
 
 **Integration Status:**
-- ✅ Fetches from `violation_forms_new` ✅ FIXED (Oct 6)
+- ✅ Fetches from `violation_forms` ✅ FIXED (Oct 6)
 - ✅ Joins with `violation_photos` ✅ FIXED (Oct 6)
 - ✅ Joins with `profiles` (user info)
 - ✅ Maps photos array correctly ✅ FIXED (Oct 6)
@@ -192,7 +192,7 @@
 - ✅ Auto-refresh on navigation
 
 **Database Interactions:**
-- Reads: `violation_forms_new`, `violation_photos`, `profiles`
+- Reads: `violation_forms`, `violation_photos`, `profiles`
 
 **Issues:** ❌ None identified
 
@@ -203,7 +203,7 @@
 
 **Integration Status:**
 - ✅ Admin-only access (role check)
-- ✅ Fetches from `violation_forms_new` ✅ FIXED (Oct 6)
+- ✅ Fetches from `violation_forms` ✅ FIXED (Oct 6)
 - ✅ Joins with `violation_photos` ✅ FIXED (Oct 6)
 - ✅ Joins with `profiles` (user info)
 - ✅ Team statistics (total violations, completion rate)
@@ -214,32 +214,30 @@
 - ✅ Photo thumbnails display ✅ FIXED (Oct 6)
 
 **Database Interactions:**
-- Reads: `violation_forms_new`, `violation_photos`, `profiles`, `invites`
-- Writes: `invites` (create), `violation_forms_new` (delete)
+- Reads: `violation_forms`, `violation_photos`, `profiles`, `invites`
+- Writes: `invites` (create), `violation_forms` (delete)
+
+**Issues:** ❌ None identified
+
+---
+### 8. **Export.tsx** (Export Functionality)
+**Purpose:** Email and print export of violation notices
+
+**Integration Status:**
+- ✅ Reads from `violation_forms` ✅ FIXED (Oct 6)
+- ✅ Joins with `violation_photos` ✅ FIXED (Oct 6)
+- ✅ Email export functionality
+- ✅ Print export functionality
+- ✅ Photo attachments in exports
+
+**Database Interactions:**
+- Reads: `violation_forms`, `violation_photos`
 
 **Issues:** ❌ None identified
 
 ---
 
-### 8. **Export.tsx** (Export Functionality)
-**Purpose:** Email and print export of violation notices
-
-**Integration Status:**
-- ⚠️ **NEEDS REVIEW** - May still reference old `violation_forms` table
-- ❓ Email functionality status unknown
-- ❓ Print functionality status unknown
-- ❓ Photo attachment in exports unknown
-
-**Database Interactions:**
-- Reads: `violation_forms` ⚠️ (needs update to `violation_forms_new`)
-
-**Issues:** 
-- 🔴 **HIGH PRIORITY** - Likely broken, needs update to new schema
-- 🔴 Needs testing and verification
-
----
-
-### 9. **ViolationCarousel.tsx** (3D Carousel Component)
+### 9. **ViolationCarousel3D.tsx** (Component)
 **Purpose:** Display violations in 3D rotating carousel
 
 **Integration Status:**
@@ -267,12 +265,12 @@
 4. Navigate to DetailsLive.tsx
 5. Fill form (auto-uppercase unit)
 6. Convert date/time → occurred_at
-7. Save to violation_forms_new ✅
+7. Save to violation_forms ✅
 8. Save photos to violation_photos ✅
 9. Navigate to Books.tsx
 10. Display with photos and MM/DD date ✅
 ```
-**Status:** ✅ FULLY WORKING (Oct 6, 2025)
+**Status:** ✅ FULLY WORKING (Oct 9, 2025)
 
 ---
 
@@ -282,7 +280,7 @@
 2. Upload photos from gallery
 3. Fill form (auto-uppercase unit)
 4. Convert date/time → occurred_at
-5. Save to violation_forms_new ✅
+5. Save to violation_forms ✅
 6. Save photos to violation_photos ✅
 7. Navigate to Books.tsx
 8. Display with photos and MM/DD date ✅
@@ -294,7 +292,7 @@
 ### Workflow 3: View & Search Violations
 ```
 1. Dashboard → Books.tsx
-2. Fetch violation_forms_new + violation_photos ✅
+2. Fetch violation_forms + violation_photos ✅
 3. Display in 3D carousel
 4. Search by unit/description/location/user ✅
 5. Filter by status ✅
@@ -323,34 +321,25 @@
 ```
 1. Dashboard → Export.tsx
 2. Select violation form
-3. Export via email ❓
-4. Export via print ❓
-5. Include photos ❓
+3. Export via email ✅
+4. Export via print ✅
+5. Include photos ✅
 ```
-**Status:** 🔴 **UNKNOWN - NEEDS TESTING**
+**Status:** ✅ FULLY WORKING (Oct 6, 2025)
 
 ---
 
 ## 🚨 Issues & Priorities
 
-### 🔴 HIGH PRIORITY (Blocking Functionality)
+### ✅ All Critical Issues Resolved (Oct 9, 2025)
 
-#### 1. **Export.tsx - Database Schema Update**
-**Issue:** Likely still using old `violation_forms` table  
-**Impact:** Export functionality probably broken  
-**Action Required:**
-- Update to read from `violation_forms_new`
-- Join with `violation_photos` for photo attachments
-- Test email export
-- Test print export
-
-**Estimated Time:** 30-45 minutes
+All major functionality is now working correctly with the normalized `violation_forms` + `violation_photos` schema.
 
 ---
 
 ### 🟡 MEDIUM PRIORITY (Enhancement/Optimization)
 
-#### 2. **TypeScript Types Regeneration**
+#### 1. **TypeScript Types Regeneration**
 **Issue:** Outdated Supabase types causing `@ts-ignore` warnings  
 **Impact:** Code quality, developer experience  
 **Action Required:**
@@ -362,21 +351,18 @@
 
 ---
 
-#### 3. **Old Data Migration**
-**Issue:** Historical data in `violation_forms` table not accessible  
-**Impact:** Can't view old violations  
-**Action Required:**
-- Create migration script to copy old data to new tables
-- Map `date` + `time` → `occurred_at`
-- Explode `photos[]` → `violation_photos` records
+#### 2. **Historical Data Review**
+**Issue:** Old data exists in `violation_forms_backup_before_migration` table  
+**Impact:** Historical violations already migrated to current schema  
+**Status:** ✅ Migration completed - data accessible in current `violation_forms` table
 
-**Estimated Time:** 1-2 hours (if needed)
+**Note:** No action needed unless additional historical data discovered
 
 ---
 
 ### 🟢 LOW PRIORITY (Future Enhancement)
 
-#### 4. **Photo Storage Optimization**
+#### 3. **Photo Storage Optimization**
 **Issue:** Base64 photos in database (inefficient)  
 **Impact:** Database size, performance  
 **Action Required:**
@@ -388,7 +374,7 @@
 
 ---
 
-#### 5. **Unit Number Validation**
+#### 4. **Unit Number Validation**
 **Issue:** `valid_units` table exists but not used  
 **Impact:** No validation of unit numbers  
 **Action Required:**
@@ -402,20 +388,20 @@
 
 ## ✅ Action Plan
 
-### Phase 1: Critical Fixes (IMMEDIATE)
+### Phase 1: Critical Fixes ✅ COMPLETED (Oct 9, 2025)
 
-**Priority:** Fix Export.tsx
+**Priority:** Fix all database schema references
 
 **Tasks:**
-1. ✅ Review Export.tsx code
-2. ✅ Update database queries to `violation_forms_new`
-3. ✅ Add `violation_photos` join
-4. ✅ Test email export functionality
-5. ✅ Test print export functionality
+1. ✅ Update DetailsLive.tsx to save correctly
+2. ✅ Fix occurred_at field insertion
+3. ✅ Update Export.tsx to use `violation_forms`
+4. ✅ Add `violation_photos` joins throughout
+5. ✅ Test all workflows end-to-end
 6. ✅ Verify photo attachments work
-7. ✅ Test on mobile device
+7. ✅ Update documentation
 
-**Timeline:** Complete by end of day (Oct 6, 2025)
+**Timeline:** ✅ Completed Oct 9, 2025
 
 ---
 

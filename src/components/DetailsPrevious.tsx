@@ -585,25 +585,25 @@ export default function DetailsPrevious() {
           .update(updatePayload)
           .eq('id', numericId)
           .select()
-          .returns<ViolationFormRow[]>();
+          .single();
 
         if (error) {
           throw error;
         }
 
-        savedFormId = data?.[0]?.id ?? null;
+        savedFormId = data?.id ?? null;
       } else {
         const { data, error } = await supabase
           .from('violation_forms')
           .insert(insertPayload)
           .select()
-          .returns<ViolationFormRow[]>();
+          .single();
 
         if (error) {
           throw error;
         }
 
-        savedFormId = data?.[0]?.id ?? null;
+        savedFormId = data?.id ?? null;
       }
 
       if (!savedFormId) {

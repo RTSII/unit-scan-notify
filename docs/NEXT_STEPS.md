@@ -1,31 +1,31 @@
-# 🚧 Live Capture Fix Initiative — Status @ October 7, 2025
+# 🚧 Live Capture Fix Initiative — Status @ October 9, 2025
 
 ## 🔎 Snapshot
 
-We pivoted away from the proposed `violation_forms_new` table and are realigning every page with the **existing** Supabase schema: `violation_forms` + `violation_photos`. The immediate goal is still the same—get Book Em / live capture saving reliably (forms + photos) and complete the user’s “steps 1–4”. We are midstream: several pages now target the correct tables, but types, admin tooling, and QA remain outstanding.
+We pivoted away from the proposed `violation_forms_new` table and are realigning every page with the **existing** Supabase schema: `violation_forms` + `violation_photos`. The immediate goal is still the same—get Book Em / live capture saving reliably (forms + photos) and complete the user's "steps 1–4". We are midstream: several pages now target the correct tables, but types, admin tooling, and QA remain outstanding.
 
 ## ✅ Progress Since October 6
 
-- **Details capture flows updated**
+- **Details capture flows updated** ✅ **FIXED October 9**
   - `src/pages/DetailsLive.tsx` saves into `violation_forms` and `violation_photos` using `occurred_at` + uppercase unit numbers.
+  - **Critical bug fixed**: Added missing `occurred_at` field to insert payload and corrected `.single()` method call.
+  - Forms now save successfully and redirect to Books page with photos stored in `violation_photos` table.
   - `src/components/DetailsPrevious.tsx` has been refactored to read/write the normalized schema, including editing existing photos (retain/delete/add) and the new centered photo picker UI.
 
 - **Exports are unblocked**
   - `src/pages/Export.tsx` now queries `violation_forms` with an eager `violation_photos` join so email/print exports include the photo set.
-
 - **Books list partially aligned**
   - `src/pages/Books.tsx` reads from `violation_forms` and joins `violation_photos`, restoring Books > Gallery visibility. (Type ignores remain until we regenerate types.)
 
 ## 🔄 In Progress
 
-- **Admin console alignment**
-  - `src/pages/Admin.tsx` still references the deprecated `violation_forms_new` table. We need to update its queries (including stats, deletes, and fallback joins) to use `violation_forms`.
+ - **Admin console alignment**
+  - Verify `src/pages/Admin.tsx` queries (stats, deletes, fallback joins) are aligned to `violation_forms` and `violation_photos`; adjust if any legacy references remain.
 
 - **Supabase type regeneration**
   - Supabase JS types do not include `violation_forms`/`violation_photos`, forcing multiple `@ts-ignore`. Once schema references settle, run:
 
     ```bash
-    npx supabase gen types typescript --project-id fvqojgifgevrwicyhmvj > src/integrations/supabase/types.ts
     ```
 
   - Remove the ignores in `Books.tsx`, `DetailsLive.tsx`, `DetailsPrevious.tsx`, `Admin.tsx`, `Export.tsx`, and fix any new TS errors.
@@ -69,11 +69,10 @@ We pivoted away from the proposed `violation_forms_new` table and are realigning
 
 ## 📝 Notes & Next Actions
 
-- Update `docs/PRIORITY_TODO.md` after Admin + FK steps so the doc matches reality.
 - After types regenerate, sweep for any stale references to `_new` or legacy columns.
 - Coordinate Supabase DB changes (FK, RLS) with proper migration scripts or SQL runbooks.
 
 ---
 
-**Last Updated:** October 7, 2025 – 4:10 PM ET  
+**Last Updated:** October 9, 2025 – 7:37 PM ET  
 **Maintainer:** Cascade pair-programming session

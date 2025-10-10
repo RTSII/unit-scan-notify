@@ -140,13 +140,13 @@ const DetailsLive = () => {
         .from('violation_forms')
         .insert(formPayload)
         .select()
-        .returns<ViolationFormRow[]>();
+        .single();
 
       if (error) throw error;
 
       // Save photos to violation_photos table if we have any
-      if (photos.length > 0 && formResult && formResult[0]) {
-        const formId = formResult[0].id;
+      if (photos.length > 0 && formResult) {
+        const formId = formResult.id;
 
         const photoRecords: ViolationPhotoInsert[] = photos.map(photoBase64 => ({
           violation_id: formId,
