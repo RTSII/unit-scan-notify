@@ -1,11 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { supabase } from '../integrations/supabase/client';
-import type { Tables, TablesInsert, TablesUpdate } from '../integrations/supabase/types';
-import { useAuth } from '@/hooks/useAuth';
-import { Home, Camera, X, ArrowLeftIcon, Plus } from 'lucide-react';
+import { db } from '@/integrations/supabase/client';
 
-import { TextureCard, TextureCardContent } from '../components/ui/texture-card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';

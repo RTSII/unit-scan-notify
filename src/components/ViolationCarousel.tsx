@@ -74,9 +74,11 @@ export const ViolationCarousel3D: React.FC<{
     return items.length > 0 ? items : [{ id: "placeholder-1", imageUrl: "placeholder", unit: "", date: "" }];
   }, [forms]);
 
-  const targetFaces = isScreenSizeSm ? 12 : 16; // Fewer faces for larger cards
-  const cylinderWidth = isScreenSizeSm ? 1400 : 2000; // Wider cylinder for better spacing
-  const maxThumb = isScreenSizeSm ? 80 : 120; // Much larger thumbnails
+  // Mobile density: target ~5 visible faces
+  const targetFaces = isScreenSizeSm ? 20 : 16;
+  // Smaller mobile cylinder to increase curvature (smaller radius)
+  const cylinderWidth = isScreenSizeSm ? 1500 : 2000;
+  const maxThumb = isScreenSizeSm ? 64 : 120;
 
   const displayItems = useMemo(() => {
     if (baseItems.length >= targetFaces) return baseItems;
@@ -207,7 +209,7 @@ export const ViolationCarousel3D: React.FC<{
         >
           <div
             className="flex h-full items-center justify-center bg-black/10"
-            style={{ perspective: "1000px", transformStyle: "preserve-3d", willChange: "transform" }}
+            style={{ perspective: isScreenSizeSm ? "700px" : "1000px", transformStyle: "preserve-3d", willChange: "transform" }}
           >
             <motion.div
               drag={isCarouselActive ? "x" : false}
@@ -226,7 +228,7 @@ export const ViolationCarousel3D: React.FC<{
               {displayItems.map((item, i) => (
                 <motion.div
                   key={`key-${item.imageUrl}-${i}`}
-                  className="absolute flex h-full origin-center items-center justify-center rounded-2xl p-1"
+                  className="absolute flex h-full origin-center items-center justify-center rounded-2xl p-0.5"
                   style={{ 
                     width: `${faceWidth}px`, 
                     transform: `rotateY(${i * (360 / faceCount)}deg) translateZ(${radius}px)`,

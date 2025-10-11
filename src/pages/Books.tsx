@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Navigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { useAuth } from "../hooks/useAuth";
-import { supabase } from "../integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "../hooks/use-toast";
 import { ViolationCarousel3D } from "../components/ViolationCarousel";
 import {
@@ -152,7 +152,11 @@ const Books = () => {
   const location = useLocation();
 
   const fetchSavedForms = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      // No authenticated user; stop loading so the auth redirect can render
+      setLoading(false);
+      return;
+    }
 
     try {
       // First, try to fetch with the join (including violation_photos)
@@ -339,6 +343,11 @@ const Books = () => {
         </div>
       </div>
     );
+  }
+
+  // If not loading and no user, redirect to auth like Export.tsx
+  if (!user) {
+    return <Navigate to="/auth" replace />;
   }
 
   return (
