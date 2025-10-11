@@ -336,6 +336,31 @@
 
 ---
 
+## 🏠💼 Multi-PC Workflow (Home ↔ Work)
+
+Keep your Home and Work environments in sync:
+
+### Home (before leaving)
+- `git pull`
+- `git add -A && git commit -m "<message>" && git push`
+
+### Work (when arriving)
+- `git pull`
+- `npm ci` (use `npm install` only when deps change)
+- Start dev: `npm run dev` (or your usual script)
+
+### Consistency & hygiene
+- Do not commit `node_modules/` (ensure it’s in `.gitignore`).
+- Commit `package-lock.json` for deterministic installs.
+- Align Node versions via `.nvmrc` and nvm-windows.
+- Keep secrets in `.env` (never commit); securely share values for both PCs.
+
+### Notes
+- If installs drift, run `npm ci` to reset from the lockfile.
+- Review `npm audit`; optionally run `npm audit fix`, test, and commit lockfile updates.
+
+---
+
 ## 🚨 Issues & Priorities
 
 ### ✅ All Critical Issues Resolved (Oct 11, 2025)

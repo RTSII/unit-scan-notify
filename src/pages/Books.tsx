@@ -313,7 +313,17 @@ const Books = () => {
     } else {
       startDate = new Date(now.getFullYear(), now.getMonth(), 1);
     }
-    return base.filter(form => new Date(form.created_at) >= startDate);
+    const filtered = base.filter(form => {
+      const dateStr = form.created_at || form.occurred_at || '';
+      const d = dateStr ? new Date(dateStr) : null;
+      return d ? d >= startDate : false;
+    });
+    filtered.sort((a, b) => {
+      const ad = new Date(a.created_at || a.occurred_at || 0).getTime();
+      const bd = new Date(b.created_at || b.occurred_at || 0).getTime();
+      return bd - ad;
+    });
+    return filtered;
   })();
 
   const formatDate = (dateString: string) => {

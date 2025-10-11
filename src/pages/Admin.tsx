@@ -534,13 +534,33 @@ Welcome to the team!`);
   const getThisWeekForms = () => {
     const now = new Date();
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    return violationForms.filter(form => new Date(form.created_at) >= weekAgo);
+    const filtered = violationForms.filter(form => {
+      const dateStr = form.created_at || form.occurred_at || '';
+      const d = dateStr ? new Date(dateStr) : null;
+      return d ? d >= weekAgo : false;
+    });
+    filtered.sort((a, b) => {
+      const ad = new Date(a.created_at || a.occurred_at || 0).getTime();
+      const bd = new Date(b.created_at || b.occurred_at || 0).getTime();
+      return bd - ad;
+    });
+    return filtered;
   };
 
   const getThisMonthForms = () => {
     const now = new Date();
     const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    return violationForms.filter(form => new Date(form.created_at) >= monthAgo);
+    const filtered = violationForms.filter(form => {
+      const dateStr = form.created_at || form.occurred_at || '';
+      const d = dateStr ? new Date(dateStr) : null;
+      return d ? d >= monthAgo : false;
+    });
+    filtered.sort((a, b) => {
+      const ad = new Date(a.created_at || a.occurred_at || 0).getTime();
+      const bd = new Date(b.created_at || b.occurred_at || 0).getTime();
+      return bd - ad;
+    });
+    return filtered;
   };
 
   const formatDate = (dateString: string) => {

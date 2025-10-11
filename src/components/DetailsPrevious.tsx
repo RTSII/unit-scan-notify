@@ -637,12 +637,14 @@ export default function DetailsPrevious() {
       }
 
       const locationSummary = selectedViolations.join(', ');
+      const nowIso = new Date().toISOString();
       const basePayload = {
         unit_number: normalizedUnit,
         occurred_at: occurredAt,
         location: locationSummary || null,
         description: formData.description || null,
         status: 'saved' as const,
+        created_at: nowIso,
       } satisfies Omit<ViolationFormInsert, 'user_id'>;
 
       const insertPayload: ViolationFormInsert = {
@@ -705,15 +707,98 @@ export default function DetailsPrevious() {
       }
 
       if (selectedImages.length > 0) {
-        const photoPayloads: ViolationPhotoInsert[] = selectedImages.map((photoBase64) => ({
-          violation_id: savedFormId,
-          uploaded_by: user.id,
-          storage_path: photoBase64,
-        }));
+        const photoRows: ViolationPhotoInsert[] = [];
+
+        const dataUrlToCompressedBlob = async (
+          dataUrl: string,
+          maxDim = 1600,
+          quality = 0.8,
+          outputType: 'image/jpeg' | 'image/webp' = 'image/jpeg'
+        ): Promise<Blob> => {
+          return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+              const { width, height } = img;
+              const scale = Math.min(1, maxDim / Math.max(width, height));
+              const canvas = document.createElement('canvas');
+              canvas.width = Math.max(1, Math.round(width * scale));
+              canvas.height = Math.max(1, Math.round(height * scale));
+              const ctx = canvas.getContext('2d');
+              if (!ctx) {
+                reject(new Error('Canvas 2D context unavailable'));
+                return;
+              }
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+              canvas.toBlob(
+                (blob) => {
+                  if (!blob) {
+                    try {
+                      const fallback = canvas.toDataURL(outputType, quality);
+                      const m = fallback.match(/^data:(.*?);base64,(.*)$/);
+                      const base64 = m ? m[2] : '';
+                      const bytes = atob(base64);
+                      const arr = new Uint8Array(bytes.length);
+                      for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+                      resolve(new Blob([arr], { type: outputType }));
+                    } catch (e) {
+                      reject(new Error('Failed to compress image'));
+                    }
+                    return;
+                  }
+                  resolve(blob);
+                },
+                outputType,
+                quality
+              );
+            };
+            img.onerror = () => reject(new Error('Failed to load image for compression'));
+            img.src = dataUrl;
+          });
+        };
+
+        const randHex = (len = 12) => {
+          const arr = new Uint8Array(len);
+          (window.crypto || (window as any).msCrypto).getRandomValues(arr);
+          return Array.from(arr, (b) => b.toString(16).padStart(2, '0')).join('');
+        };
+
+        for (let i = 0; i < selectedImages.length; i++) {
+          const dataUrl = selectedImages[i];
+          const compressedBlob = await dataUrlToCompressedBlob(dataUrl, 1600, 0.8, 'image/jpeg');
+          const contentType = 'image/jpeg';
+          const ext = 'jpg';
+
+          if (compressedBlob.size > 4 * 1024 * 1024) {
+            toast.error('One image exceeded 4MB after compression and was skipped.');
+            continue;
+          }
+
+          const fileName = `${savedFormId}_${Date.now()}_${i}_${randHex(8)}.${ext}`;
+          const path = `${user.id}/${savedFormId}/${fileName}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from('violation-photos')
+            .upload(path, compressedBlob, { contentType, upsert: false, cacheControl: '31536000' });
+          if (uploadError) {
+            throw uploadError;
+          }
+
+          const { data: publicUrlData } = supabase.storage
+            .from('violation-photos')
+            .getPublicUrl(path);
+          const publicUrl = publicUrlData.publicUrl;
+
+          photoRows.push({
+            violation_id: savedFormId,
+            uploaded_by: user.id,
+            storage_path: publicUrl,
+            created_at: nowIso,
+          });
+        }
 
         const { error: insertPhotosError } = await supabase
           .from('violation_photos')
-          .insert(photoPayloads);
+          .insert(photoRows);
 
         if (insertPhotosError) {
           throw insertPhotosError;

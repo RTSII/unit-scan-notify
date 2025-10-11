@@ -15,7 +15,7 @@ This project, "SPR Vice City," is a mobile-first web application for managing pr
 - **Violation Capture:** Integrates with the device camera to allow users to take photos of violations.
 - **Form Management:** A comprehensive system for filling out and submitting violation details.
 - **User Authentication:** An invite-only system with role-based access.
-- **Admin Dashboard:** A section for administrators to view team statistics, manage users, and oversee all violation forms.
+- **Admin Dashboard:** A section for site admin (Rob) to view team statistics, manage users, and oversee all violation forms.
 - **"Books" Archive:** A searchable and filterable library of all past violations, presented with a unique 3D carousel interface.
 - **Export Functionality:** Allows users to export violation notices to email or a printable format.
 
@@ -51,7 +51,7 @@ This project, "SPR Vice City," is a mobile-first web application for managing pr
     - The form can be saved, which creates a new entry in the `violation_forms` table.
 
 ### `DetailsPrevious.tsx`
-- **Purpose:** To view or edit previously saved violation forms.
+- **Purpose:** To create new violation forms, and potentially add photos from User's photo album/gallery that they have previously taken, hence the name of the file.
 - **Functionality:**
     - This page component wraps a `DetailsPrevious` component, suggesting it's used to load and display data from an existing form.
 
