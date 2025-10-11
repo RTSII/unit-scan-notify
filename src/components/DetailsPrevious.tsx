@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { db } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
+import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import { useAuth } from '@/hooks/useAuth';
 
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -20,6 +22,8 @@ import {
   UNIT_FORMAT_HINT,
   UNIT_FORMAT_DESCRIPTION,
 } from '@/utils/unitFormat';
+import { TextureCard, TextureCardContent } from '../components/ui/texture-card';
+import { Home, ArrowLeft as ArrowLeftIcon, Camera, X } from 'lucide-react';
 
 type ViolationFormRow = Tables<'violation_forms'>;
 type ViolationFormInsert = TablesInsert<'violation_forms'>;

@@ -124,20 +124,6 @@ const sanitizeProfiles = (rows: unknown): ProfileLookup[] => {
   });
 };
 
-const VIOLATION_FORM_JOIN = `
-  *,
-  profiles!violation_forms_user_id_fkey (
-    email,
-    full_name,
-    role
-  ),
-  violation_photos (
-    id,
-    storage_path,
-    created_at
-  )
-` as const;
-
 const Books = () => {
   const [forms, setForms] = useState<SavedForm[]>([]);
   const [loading, setLoading] = useState(true);
@@ -159,87 +145,65 @@ const Books = () => {
     }
 
     try {
-      // First, try to fetch with the join (including violation_photos)
+      // Fetch violation forms with photos join
       // IMPORTANT: Fetches ALL forms from ALL users (not filtered by user_id)
       // This allows all team members to view all violation forms
-      const { data, error } = await supabase
+      const { data: formsDataRaw, error: formsError } = await supabase
         .from('violation_forms')
-        .select(VIOLATION_FORM_JOIN)
+        .select(`
+          *,
+          violation_photos (
+            id,
+            storage_path,
+            created_at
+          )
+        `)
         .order('created_at', { ascending: false });
 
-      // If the join fails, fall back to separate queries
-      if (error || !data) {
-        console.log('Join query failed, falling back to separate queries:', error);
+      if (formsError) throw formsError;
 
-        // Fetch violation forms with photos join
-        // IMPORTANT: Fetches ALL forms from ALL users (not filtered by user_id)
-        // This allows all team members to view all violation forms
-        const { data: formsDataRaw, error: formsError } = await supabase
-          .from('violation_forms')
-          .select(`
-            *,
-            violation_photos (
-              id,
-              storage_path,
-              created_at
-            )
-          `)
-          .order('created_at', { ascending: false });
+      // Fetch all profiles
+      const { data: rawProfiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, email, full_name, role');
 
-        if (formsError) throw formsError;
+      if (profilesError) throw profilesError;
 
-        // Fetch all profiles
-        const { data: rawProfiles, error: profilesError } = await supabase
-          .from('profiles')
-          .select('user_id, email, full_name, role');
+      const profilesData = sanitizeProfiles(rawProfiles);
+      const formsData = sanitizeForms(formsDataRaw);
 
-        if (profilesError) throw profilesError;
+      // Manually join the data and map photos
+      const formsWithProfiles = formsData.map(form => {
+        const matchedProfile = profilesData.find(profile => profile.user_id === form.user_id) || null;
+        const profileSummary = matchedProfile
+          ? {
+              email: matchedProfile.email,
+              full_name: matchedProfile.full_name,
+              role: matchedProfile.role ?? "user",
+            }
+          : null;
 
-        const profilesData = sanitizeProfiles(rawProfiles);
-        const formsData = sanitizeForms(formsDataRaw);
+        return normalizeViolationForm(form, profileSummary);
+      });
 
-        // Manually join the data and map photos
-        const formsWithProfiles = formsData.map(form => {
-          const matchedProfile = profilesData.find(profile => profile.user_id === form.user_id) || null;
-          const profileSummary = matchedProfile
-            ? {
-                email: matchedProfile.email,
-                full_name: matchedProfile.full_name,
-                role: matchedProfile.role ?? "user",
-              }
-            : null;
-
-          return normalizeViolationForm(form, profileSummary);
+      // Debug: See all fetched forms with details
+      console.log('Forms fetched:', formsWithProfiles);
+      console.log('📊 FORM DETAILS:');
+      formsWithProfiles.forEach((f, idx) => {
+        console.log(`Form ${idx + 1}:`, {
+          id: f.id,
+          unit: f.unit_number,
+          date: f.date,
+          occurred_at: f.occurred_at,
+          photos: f.photos,
+          photoCount: f.photos.length,
+          photoType: typeof f.photos,
+          firstPhoto: f.photos[0] ? `${f.photos[0].substring(0, 50)}...` : null,
+          location: f.location
         });
+      });
 
-        // Debug: See all fetched forms with details
-        console.log('Forms fetched:', formsWithProfiles);
-        console.log('📊 FORM DETAILS:');
-        formsWithProfiles.forEach((f, idx) => {
-          console.log(`Form ${idx + 1}:`, {
-            id: f.id,
-            unit: f.unit_number,
-            date: f.date,
-            occurred_at: f.occurred_at,
-            photos: f.photos,
-            photoCount: f.photos.length,
-            photoType: typeof f.photos,
-            firstPhoto: f.photos[0] ? `${f.photos[0].substring(0, 50)}...` : null,
-            location: f.location
-          });
-        });
-
-        // Debug: See all fetched forms
-        console.log('Forms fetched:', formsWithProfiles);
-        setForms(formsWithProfiles);
-      } else {
-        // Map the data to include photos array from violation_photos join
-        const typedData = sanitizeForms(data);
-        const formsWithProfiles = typedData.map(form => normalizeViolationForm(form));
-        // Debug: See all fetched forms
-        console.log('Forms fetched (with join):', formsWithProfiles);
-        setForms(formsWithProfiles);
-      }
+      setForms(formsWithProfiles);
     } catch (error: unknown) {
       console.error('Error fetching forms:', error);
       toast({

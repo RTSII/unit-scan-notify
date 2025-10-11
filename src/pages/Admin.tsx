@@ -26,6 +26,13 @@ import {
   Key
 } from 'lucide-react';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select';
+import {
   AnimatePresence,
   motion
 } from "framer-motion";
@@ -186,44 +193,17 @@ export default function Admin() {
   
   // Violation forms state
   const [violationForms, setViolationForms] = useState<SavedForm[]>([]);
-  const [activeSection, setActiveSection] = useState<'week' | 'month' | 'all' | null>(null);
+  const [timeFilter, setTimeFilter] = useState<'this_week' | 'this_month' | 'all'>('this_week');
   const [deletingFormId, setDeletingFormId] = useState<string | null>(null);
 
   // Profile card state
   const [profileExpanded, setProfileExpanded] = useState(false);
   const [activeUsers, setActiveUsers] = useState<PresenceState>({});
-  const sectionsTopRef = useRef<HTMLDivElement>(null);
   const hasFetchedDataRef = useRef(false);
 
   const fetchViolationForms = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('violation_forms')
-        .select(`
-          *,
-          profiles!violation_forms_user_id_fkey (
-            email,
-            full_name,
-            role
-          ),
-          violation_photos (
-            id,
-            storage_path,
-            created_at
-          )
-        `)
-        .order('created_at', { ascending: false })
-        .limit(1000)
-        .returns<JoinedViolationForm[]>();
-
-      if (!error && data) {
-        const formsWithProfiles = data.map((form) => normalizeFormRecord(form));
-        setViolationForms(formsWithProfiles);
-        return;
-      }
-
-      console.warn('Join query failed, using fallback profile join', error);
-
+      // Fetch forms and photos separately, then join with profiles
       const { data: formsData, error: formsError } = await supabase
         .from('violation_forms')
         .select(`
@@ -391,129 +371,22 @@ export default function Admin() {
     };
   }, [user, profile]);
 
-  // Scroll to the violations stack when a section is toggled
-  useEffect(() => {
-    if (activeSection && sectionsTopRef.current) {
-      sectionsTopRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, [activeSection]);
 
-  const renderSection = (type: 'week' | 'month' | 'all') => {
-    const isActive = activeSection === type;
-    const toggle = () => setActiveSection(prev => (prev === type ? null : type));
-    if (type === 'week') {
-      return (
-        <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm overflow-hidden">
-          <button
-            onClick={toggle}
-            className="w-full p-4 flex items-center justify-between hover:bg-black/20 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <Clock className="w-5 h-5 text-vice-pink" />
-              <span className="text-white font-medium text-lg">This Week ({getThisWeekForms().length})</span>
-            </div>
-            <motion.div
-              animate={{ rotate: isActive ? 180 : 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <svg className="w-5 h-5 text-vice-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </motion.div>
-          </button>
-          <AnimatePresence>
-            {isActive && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="overflow-hidden"
-              >
-                <div className="p-4 pt-0">
-                  <ViolationCarousel3D forms={getThisWeekForms()} onDelete={deleteViolationForm} />
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </Card>
-      );
+  // Get filtered forms based on time filter
+  const getFilteredForms = () => {
+    if (timeFilter === 'this_week') {
+      return getThisWeekForms();
+    } else if (timeFilter === 'this_month') {
+      return getThisMonthForms();
     }
-    if (type === 'month') {
-      return (
-        <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm overflow-hidden">
-          <button
-            onClick={toggle}
-            className="w-full p-4 flex items-center justify-between hover:bg-black/20 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <BarChart3 className="w-5 h-5 text-vice-pink" />
-              <span className="text-white font-medium text-lg">This Month ({getThisMonthForms().length})</span>
-            </div>
-            <motion.div
-              animate={{ rotate: isActive ? 180 : 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <svg className="w-5 h-5 text-vice-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </motion.div>
-          </button>
-          <AnimatePresence>
-            {isActive && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="overflow-hidden"
-              >
-                <div className="p-4 pt-0">
-                  <ViolationCarousel3D forms={getThisMonthForms()} onDelete={deleteViolationForm} />
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </Card>
-      );
-    }
-    // all
-    return (
-      <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm overflow-hidden">
-        <button
-          onClick={toggle}
-          className="w-full p-4 flex items-center justify-between hover:bg-black/20 transition-colors"
-        >
-          <div className="flex items-center gap-3">
-            <FileText className="w-5 h-5 text-vice-pink" />
-            <span className="text-white font-medium text-lg">All Forms ({violationForms.length})</span>
-          </div>
-          <motion.div
-            animate={{ rotate: isActive ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <svg className="w-5 h-5 text-vice-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </motion.div>
-        </button>
-        <AnimatePresence>
-          {isActive && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="overflow-hidden"
-            >
-              <div className="p-4 pt-0">
-                <ViolationCarousel3D forms={violationForms} onDelete={deleteViolationForm} />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </Card>
-    );
+    return violationForms;
+  };
+
+  // Get time filter label
+  const getTimeFilterLabel = () => {
+    if (timeFilter === 'this_week') return 'This Week';
+    if (timeFilter === 'this_month') return 'This Month';
+    return 'All Forms';
   };
 
   const generateToken = () => {
@@ -718,22 +591,15 @@ Welcome to the team!`);
     );
   }
 
-  const baseSections: Array<'week' | 'month' | 'all'> = ['week', 'month', 'all'];
-  const orderedSections = activeSection
-    ? [activeSection, ...baseSections.filter((section) => section !== activeSection)]
-    : baseSections;
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue p-4 pb-safe">
       {/* Header */}
-      <div className="flex items-center justify-between h-20 px-4 border-b border-vice-cyan/20 relative">
-        <div className="flex-1 h-full flex items-center justify-center">
-          <img
-            src="/Admin.png"
-            alt="Admin Panel"
-            className="h-3/4 w-auto"
-          />
-        </div>
+      <div className="flex items-center justify-center py-2 px-4 border-b border-vice-cyan/20 relative">
+        <img
+          src="/Admin.png"
+          alt="Admin Panel"
+          className="h-auto max-h-[120px] w-auto object-contain"
+        />
         <Button
           onClick={() => navigate('/')}
           variant="ghost"
@@ -748,12 +614,35 @@ Welcome to the team!`);
         {/* Profile Card with Active Users - REMOVED */}
         {/* This profile section has been moved to Dashboard page profile avatar */}
 
-        {/* Violation Forms Section with Dropdown Style - Active section floats to top */}
-        <div className="space-y-4">
-          {orderedSections.map((section) => (
-            <div key={section}>{renderSection(section)}</div>
-          ))}
-        </div>
+        {/* Unified Violation Forms Section with 3D Carousel */}
+        <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-white flex items-center gap-2">
+                <FileText className="w-5 h-5 text-vice-cyan" />
+                {getTimeFilterLabel()} ({getFilteredForms().length})
+              </CardTitle>
+              <Select value={timeFilter} onValueChange={(value: 'this_week' | 'this_month' | 'all') => setTimeFilter(value)}>
+                <SelectTrigger className="w-[180px] bg-black/20 border-vice-cyan/30 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-black/90 border-vice-cyan/30">
+                  <SelectItem value="this_week" className="text-white hover:bg-vice-cyan/20">This Week</SelectItem>
+                  <SelectItem value="this_month" className="text-white hover:bg-vice-cyan/20">This Month</SelectItem>
+                  <SelectItem value="all" className="text-white hover:bg-vice-cyan/20">All Forms</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <ViolationCarousel3D 
+              forms={getFilteredForms()} 
+              onDelete={deleteViolationForm}
+              heightClass="h-[260px] sm:h-[320px]"
+              containerClassName="mx-auto"
+            />
+          </CardContent>
+        </Card>
 
         {/* Team Performance Overview */}
         {userActivity.length > 0 && (

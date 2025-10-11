@@ -126,6 +126,20 @@ This folder contains all technical documentation for the SPR Vice City violation
 - Usage guide
 - Troubleshooting
 
+**[SUPABASE_MCP_INTEGRATION.md](SUPABASE_MCP_INTEGRATION.md)**
+- Supabase MCP Server setup
+- AI assistant database access
+- Configuration for Claude Desktop, Cline, Cursor
+- Security best practices
+- Query examples and troubleshooting
+
+**[NETLIFY_MCP_INTEGRATION.md](NETLIFY_MCP_INTEGRATION.md)**
+- Netlify MCP Server setup
+- Deployment management and monitoring
+- Build log analysis and debugging
+- Environment variable management
+- Configuration with access token
+
 ---
 
 ## 📝 Project History
