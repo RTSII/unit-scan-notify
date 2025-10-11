@@ -152,6 +152,7 @@ export default function DetailsPrevious() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { user } = useAuth();
+  const photoInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState<ViolationFormData>({
@@ -338,6 +339,75 @@ export default function DetailsPrevious() {
       setIsOpen(false);
     };
 
+    const readAsDataURL = (file: File) =>
+      new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(file);
+      });
+
+    const processPickedFiles = async (files: File[]) => {
+      const retainedExistingCount = existingPhotoRecords.filter(
+        (record) => !photosToDelete.includes(record.id),
+      ).length;
+      const remainingSlots = Math.max(0, 4 - retainedExistingCount - selectedImages.length);
+      const filesToProcess = files.slice(0, remainingSlots);
+      if (files.length > remainingSlots) {
+        toast.error(`You can only attach up to 4 photos. ${remainingSlots} slot(s) remaining.`);
+      }
+      for (const file of filesToProcess) {
+        const dataUrl = await readAsDataURL(file);
+        setSelectedImages((prev) => [...prev, dataUrl]);
+      }
+    };
+
+    const openImagesPicker = async () => {
+      const anyWindow = window as any;
+      if (typeof anyWindow.showOpenFilePicker !== 'function') return false;
+      try {
+        const handles = await anyWindow.showOpenFilePicker({
+          multiple: true,
+          excludeAcceptAllOption: true,
+          types: [
+            {
+              description: 'Images',
+              accept: { 'image/*': ['.png', '.jpg', '.jpeg', '.webp', '.gif'] },
+            },
+          ],
+        });
+        const files: File[] = [];
+        for (const h of handles) {
+          const f = await h.getFile();
+          files.push(f);
+        }
+        await processPickedFiles(files);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    };
+
+    const openAnyPicker = async () => {
+      const anyWindow = window as any;
+      if (typeof anyWindow.showOpenFilePicker !== 'function') return false;
+      try {
+        const handles = await anyWindow.showOpenFilePicker({
+          multiple: true,
+          excludeAcceptAllOption: false,
+        });
+        const files: File[] = [];
+        for (const h of handles) {
+          const f = await h.getFile();
+          files.push(f);
+        }
+        await processPickedFiles(files);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    };
+
     const retainedExistingCount = existingPhotoRecords.filter(
       (record) => !photosToDelete.includes(record.id),
     ).length;
@@ -358,14 +428,14 @@ export default function DetailsPrevious() {
                 Photos ({totalSelected}/{MAX_PHOTOS})
               </span>
             </button>
-          </MorphingPopoverTrigger>
-          <MorphingPopoverContent 
-            className="w-[calc(100vw-2rem)] max-w-md p-0 bg-black/90 border-vice-cyan/30"
-            side="bottom"
-            align="center"
-            sideOffset={8}
-            collisionPadding={16}
-          >
+        </MorphingPopoverTrigger>
+        <MorphingPopoverContent 
+          className="w-[calc(100vw-2rem)] max-w-md p-0 bg-black/90 border-vice-cyan/30"
+          side="bottom"
+          align="center"
+          sideOffset={8}
+          collisionPadding={16}
+        >
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -384,25 +454,38 @@ export default function DetailsPrevious() {
             </div>
 
             <input
-              ref={fileInputRef}
+              ref={photoInputRef}
               type="file"
               accept="image/*"
               multiple
-              capture={undefined}
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="*/*"
+              multiple
               onChange={handleFileChange}
               className="hidden"
             />
 
             <div className="grid grid-cols-2 gap-2">
               <Button
-                onClick={() => fileInputRef.current?.click()}
+                onClick={async () => {
+                  const handled = await openImagesPicker();
+                  if (!handled) photoInputRef.current?.click();
+                }}
                 disabled={totalSelected >= MAX_PHOTOS}
                 className="w-full bg-vice-cyan hover:bg-vice-cyan/80 text-black disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm px-2"
               >
                 Photo Library
               </Button>
               <Button
-                onClick={() => fileInputRef.current?.click()}
+                onClick={async () => {
+                  const handled = await openAnyPicker();
+                  if (!handled) fileInputRef.current?.click();
+                }}
                 disabled={totalSelected >= MAX_PHOTOS}
                 className="w-full bg-vice-cyan hover:bg-vice-cyan/80 text-black disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm px-2"
               >
