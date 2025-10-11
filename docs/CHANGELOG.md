@@ -20,6 +20,14 @@ All notable changes to the SPR Vice City project will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [semantic Versioning](https://semver.org/spec/v2.0.0.html).
  
+## [3.2.1] - 2025-10-10
+
+### UI & Search Enhancements
+- Integrated Search + Filter UI on `Books.tsx` and `Export.tsx` into a single unified component.
+- Widened filter control to ensure full option titles are visible across breakpoints.
+- Enhanced search semantics to match Unit #’s, Dates (legacy `date` and `occurred_at` in multiple formats), and normalized Violation types.
+- 3D carousel on Export now reflects filtered results while maintaining placeholder density.
+
 ## [3.2.0] - 2025-10-10
 
 ### UI Unification

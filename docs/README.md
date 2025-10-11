@@ -1,7 +1,7 @@
 # 📚 SPR Vice City - Documentation Index
 
 **Last Updated:** October 10, 2025  
-**Version:** 3.1.0
+**Version:** 3.2.1
 
 ---
 
@@ -114,6 +114,7 @@ This folder contains all technical documentation for the SPR Vice City violation
 - Unified Books/Export usage
 - Quick-start API notes (heightClass, containerClassName)
 - Time-filter pattern reference
+ - Note: Books and Export now share a unified Search + Filter UI component and enhanced search semantics
 
 ---
 

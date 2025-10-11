@@ -88,9 +88,8 @@
 
 #### **Books Library** (Books.tsx)
 - 3D carousel display of ALL violations
-- Search by unit, location, description, user
-- Filter by status (all/saved/completed)
-- "This Week" and "This Month" sections
+- Search by unit, date (legacy and occurred_at formats), normalized violation type, location, description, and user
+- Time filter: This Week, This Month, All Forms
 - User attribution on every form
 - Click to expand full details
 - Auto-refresh on navigation
@@ -100,7 +99,8 @@
 - Email export with details and photo count
 - Print export with embedded photos
 - 2x2 grid layout for printing
-- Works with new database schema
+- Unified Search + Filter UI
+- 3D carousel reflects combined search + time filters while maintaining placeholder density
 
 #### **Admin Dashboard** (Admin.tsx)
 - **Admin-only access** (role check enforced)
@@ -609,6 +609,12 @@ npm run build
 ---
 
 ## 🎯 Version History
+
+**v3.2.1 (October 2025)** - Integrated Search + Filter and Enhanced Search
+- Unified Search + Filter UI on Books and Export pages
+- Widened filter control to ensure full option titles
+- Enhanced search semantics: Unit #’s, Dates (legacy `date` and `occurred_at` across common formats), and normalized Violation types
+- Export carousel now reflects filtered results
 
 **v3.0.0 (October 2025)** - Database Normalization & Complete System Overhaul
 - Normalized database schema
