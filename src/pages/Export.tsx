@@ -130,17 +130,54 @@ export default function Export() {
       const normalizedSearchUnit = normalizeUnit(searchTerm);
       const searchTermLower = searchTerm.toLowerCase();
 
-      filtered = filtered.filter((form) => {
-        const normalizedUnit = normalizeUnit(form.unit_number);
-        const matchesNormalizedSearch =
-          normalizedSearchUnit.length > 0 && normalizedUnit.includes(normalizedSearchUnit);
+      const matchesDate = (form: ViolationForm) => {
+        const legacyDate = form.date?.toString() ?? '';
+        const occurredAt = form.occurred_at ?? '';
+        const occurredDate = occurredAt ? new Date(occurredAt) : null;
+        const occurredMDY = occurredDate
+          ? occurredDate.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }).toLowerCase()
+          : '';
+        const occurredMD = occurredDate
+          ? occurredDate.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' }).toLowerCase()
+          : '';
+        const occurredLong = occurredDate
+          ? occurredDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toLowerCase()
+          : '';
 
         return (
-          matchesNormalizedSearch ||
-          form.unit_number.toLowerCase().includes(searchTermLower) ||
-          form.location.toLowerCase().includes(searchTermLower) ||
-          form.description.toLowerCase().includes(searchTermLower)
+          legacyDate.toLowerCase().includes(searchTermLower) ||
+          occurredAt.toLowerCase().includes(searchTermLower) ||
+          occurredMDY.includes(searchTermLower) ||
+          occurredMD.includes(searchTermLower) ||
+          occurredLong.includes(searchTermLower)
         );
+      };
+
+      const normalizeViolationType = (location: string | null | undefined) => {
+        if (!location) return '';
+        let result = location;
+        if (result.includes('Items/trash left outside unit')) {
+          if (result.includes('(items)')) result = 'Items left outside unit';
+          else if (result.includes('(trash)')) result = 'Trash left outside unit';
+          else result = 'Items/trash left outside unit';
+        } else if (result.includes('balcony railing')) {
+          result = 'Items left on balcony railing';
+        } else if (result.includes('front railing')) {
+          result = 'Items left on front railing';
+        }
+        return result.toLowerCase();
+      };
+
+      filtered = filtered.filter((form) => {
+        const normalizedUnit = normalizeUnit(form.unit_number);
+        const unitMatch =
+          (normalizedSearchUnit.length > 0 && normalizedUnit.includes(normalizedSearchUnit)) ||
+          form.unit_number.toLowerCase().includes(searchTermLower);
+        const descMatch = form.description.toLowerCase().includes(searchTermLower);
+        const locationMatch = form.location.toLowerCase().includes(searchTermLower) ||
+          normalizeViolationType(form.location).includes(searchTermLower);
+        const dateMatch = matchesDate(form);
+        return Boolean(unitMatch || descMatch || locationMatch || dateMatch);
       });
     }
 
@@ -382,32 +419,36 @@ export default function Export() {
         </div>
 
         <div className="p-4 space-y-4">
-          {/* Search and Filter */}
-          <div className="max-w-2xl mx-auto">
-          <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-center">
-            <div className="relative flex-[2] md:max-w-[480px]">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-vice-cyan/60" />
-              <Input
-                placeholder="Search for notices..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-black/30 border-vice-cyan/30 text-white placeholder:text-vice-cyan/40 focus:border-vice-pink min-h-[44px] rounded-lg shadow-[0_0_0_1px_rgba(0,255,255,0.15)] focus:shadow-[0_0_0_2px_rgba(255,20,147,0.35)]"
-              />
+          {/* Integrated Search + Filter */}
+          <div className="max-w-3xl mx-auto">
+            <div className="flex items-stretch gap-0 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.35)] border border-vice-cyan/30 bg-gradient-to-br from-black/50 via-black/40 to-black/30 backdrop-blur-sm">
+              {/* Search */}
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-vice-cyan/80" />
+                <Input
+                  placeholder="Search Unit #, Date, or Violation type..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 bg-transparent border-0 text-white placeholder:text-vice-cyan/70 min-h-[48px] w-full focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
+              </div>
+              {/* Divider */}
+              <div className="hidden md:block self-stretch w-px bg-vice-cyan/30" />
+              {/* Filter */}
+              <div className="w-full md:w-auto md:min-w-[18rem]">
+                <Select value={timeFilter} onValueChange={(v) => setTimeFilter(v as 'this_week' | 'this_month' | 'all')}>
+                  <SelectTrigger className="h-[48px] bg-transparent border-0 text-white rounded-none justify-start px-3 md:px-4 whitespace-normal min-w-full">
+                    <Filter className="w-4 h-4 mr-2 text-vice-cyan/80" />
+                    <SelectValue placeholder="Filter by time range" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-black/90 border-vice-cyan/50 min-w-[18rem]">
+                    <SelectItem value="this_week" className="text-white hover:bg-vice-cyan/20">This Week</SelectItem>
+                    <SelectItem value="this_month" className="text-white hover:bg-vice-cyan/20">This Month</SelectItem>
+                    <SelectItem value="all" className="text-white hover:bg-vice-cyan/20">All Forms</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-
-            {/* Time filter */}
-            <Select value={timeFilter} onValueChange={(v) => setTimeFilter(v as any)}>
-              <SelectTrigger className="w-full md:w-56 bg-black/30 border-vice-cyan/30 text-white min-h-[44px] rounded-lg justify-start">
-                <Filter className="h-4 w-4 mr-2 text-vice-cyan/60" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-black/90 border-vice-cyan/30 min-w-[14rem]">
-                <SelectItem value="this_week" className="text-white hover:bg-vice-cyan/20">This Week</SelectItem>
-                <SelectItem value="this_month" className="text-white hover:bg-vice-cyan/20">This Month</SelectItem>
-                <SelectItem value="all" className="text-white hover:bg-vice-cyan/20">All Forms</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
           </div>
 
           {/* Export Selection Card */}
@@ -427,7 +468,7 @@ export default function Export() {
               {/* 3D Carousel (enlarged and centered) */}
               <div className="my-2 sm:my-3 -mx-2 sm:mx-0 flex items-center justify-center">
                 <div className="w-full max-w-5xl">
-                  <ViolationCarousel3D forms={carouselForms} heightClass="h-[260px] sm:h-[320px]" containerClassName="mx-auto" />
+                  <ViolationCarousel3D forms={filteredForms} heightClass="h-[260px] sm:h-[320px]" containerClassName="mx-auto" />
                 </div>
               </div>
               {/* Selected Notices Display (only when selections exist) */}
