@@ -1,6 +1,6 @@
 # 🔐 SPR Vice City - Permissions & Access Control Structure
 
-**Date:** October 6, 2025  
+**Date:** October 11, 2025  
 **Status:** System Design Documentation
 
 ---
@@ -161,9 +161,14 @@ if (user?.role !== 'admin') {
 - Only admin can DELETE forms
 
 **violation_photos table:**
-- Users can INSERT photos for their violations
+- Users can INSERT photos (must be the uploader)
 - Users can SELECT all photos (team visibility)
-- Only admin can DELETE photos
+- Only admin can DELETE photos (admin-only delete)
+
+**storage.objects (bucket: `violation-photos`):**
+- Public READ enabled for thumbnails (fast mobile UX)
+- INSERT allowed for authenticated users only and path-scoped to their own folder (`user_id/...`)
+- DELETE admin-only
 
 ### Recommended RLS Policies
 
@@ -251,7 +256,7 @@ USING (
 - Could add "private" flag for sensitive violations
 
 ### If Privacy Needed:
-- Add `.eq('user_id', user.id)` filter to Books.tsx
+- Add `.eq('user_id', user.id)` filter to `Books.tsx`
 - Update documentation
 - Inform team of change
 
@@ -290,6 +295,6 @@ All relevant files have been updated with comments explaining the permission str
 
 ---
 
-**Last Updated:** October 6, 2025 - 11:30 PM  
+**Last Updated:** October 11, 2025 - 7:25 PM  
 **Maintained By:** Rob (Admin)  
 **Status:** Production Design

@@ -121,6 +121,186 @@ supabase/
 - ✅ Users can only edit their own data
 - ✅ Admins can view/edit all data
 - ✅ All users can view all violations (team transparency)
+- ✅ Photos: team-wide read; admin-only delete; inserts constrained to uploader
+- ✅ Storage: public read (thumbnails), authenticated uploads path-scoped to `user_id`, admin-only delete
+
+### Storage Strategy (Photos)
+- **Bucket**: `violation-photos`
+- **Public Read**: Enabled via `public read violation-photos` storage policy for fast thumbnail access
+- **Uploads**: Authenticated users only; must upload under their own top-level folder (`user_id/…`).
+- **Deletes**: Admin-only for both `violation_photos` rows and Storage objects
+- **Client Behavior**:
+  - Images compressed client-side (canvas) to ~1600px max dimension, JPEG quality ~0.8
+  - Filenames randomized with crypto-safe suffix; `Cache-Control: 31536000` on upload
+  - App stores `getPublicUrl(path)` in `violation_photos.storage_path`
+
+### Final Policy Snippet (One-and-Done)
+Run in Supabase SQL editor to enforce the security model consistently:
+
+```sql
+-- public.violation_photos
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname='public' and tablename='violation_photos'
+      and policyname='Photo DELETE admin_only'
+  ) then
+    create policy "Photo DELETE admin_only"
+    on public.violation_photos
+    for delete
+    to authenticated
+    using (
+      exists (
+        select 1 from public.profiles p
+        where p.user_id = auth.uid() and coalesce(p.role,'user') = 'admin'
+      )
+    );
+  end if;
+end$$;
+
+do $$
+begin
+  if exists (
+    select 1 from pg_policies
+    where schemaname='public' and tablename='violation_photos'
+      and policyname='Photo INSERT by uploader'
+  ) then
+    drop policy "Photo INSERT by uploader" on public.violation_photos;
+  end if;
+  create policy "Photo INSERT by uploader"
+  on public.violation_photos
+  for insert
+  to authenticated
+  with check (uploaded_by = auth.uid());
+end$$;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname='public' and tablename='violation_photos'
+      and policyname='Photo SELECT team_read'
+  ) then
+    create policy "Photo SELECT team_read"
+    on public.violation_photos
+    for select
+    to authenticated
+    using (true);
+  end if;
+end$$;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname='public' and tablename='violation_photos'
+      and policyname='Photo UPDATE uploader_only'
+  ) then
+    create policy "Photo UPDATE uploader_only"
+    on public.violation_photos
+    for update
+    to authenticated
+    using (uploaded_by = auth.uid())
+    with check (uploaded_by = auth.uid());
+  end if;
+end$$;
+
+-- storage.objects (bucket: violation-photos)
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname='storage' and tablename='objects'
+      and policyname='Admin delete violation-photos'
+  ) then
+    create policy "Admin delete violation-photos"
+    on storage.objects
+    for delete
+    to authenticated
+    using (
+      bucket_id = 'violation-photos'
+      and exists (
+        select 1 from public.profiles p
+        where p.user_id = auth.uid() and coalesce(p.role,'user') = 'admin'
+      )
+    );
+  end if;
+end$$;
+
+do $$
+begin
+  if exists (
+    select 1 from pg_policies
+    where schemaname='storage' and tablename='objects'
+      and policyname='Authenticated upload violation-photos'
+  ) then
+    drop policy "Authenticated upload violation-photos" on storage.objects;
+  end if;
+  create policy "Authenticated upload violation-photos"
+  on storage.objects
+  for insert
+  to authenticated
+  with check (
+    bucket_id = 'violation-photos'
+    and (auth.uid())::text = (storage.foldername(name))[1]
+  );
+end$$;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname='storage' and tablename='objects'
+      and policyname='authenticated read violation-photos'
+  ) then
+    create policy "authenticated read violation-photos"
+    on storage.objects
+    for select
+    to authenticated
+    using (bucket_id = 'violation-photos');
+  end if;
+end$$;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname='storage' and tablename='objects'
+      and policyname='public read violation-photos'
+  ) then
+    create policy "public read violation-photos"
+    on storage.objects
+    for select
+    to anon
+    using (bucket_id = 'violation-photos');
+  end if;
+end$$;
+```
+
+### Verify Policies and Objects
+```sql
+-- Show USING and WITH CHECK for policies
+select policyname, schemaname, tablename, roles, cmd,
+       qual as using_expr,
+       with_check as with_check_expr
+from pg_policies
+where (schemaname='public' and tablename='violation_photos')
+   or (schemaname='storage' and tablename='objects')
+order by schemaname, tablename, policyname;
+
+-- List recent Storage objects in the bucket
+select name, bucket_id, path_tokens, created_at
+from storage.objects
+where bucket_id='violation-photos'
+order by created_at desc
+limit 25;
+```
+
+## 📱 Mobile Notes
+- This is a mobile-first web app.
+- On-device debugging is limited; prefer solutions that don’t require mobile console access.
+- Use desktop localhost for inspection; verify on-device after.
 
 ## 🛠️ Troubleshooting
 

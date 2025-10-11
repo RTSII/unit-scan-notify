@@ -1,6 +1,6 @@
 # 📚 SPR Vice City - Documentation Index
 
-**Last Updated:** October 10, 2025  
+**Last Updated:** October 11, 2025  
 **Version:** 3.2.1
 
 ---
@@ -82,6 +82,9 @@ This folder contains all technical documentation for the SPR Vice City violation
 - Migration system
 - CLI commands
 
+Note:
+- Photos are stored in Supabase Storage (`violation-photos`) with public read for thumbnails, admin-only deletes, and authenticated, path-scoped uploads. See `DATABASE_MANAGEMENT.md` storage strategy.
+
 ---
 
 ## 🔑 Authentication
@@ -114,7 +117,7 @@ This folder contains all technical documentation for the SPR Vice City violation
 - Unified Books/Export usage
 - Quick-start API notes (heightClass, containerClassName)
 - Time-filter pattern reference
- - Note: Books and Export now share a unified Search + Filter UI component and enhanced search semantics
+- Note: Books and Export now share a unified Search + Filter UI component and enhanced search semantics
 
 ---
 
@@ -139,6 +142,31 @@ This folder contains all technical documentation for the SPR Vice City violation
 - Build log analysis and debugging
 - Environment variable management
 - Configuration with access token
+
+---
+
+## 🏠💼 Multi-PC Workflow (Home ↔ Work)
+
+Use these steps to switch between your Home and Work PCs reliably.
+
+### On Home (before you leave)
+- Pull latest: `git pull`
+- Stage, commit, push your work: `git add -A && git commit -m "<message>" && git push`
+
+### On Work (when you arrive)
+- Pull latest code: `git pull`
+- Install deps reproducibly: `npm ci` (use `npm install` only when dependencies change)
+- Start dev: `npm run dev` (or your usual script)
+
+### Keep environments consistent
+- Do not commit `node_modules/` (ensure it’s in `.gitignore`).
+- Commit `package-lock.json` for consistent installs.
+- Keep Node versions aligned via `.nvmrc` and use nvm-windows on Windows.
+- Manage secrets with `.env` (don’t commit it). Share values securely for both machines.
+
+### Troubleshooting
+- If installs differ, run `npm ci` to reset `node_modules` to the lockfile.
+- If you see audit notices, run `npm audit` then optionally `npm audit fix`, test, and commit lockfile updates.
 
 ---
 
