@@ -145,24 +145,31 @@ const Books = () => {
     }
 
     try {
-      // Fetch violation forms with photos join
-      // IMPORTANT: Fetches ALL forms from ALL users (not filtered by user_id)
-      // This allows all team members to view all violation forms
+      // Fetch violation forms with minimal columns and photos join
+      // IMPORTANT: Fetches ALL forms from ALL users (team visibility)
       const { data: formsDataRaw, error: formsError } = await supabase
         .from('violation_forms')
         .select(`
-          *,
+          id,
+          user_id,
+          unit_number,
+          occurred_at,
+          location,
+          description,
+          status,
+          created_at,
           violation_photos (
             id,
             storage_path,
             created_at
           )
         `)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(500);
 
       if (formsError) throw formsError;
 
-      // Fetch all profiles
+      // Fetch all profiles (minimal columns)
       const { data: rawProfiles, error: profilesError } = await supabase
         .from('profiles')
         .select('user_id, email, full_name, role');
@@ -186,23 +193,6 @@ const Books = () => {
         return normalizeViolationForm(form, profileSummary);
       });
 
-      // Debug: See all fetched forms with details
-      console.log('Forms fetched:', formsWithProfiles);
-      console.log('📊 FORM DETAILS:');
-      formsWithProfiles.forEach((f, idx) => {
-        console.log(`Form ${idx + 1}:`, {
-          id: f.id,
-          unit: f.unit_number,
-          date: f.date,
-          occurred_at: f.occurred_at,
-          photos: f.photos,
-          photoCount: f.photos.length,
-          photoType: typeof f.photos,
-          firstPhoto: f.photos[0] ? `${f.photos[0].substring(0, 50)}...` : null,
-          location: f.location
-        });
-      });
-
       setForms(formsWithProfiles);
     } catch (error: unknown) {
       console.error('Error fetching forms:', error);
@@ -221,10 +211,14 @@ const Books = () => {
   }, [fetchSavedForms, user]);
 
   // Refetch data when navigating to books page (e.g., after saving a new form)
+  // Avoid immediate duplicate refetch when arriving on /books
+  const hasRefetchedOnNav = useRef(false);
   useEffect(() => {
-    if (location.pathname === '/books' && !loading) {
-      console.log('Navigated to books page, refreshing data...');
+    if (location.pathname === '/books' && !loading && !hasRefetchedOnNav.current) {
+      hasRefetchedOnNav.current = true;
       fetchSavedForms();
+      // reset flag after a short interval to allow later navigations to refetch
+      setTimeout(() => { hasRefetchedOnNav.current = false; }, 2000);
     }
   }, [fetchSavedForms, location.pathname, loading]);
 

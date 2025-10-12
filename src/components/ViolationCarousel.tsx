@@ -74,8 +74,8 @@ export const ViolationCarousel3D: React.FC<{
     return items.length > 0 ? items : [{ id: "placeholder-1", imageUrl: "placeholder", unit: "", date: "" }];
   }, [forms]);
 
-  // Mobile density: target ~5 visible faces
-  const targetFaces = isScreenSizeSm ? 20 : 16;
+  // Mobile density: reduce faces for smoother perf and tighter control
+  const targetFaces = isScreenSizeSm ? 12 : 16;
   // Smaller mobile cylinder to increase curvature (smaller radius)
   const cylinderWidth = isScreenSizeSm ? 1500 : 2000;
   const maxThumb = isScreenSizeSm ? 64 : 120;
@@ -203,7 +203,7 @@ export const ViolationCarousel3D: React.FC<{
       <motion.div layout className="relative">
 
         <div 
-          className={`relative ${heightClass ?? 'h-[200px]'} w-full overflow-hidden rounded-xl bg-black/20 py-4`}
+          className={`relative ${heightClass ?? 'h-[200px]'} w-full overflow-hidden rounded-xl bg-black/20 py-4 touch-pan-y`}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
@@ -227,9 +227,13 @@ export const ViolationCarousel3D: React.FC<{
                 rotation.set(rotation.get() + dx * 0.02);
               }}
               onDragEnd={(_, info) => {
+                // Apply gentle inertia, then snap to nearest face for better control
+                const step = 360 / faceCount;
+                const projected = rotation.get() + info.velocity.x * 0.05;
+                const snapped = Math.round(projected / step) * step;
                 controls.start({
-                  rotateY: rotation.get() + info.velocity.x * 0.05,
-                  transition: { type: "spring", stiffness: 80, damping: 40, mass: 0.2 }
+                  rotateY: snapped,
+                  transition: { type: "spring", stiffness: 100, damping: 30, mass: 0.25 }
                 });
                 setIsCarouselActive(true);
               }}
@@ -238,7 +242,7 @@ export const ViolationCarousel3D: React.FC<{
               {displayItems.map((item, i) => (
                 <motion.div
                   key={`key-${item.imageUrl}-${i}`}
-                  className="absolute flex h-full origin-center items-center justify-center rounded-2xl p-0.5"
+                  className="absolute flex h-full origin-center items-center justify-center rounded-2xl p-0.5 cursor-grab active:cursor-grabbing"
                   style={{ 
                     width: `${faceWidth}px`, 
                     transform: `rotateY(${i * (360 / faceCount)}deg) translateZ(${radius}px)`,
