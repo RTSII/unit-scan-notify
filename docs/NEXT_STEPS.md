@@ -19,20 +19,15 @@ We pivoted away from the proposed `violation_forms_new` table and are realigning
 
 ## 🔄 In Progress
 
- - **Admin console alignment**
-  - Verify `src/pages/Admin.tsx` queries (stats, deletes, fallback joins) are aligned to `violation_forms` and `violation_photos`; adjust if any legacy references remain.
+ - **Admin console alignment** ✅ Completed (Oct 11)
+  - Queries align to `violation_forms`/`violation_photos`; unified carousel + time filter in place.
 
-- **Supabase type regeneration**
-  - Supabase JS types do not include `violation_forms`/`violation_photos`, forcing multiple `@ts-ignore`. Once schema references settle, run:
-
-    ```bash
-    ```
-
-  - Remove the ignores in `Books.tsx`, `DetailsLive.tsx`, `DetailsPrevious.tsx`, `Admin.tsx`, `Export.tsx`, and fix any new TS errors.
+- **Supabase type regeneration** ✅ Completed (Oct 11)
+  - Types present under `src/integrations/supabase/types.ts`; no `@ts-ignore` remain in affected pages.
 
 - **Database safeguards**
-  - Add the missing foreign key: `violation_photos.violation_id → violation_forms.id (ON DELETE CASCADE)`.
-  - Reconfirm Row Level Security rules cover team-wide reads and uploader/admin writes.
+  - ✅ Added FK: `violation_photos.violation_id → violation_forms.id (ON DELETE CASCADE)` (migration applied Oct 12)
+  - ✅ RLS rules confirmed (team-wide reads; uploader/admin writes). See `docs/PERMISSIONS_STRUCTURE.md`.
 
 - **Regression QA**
   - Once the above are done, walk through: Capture → Book Em, Gallery edits, Books 3D carousel, Admin dashboards, Export email/print.
@@ -44,14 +39,14 @@ We pivoted away from the proposed `violation_forms_new` table and are realigning
    - [x] DetailsPrevious
    - [x] Export
    - [x] Books
-   - [ ] Admin *(next up)*
+   - [x] Admin
 
 2. **Add safeguards (FK + RLS review)**
-   - [ ] Add FK from `violation_photos.violation_id` to `violation_forms.id`
-   - [ ] Validate RLS policies
+   - [x] Add FK from `violation_photos.violation_id` to `violation_forms.id`
+   - [x] Validate RLS policies
 
 3. **Regenerate Supabase types**
-   - [ ] Run type generator & remove `@ts-ignore`
+   - [x] Run type generator & remove `@ts-ignore`
 
 4. **Full QA**
    - [ ] Mobile live capture workflow
@@ -63,9 +58,38 @@ We pivoted away from the proposed `violation_forms_new` table and are realigning
 
 - **Live Capture**: Capture photo → Book Em redirect → ensure form + photo present in Books, with MM/DD date.
 - **Edit Previous**: Load an existing notice, remove/add photos, save, confirm retained and deleted photos behave.
-- **Books**: 3D carousel shows recent forms with photos and dates.
+- **Books**: 3D carousel shows recent forms with photos and dates; touch scrubbing snaps to faces; Unit/Date glass badges visible.
 - **Admin**: Stats populate, latest forms stack loads, delete button works.
 - **Export**: Email and print include descriptions + photos.
+
+---
+
+## ✅ Final Release Checklist (Crisp)
+
+- **Auth & Roles**
+  - [ ] Admin-only access to `Admin.tsx` enforced
+  - [ ] Regular users can’t delete/edit
+
+- **Database & Storage**
+  - [ ] FK: `violation_photos.violation_id → violation_forms.id ON DELETE CASCADE`
+  - [ ] RLS: team-wide SELECT, uploader/admin writes
+  - [ ] Storage: `violation-photos` public read for thumbnails; uploads path-scoped per user
+
+- **Pages**
+  - [ ] Capture → DetailsLive: saves form + photos; redirects to Books
+  - [ ] DetailsPrevious: uploads multiple photos; edit retains/deletes as expected
+  - [ ] Books: carousel shows real thumbnails; search/time filter correct; snapping works on iPhone
+  - [ ] Admin: stats load; latest forms list works; delete works; search + time filter integrated
+  - [ ] Export: email/print include details + first photo
+
+- **Mobile**
+  - [ ] iPhone (Safari/Chrome): touch scrubbing tight; safe areas OK; 44px targets OK
+
+- **Build/Types**
+  - [ ] No TypeScript errors; no `@ts-ignore`
+  - [ ] Production build succeeds
+
+---
 
 ## 📝 Notes & Next Actions
 
@@ -74,5 +98,5 @@ We pivoted away from the proposed `violation_forms_new` table and are realigning
 
 ---
 
-**Last Updated:** October 9, 2025 – 7:37 PM ET  
+**Last Updated:** October 12, 2025 – 5:04 PM ET  
 **Maintainer:** Cascade pair-programming session

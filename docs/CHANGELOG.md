@@ -1,4 +1,23 @@
 
+## [3.2.2] - 2025-10-12
+
+### 📚 Documentation
+- Unified 3D carousel documentation: `docs/3d-carousel.md` is now the single authoritative spec and usage guide.
+- Clarified that `docs/UI_3D_CAROUSEL_SPEC.md` is superseded by `docs/3d-carousel.md`.
+
+### 🎡 UI/Interaction
+- 3D carousel control improvements:
+  - Per-card pointer overlay for tighter grip/scrub
+  - Snap-to-nearest-face on release
+  - Reduced mobile faces for better control (12 mobile / 16 desktop)
+  - Disabled drag momentum with gentler spring
+  - Offscreen pause via IntersectionObserver
+
+### 🗄️ Database
+- Added FK migration: `violation_photos.violation_id → violation_forms.id (ON DELETE CASCADE)` to ensure nested joins work reliably.
+
+---
+
 ## [2.1.7] - 2025-09-16
 
 ### ✨ Documentation & UI Consistency
