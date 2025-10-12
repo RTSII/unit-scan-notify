@@ -86,6 +86,7 @@ This release introduces morphing popover components for Description and Photos s
 - **Component Dependencies**: Fixed morphing-popover import path to use core components
 - **Type Safety**: Improved TypeScript type definitions for form data structure
 - **State Management**: Cleaned up unused state variables and imports
+- **DetailsLive Save Flow (Oct 9)**: Added `occurred_at` to insert payload and replaced invalid `.returns<...>()` with `.single()` on Supabase insert to reliably create the form before inserting photos
 
 
 ## [2.1.5] - 2025-09-09
