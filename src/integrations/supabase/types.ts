@@ -177,7 +177,15 @@ export type Database = {
           uploaded_by?: string
           violation_id?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "violation_photos_violation_id_fkey"
+            columns: ["violation_id"]
+            isOneToOne: false
+            referencedRelation: "violation_forms"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
