@@ -420,7 +420,7 @@ export default function Export() {
 
         <div className="p-4 space-y-4">
           {/* Integrated Search + Filter */}
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-xl mx-auto">
             <div className="flex items-stretch gap-0 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.35)] border border-vice-cyan/30 bg-gradient-to-br from-black/50 via-black/40 to-black/30 backdrop-blur-sm">
               {/* Search */}
               <div className="relative flex-1">
@@ -433,15 +433,15 @@ export default function Export() {
                 />
               </div>
               {/* Divider */}
-              <div className="hidden md:block self-stretch w-px bg-vice-cyan/30" />
+              <div className="self-stretch w-px bg-vice-cyan/30" />
               {/* Filter */}
-              <div className="w-full md:w-auto md:min-w-[18rem]">
+              <div className="w-auto">
                 <Select value={timeFilter} onValueChange={(v) => setTimeFilter(v as 'this_week' | 'this_month' | 'all')}>
-                  <SelectTrigger className="h-[48px] bg-transparent border-0 text-white rounded-none justify-start px-3 md:px-4 whitespace-normal min-w-full">
-                    <Filter className="w-4 h-4 mr-2 text-vice-cyan/80" />
+                  <SelectTrigger className="h-[48px] bg-transparent border-0 text-white rounded-none justify-start px-3 w-auto">
+                    <Filter className="w-4 h-4 mr-2 text-vice-cyan/80 flex-shrink-0" />
                     <SelectValue placeholder="Filter by time range" />
                   </SelectTrigger>
-                  <SelectContent className="bg-black/90 border-vice-cyan/50 min-w-[18rem]">
+                  <SelectContent className="bg-black/90 border-vice-cyan/50 w-auto">
                     <SelectItem value="this_week" className="text-white hover:bg-vice-cyan/20">This Week</SelectItem>
                     <SelectItem value="this_month" className="text-white hover:bg-vice-cyan/20">This Month</SelectItem>
                     <SelectItem value="all" className="text-white hover:bg-vice-cyan/20">All Forms</SelectItem>
