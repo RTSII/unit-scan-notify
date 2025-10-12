@@ -71,10 +71,11 @@ export const ViolationCarousel3D: React.FC<{
   const dragStart = useRef({ x: 0, rotation: 0 });
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isCarouselActive) return;
     setIsDragging(true);
+    setIsCarouselActive(false);
     dragStart.current = { x: e.clientX, rotation: rotation.get() };
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    e.preventDefault();
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -83,20 +84,22 @@ export const ViolationCarousel3D: React.FC<{
     
     const step = 360 / faceCount;
     const currentRotation = rotation.get();
-    const velocity = x.getVelocity() / 1000; // pixels per second
-    const projectedRotation = currentRotation + velocity * 2; // Project out
+    const velocity = x.getVelocity() / 1000;
+    const projectedRotation = currentRotation + velocity * 0.3; // Reduced momentum
     const targetRotation = Math.round(projectedRotation / step) * step;
     
     controls.start({
       rotateY: targetRotation,
-      transition: { type: "spring", stiffness: 100, damping: 25, mass: 0.5 }
+      transition: { type: "spring", stiffness: 150, damping: 30, mass: 0.3 }
     });
+    
+    setIsCarouselActive(true);
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging) return;
     const dx = e.clientX - dragStart.current.x;
-    const newRotation = dragStart.current.rotation + dx * 0.25;
+    const newRotation = dragStart.current.rotation + dx * 0.5; // Increased sensitivity
     rotation.set(newRotation);
     x.set(e.clientX);
   };
@@ -264,7 +267,11 @@ export const ViolationCarousel3D: React.FC<{
               onPointerDown={handlePointerDown}
               onPointerUp={handlePointerUp}
               onPointerMove={handlePointerMove}
-              onPointerLeave={() => setIsDragging(false)} // Stop dragging if pointer leaves
+              onPointerLeave={(e) => {
+                if (isDragging) {
+                  handlePointerUp(e);
+                }
+              }}
               animate={controls}
             >
               {displayItems.map((item, i) => (
@@ -287,16 +294,12 @@ export const ViolationCarousel3D: React.FC<{
                   }}
                 >
                   {item.imageUrl === "placeholder" ? (
-                    <div 
-                      className="relative w-full rounded-2xl bg-black ring-1 ring-vice-cyan aspect-square" 
-                      onMouseEnter={() => handleCardHover(i)}
-                      onMouseLeave={() => handleCardHover(null)}
-                    />
+                    <div className="relative w-full rounded-2xl bg-black/90 ring-1 ring-vice-cyan aspect-square" />
                   ) : (
                     <div 
                       className="relative w-full aspect-square"
-                      onMouseEnter={() => handleCardHover(i)}
-                      onMouseLeave={() => handleCardHover(null)}
+                      onMouseEnter={() => setHoveredCardIndex(i)}
+                      onMouseLeave={() => setHoveredCardIndex(null)}
                     >
                       <motion.img
                         src={item.imageUrl}
@@ -312,6 +315,23 @@ export const ViolationCarousel3D: React.FC<{
                         className="absolute inset-0"
                         style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
                       />
+                      {/* Overlay badges - Unit and Date */}
+                      {(item.date || item.unit) && (
+                        <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-1 p-2 pointer-events-none z-10">
+                          <div className="flex items-center gap-1.5">
+                            {item.unit && (
+                              <div className="text-xs font-semibold text-vice-cyan drop-shadow-[0_0_6px_#00ffff] bg-black/40 backdrop-blur-sm ring-1 ring-vice-cyan/30 px-1.5 py-0.5 rounded-md">
+                                {item.unit}
+                              </div>
+                            )}
+                            {item.date && (
+                              <div className="text-xs font-medium text-vice-cyan drop-shadow-[0_0_6px_#00ffff] bg-black/40 backdrop-blur-sm ring-1 ring-vice-cyan/30 px-1.5 py-0.5 rounded-md">
+                                {item.date}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </motion.div>
