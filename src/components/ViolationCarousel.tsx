@@ -210,19 +210,29 @@ export const ViolationCarousel3D: React.FC<{
           <div
             className="flex h-full items-center justify-center bg-black/10"
             style={{ perspective: isScreenSizeSm ? "700px" : "1000px", transformStyle: "preserve-3d", willChange: "transform" }}
+            onTouchStart={() => setIsCarouselActive(false)}
+            onTouchEnd={() => setIsCarouselActive(true)}
           >
             <motion.div
               drag={isCarouselActive ? "x" : false}
+              dragMomentum={false}
+              dragElastic={0.1}
               className="relative flex h-full origin-center cursor-grab justify-center active:cursor-grabbing"
               style={{ transform, rotateY: rotation, width: cylinderWidth, transformStyle: "preserve-3d" }}
-              onDrag={(_, info) => isCarouselActive && rotation.set(rotation.get() + info.offset.x * 0.05)}
-              onDragEnd={(_, info) =>
-                isCarouselActive &&
-                controls.start({ 
-                  rotateY: rotation.get() + info.velocity.x * 0.1, 
-                  transition: { type: "spring", stiffness: 100, damping: 30, mass: 0.1 } 
-                })
-              }
+              onDragStart={() => setIsCarouselActive(false)}
+              onDrag={(_, info) => {
+                if (!isCarouselActive) return;
+                const dx = info.delta.x;
+                if (Math.abs(dx) < 0.5) return;
+                rotation.set(rotation.get() + dx * 0.02);
+              }}
+              onDragEnd={(_, info) => {
+                controls.start({
+                  rotateY: rotation.get() + info.velocity.x * 0.05,
+                  transition: { type: "spring", stiffness: 80, damping: 40, mass: 0.2 }
+                });
+                setIsCarouselActive(true);
+              }}
               animate={controls}
             >
               {displayItems.map((item, i) => (
@@ -254,17 +264,19 @@ export const ViolationCarousel3D: React.FC<{
                       />
                       {/* Neon cyan overlay - Date and Unit stacked vertically */}
                       {(item.date || item.unit) && (
-                        <div className="absolute inset-x-0 bottom-0 flex flex-col items-center justify-center gap-1 pb-2 pointer-events-none z-10">
-                          {item.date && (
-                            <div className="text-xs font-semibold text-vice-cyan drop-shadow-[0_0_6px_#00ffff] bg-black/90 px-2 py-1 rounded">
-                              {item.date}
-                            </div>
-                          )}
-                          {item.unit && (
-                            <div className="text-sm font-bold text-vice-cyan drop-shadow-[0_0_6px_#00ffff] bg-black/90 px-2 py-1 rounded">
-                              Unit {item.unit}
-                            </div>
-                          )}
+                        <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-2 p-2 pointer-events-none z-10">
+                          <div className="flex items-center gap-2">
+                            {item.unit && (
+                              <div className="text-sm font-bold text-vice-cyan drop-shadow-[0_0_6px_#00ffff] bg-black/40 backdrop-blur-sm ring-1 ring-vice-cyan/30 px-2 py-1 rounded-lg">
+                                Unit {item.unit}
+                              </div>
+                            )}
+                            {item.date && (
+                              <div className="text-xs font-semibold text-vice-cyan drop-shadow-[0_0_6px_#00ffff] bg-black/40 backdrop-blur-sm ring-1 ring-vice-cyan/30 px-2 py-1 rounded-lg">
+                                {item.date}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
