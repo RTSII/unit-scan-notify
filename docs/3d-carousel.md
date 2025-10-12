@@ -13,6 +13,15 @@ This document summarizes the unified UI/UX standard for the 3D carousel now used
 - Placeholders (black squares with neon ring) fill remaining faces to keep the ring dense.
 - Height can be adjusted via `heightClass` prop, e.g. `h-[260px] sm:h-[320px]`.
 
+### Visual Overlay
+- Unit and Date badges are shown at the top of each face.
+- Styling: translucent glass badges with `bg-black/40`, `backdrop-blur-sm`, `ring-1 ring-vice-cyan/30`, rounded corners.
+
+### Input/Control Smoothing
+- Reduced drag sensitivity with a small deadzone to avoid jitter.
+- Disabled drag momentum; gentler release spring for better control.
+- Auto-rotate pauses on hover, touch start, and drag; resumes after interaction.
+
 ## Props
 ```
 <ViolationCarousel3D
