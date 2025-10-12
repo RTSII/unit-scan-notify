@@ -41,9 +41,6 @@ export function mapFormsToCarouselItems(forms: FormLike[]): CarouselItem[] {
       displayDate = `${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}`;
     }
     
-    // Debug: See form mapping
-    console.log('Mapping form:', { id: form.id, date: form.date, occurred_at: form.occurred_at, displayDate, unit_number: form.unit_number, photos: form.photos });
-    
     return {
       id: form.id,
       imageUrl: form.photos?.[0] || "placeholder",
@@ -66,9 +63,43 @@ export const ViolationCarousel3D: React.FC<{
   const [isHovered, setIsHovered] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [hoveredCardIndex, setHoveredCardIndex] = useState<number | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const controls = useAnimation();
   const isScreenSizeSm = useMediaQuery("(max-width: 640px)");
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const x = useMotionValue(0);
+  const dragStart = useRef({ x: 0, rotation: 0 });
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isCarouselActive) return;
+    setIsDragging(true);
+    dragStart.current = { x: e.clientX, rotation: rotation.get() };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    setIsDragging(false);
+    (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    
+    const step = 360 / faceCount;
+    const currentRotation = rotation.get();
+    const velocity = x.getVelocity() / 1000; // pixels per second
+    const projectedRotation = currentRotation + velocity * 2; // Project out
+    const targetRotation = Math.round(projectedRotation / step) * step;
+    
+    controls.start({
+      rotateY: targetRotation,
+      transition: { type: "spring", stiffness: 100, damping: 25, mass: 0.5 }
+    });
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+    const dx = e.clientX - dragStart.current.x;
+    const newRotation = dragStart.current.rotation + dx * 0.25;
+    rotation.set(newRotation);
+    x.set(e.clientX);
+  };
 
   const pointerActiveRef = useRef(false);
   const lastXRef = useRef(0);
@@ -82,10 +113,10 @@ export const ViolationCarousel3D: React.FC<{
   }, [forms]);
 
   // Mobile density: reduce faces for smoother perf and tighter control
-  const targetFaces = isScreenSizeSm ? 12 : 16;
+  const targetFaces = isScreenSizeSm ? 10 : 14;
   // Smaller mobile cylinder to increase curvature (smaller radius)
-  const cylinderWidth = isScreenSizeSm ? 1500 : 2000;
-  const maxThumb = isScreenSizeSm ? 64 : 120;
+  const cylinderWidth = isScreenSizeSm ? 1400 : 1900;
+  const maxThumb = isScreenSizeSm ? 110 : 140;
 
   const displayItems = useMemo(() => {
     if (baseItems.length >= targetFaces) return baseItems;
@@ -101,10 +132,7 @@ export const ViolationCarousel3D: React.FC<{
       }
       return { ...src, id: `${src.id}-dup-${idx}` } as CarouselItem;
     });
-    const result = [...baseItems, ...fillers];
-    // Debug: Uncomment to see display items
-    // console.log('Display items:', result.map(item => ({ id: item.id, date: item.date, unit: item.unit })));
-    return result;
+    return [...baseItems, ...fillers];
   }, [baseItems, targetFaces]);
 
   const faceCount = displayItems.length;
@@ -224,59 +252,52 @@ export const ViolationCarousel3D: React.FC<{
       <motion.div layout className="relative">
 
         <div 
-          className={`relative ${heightClass ?? 'h-[200px]'} w-full overflow-hidden rounded-xl bg-black/20 py-4 touch-pan-y`}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
+          className={`relative ${heightClass ?? 'h-[200px]'} w-full overflow-hidden rounded-xl bg-black/20 py-1 sm:py-3 touch-pan-y`}
         >
           <div
             className="flex h-full items-center justify-center bg-black/10"
             style={{ perspective: isScreenSizeSm ? "700px" : "1000px", transformStyle: "preserve-3d", willChange: "transform" }}
-            onTouchStart={() => setIsCarouselActive(false)}
-            onTouchEnd={() => setIsCarouselActive(true)}
           >
             <motion.div
-              drag={isCarouselActive ? "x" : false}
-              dragMomentum={false}
-              dragElastic={0.1}
-              className="relative flex h-full origin-center cursor-grab justify-center active:cursor-grabbing"
+              className={`relative flex h-full origin-center justify-center ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
               style={{ transform, rotateY: rotation, width: cylinderWidth, transformStyle: "preserve-3d" }}
-              onDragStart={() => setIsCarouselActive(false)}
-              onDrag={(_, info) => {
-                if (!isCarouselActive) return;
-                const dx = info.delta.x;
-                if (Math.abs(dx) < 0.5) return;
-                rotation.set(rotation.get() + dx * 0.02);
-              }}
-              onDragEnd={(_, info) => {
-                // Apply gentle inertia, then snap to nearest face for better control
-                const step = 360 / faceCount;
-                const projected = rotation.get() + info.velocity.x * 0.05;
-                const snapped = Math.round(projected / step) * step;
-                controls.start({
-                  rotateY: snapped,
-                  transition: { type: "spring", stiffness: 100, damping: 30, mass: 0.25 }
-                });
-                setIsCarouselActive(true);
-              }}
+              onPointerDown={handlePointerDown}
+              onPointerUp={handlePointerUp}
+              onPointerMove={handlePointerMove}
+              onPointerLeave={() => setIsDragging(false)} // Stop dragging if pointer leaves
               animate={controls}
             >
               {displayItems.map((item, i) => (
                 <motion.div
                   key={`key-${item.imageUrl}-${i}`}
-                  className="absolute flex h-full origin-center items-center justify-center rounded-2xl p-0.5 cursor-grab active:cursor-grabbing"
+                  className="absolute flex h-full origin-center items-center justify-center rounded-2xl p-0.5"
                   style={{ 
                     width: `${faceWidth}px`, 
                     transform: `rotateY(${i * (360 / faceCount)}deg) translateZ(${radius}px)`,
-                    cursor: item.imageUrl === "placeholder" ? "default" : "pointer"
+                    cursor: item.imageUrl === "placeholder" ? "default" : "pointer",
+                    backfaceVisibility: 'hidden'
                   }}
-                  onClick={() => handleClick(item.fullForm)}
-                  onMouseEnter={() => handleCardHover(i)}
-                  onMouseLeave={() => handleCardHover(null)}
+                  onClick={(e) => {
+                    // Prevent click during drag
+                    if (Math.abs(x.getVelocity()) > 200) {
+                      e.stopPropagation();
+                      return;
+                    }
+                    handleClick(item.fullForm);
+                  }}
                 >
                   {item.imageUrl === "placeholder" ? (
-                    <div className="relative w-full rounded-2xl bg-black ring-1 ring-vice-cyan aspect-square" />
+                    <div 
+                      className="relative w-full rounded-2xl bg-black ring-1 ring-vice-cyan aspect-square" 
+                      onMouseEnter={() => handleCardHover(i)}
+                      onMouseLeave={() => handleCardHover(null)}
+                    />
                   ) : (
-                    <div className="relative w-full aspect-square">
+                    <div 
+                      className="relative w-full aspect-square"
+                      onMouseEnter={() => handleCardHover(i)}
+                      onMouseLeave={() => handleCardHover(null)}
+                    >
                       <motion.img
                         src={item.imageUrl}
                         alt={`${item.unit} ${item.date}`}
@@ -288,58 +309,9 @@ export const ViolationCarousel3D: React.FC<{
                         transition={{ duration: 0.15, ease: [0.32, 0.72, 0, 1] }}
                       />
                       <div
-                        className="absolute inset-0 cursor-grab active:cursor-grabbing"
-                        onPointerDown={(e) => {
-                          if (!item.fullForm) return;
-                          pointerActiveRef.current = true;
-                          lastXRef.current = e.clientX;
-                          totalDxRef.current = 0;
-                          setIsCarouselActive(false);
-                          (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-                          e.preventDefault();
-                        }}
-                        onPointerMove={(e) => {
-                          if (!pointerActiveRef.current) return;
-                          const dx = e.clientX - lastXRef.current;
-                          if (Math.abs(dx) < 0.5) return;
-                          lastXRef.current = e.clientX;
-                          totalDxRef.current += dx;
-                          rotation.set(rotation.get() + dx * sensitivity);
-                        }}
-                        onPointerUp={(e) => {
-                          if (!pointerActiveRef.current) return;
-                          pointerActiveRef.current = false;
-                          const moved = Math.abs(totalDxRef.current);
-                          const step = 360 / faceCount;
-                          const snapped = Math.round(rotation.get() / step) * step;
-                          controls.start({
-                            rotateY: snapped,
-                            transition: { type: "spring", stiffness: 120, damping: 32, mass: 0.22 },
-                          });
-                          setIsCarouselActive(true);
-                          if (moved < clickThreshold && item.fullForm) {
-                            handleClick(item.fullForm);
-                          }
-                          (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
-                        }}
+                        className="absolute inset-0"
+                        style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
                       />
-                      {/* Neon cyan overlay - Date and Unit stacked vertically */}
-                      {(item.date || item.unit) && (
-                        <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-2 p-2 pointer-events-none z-10">
-                          <div className="flex items-center gap-2">
-                            {item.unit && (
-                              <div className="text-sm font-bold text-vice-cyan drop-shadow-[0_0_6px_#00ffff] bg-black/40 backdrop-blur-sm ring-1 ring-vice-cyan/30 px-2 py-1 rounded-lg">
-                                Unit {item.unit}
-                              </div>
-                            )}
-                            {item.date && (
-                              <div className="text-xs font-semibold text-vice-cyan drop-shadow-[0_0_6px_#00ffff] bg-black/40 backdrop-blur-sm ring-1 ring-vice-cyan/30 px-2 py-1 rounded-lg">
-                                {item.date}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
                     </div>
                   )}
                 </motion.div>
@@ -348,7 +320,6 @@ export const ViolationCarousel3D: React.FC<{
           </div>
         </div>
 
-        {/* Morphing Popover for Violation Details */}
         <AnimatePresence mode="wait">
           {isPopoverOpen && activeForm && (
             <div className="mt-6 w-full flex justify-center">

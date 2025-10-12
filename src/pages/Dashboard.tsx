@@ -39,10 +39,10 @@ export default function Dashboard() {
         setActiveUsers(state);
       })
       .on('presence', { event: 'join' }, ({ newPresences }: { newPresences?: PresencePayload[] }) => {
-        console.log('New user joined:', newPresences);
+        // User joined - presence updated
       })
       .on('presence', { event: 'leave' }, ({ leftPresences }: { leftPresences?: PresencePayload[] }) => {
-        console.log('User left:', leftPresences);
+        // User left - presence updated
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
@@ -61,14 +61,7 @@ export default function Dashboard() {
     };
   }, [user, profile]);
 
-  // Debug logging
-  useEffect(() => {
-    console.log('Dashboard Debug Info:');
-    console.log('- User:', user?.email);
-    console.log('- Profile:', profile);
-    console.log('- Profile Role:', profile?.role);
-    console.log('- Loading:', loading);
-  }, [user, profile, loading]);
+  // Debug logging removed for performance
 
   // Handle click outside for user menu
   useEffect(() => {
@@ -155,8 +148,7 @@ export default function Dashboard() {
       ]
     : baseMenuItems;
 
-  // Debug: Show current menu count
-  console.log('Menu items count:', menuItems.length, 'Is admin:', isAdmin);
+  // Menu items configured based on role
 
   // Responsive semi-circle arc configuration - 180 degrees around center orb
   const getButtonPosition = (index: number) => {

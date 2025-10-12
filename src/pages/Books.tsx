@@ -298,26 +298,28 @@ const Books = () => {
   const filteredForms = (() => {
     const base = applyFilters(forms);
     if (timeFilter === 'all') return base;
+
     const now = new Date();
-    let startDate: Date;
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
     if (timeFilter === 'this_week') {
-      startDate = new Date(now);
-      startDate.setHours(0, 0, 0, 0);
-      startDate.setDate(startDate.getDate() - startDate.getDay());
-    } else {
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - today.getDay()); // Sunday
+      return base.filter(form => {
+        const formDate = new Date(form.occurred_at || form.created_at);
+        return formDate >= startOfWeek;
+      });
     }
-    const filtered = base.filter(form => {
-      const dateStr = form.created_at || form.occurred_at || '';
-      const d = dateStr ? new Date(dateStr) : null;
-      return d ? d >= startDate : false;
-    });
-    filtered.sort((a, b) => {
-      const ad = new Date(a.created_at || a.occurred_at || 0).getTime();
-      const bd = new Date(b.created_at || b.occurred_at || 0).getTime();
-      return bd - ad;
-    });
-    return filtered;
+
+    if (timeFilter === 'this_month') {
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      return base.filter(form => {
+        const formDate = new Date(form.occurred_at || form.created_at);
+        return formDate >= startOfMonth;
+      });
+    }
+
+    return base;
   })();
 
   const formatDate = (dateString: string) => {
@@ -388,9 +390,9 @@ const Books = () => {
       </div>
 
       {/* Main Content Container */}
-      <div className="w-full max-w-7xl mx-auto px-4 pb-6">
+      <div className="w-full max-w-7xl mx-auto px-4 pb-2">
         {/* Integrated Search + Filter */}
-        <div className="py-4">
+        <div className="py-3">
           <div className="max-w-xl mx-auto">
             <div className="flex items-stretch gap-0 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.35)] border border-vice-cyan/30 bg-gradient-to-br from-black/50 via-black/40 to-black/30 backdrop-blur-sm">
               {/* Search */}
@@ -424,7 +426,7 @@ const Books = () => {
         </div>
         {/* Single expanded carousel card (matches Export sizing) */}
         <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.35)] max-w-7xl mx-auto">
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-1">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-vice-cyan">
@@ -435,10 +437,10 @@ const Books = () => {
               <Clock className="w-6 h-6 text-vice-pink" />
             </div>
           </CardHeader>
-          <CardContent className="pt-2">
-            <div className="my-2 sm:my-3 -mx-2 sm:mx-0 flex items-center justify-center">
+          <CardContent className="pt-0 pb-3">
+            <div className="my-0 -mx-2 sm:mx-0 flex items-center justify-center">
               <div className="w-full max-w-5xl">
-                <ViolationCarousel3D forms={filteredForms} heightClass="h-[260px] sm:h-[320px]" containerClassName="mx-auto" />
+                <ViolationCarousel3D forms={filteredForms} heightClass="h-[420px] sm:h-[480px]" containerClassName="mx-auto" />
               </div>
             </div>
           </CardContent>
