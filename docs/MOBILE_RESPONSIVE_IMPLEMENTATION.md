@@ -42,19 +42,19 @@ This document outlines the comprehensive mobile optimizations implemented for iP
 
 ### 5. Component-Specific Mobile Optimizations
 
-#### 3D Carousel (Admin-style) — Books & Admin
-- **Canonical Spec**: See `UI_3D_CAROUSEL_SPEC.md` (Admin-style is the reference implementation)
-- **Container Height**: `h-[140px]` with `overflow-hidden` and `rounded-xl` for tight containment
+#### 3D Carousel — Books & Admin
+- **Canonical Spec**: See `docs/3d-carousel.md` (unified spec and usage)
+- **Container Height**: Typically `h-[200px]` (pages may pass `heightClass`, e.g. `h-[260px] sm:h-[320px]`)
 - **Density & Sizing**:
-  - `targetFaces`: 16 (mobile ≤640px), 22 (desktop)
-  - `cylinderWidth`: 1100 (mobile), 1800 (desktop)
-  - `maxThumb`: 64 (mobile), 80 (desktop)
-  - `faceWidth = min(maxThumb, cylinderWidth / targetFaces)`
-  - Per-face padding: `p-0.5 sm:p-1` for subtle spacing
-- **Thumbnail Shape & Effects**: `aspect-square`, `rounded-2xl`, `ring-1 ring-vice-cyan/40`, neon shadow
-- **Overlay**: In-thumb neon cyan labels (stacked) — `Unit {unit}` and `{date}` at bottom-left
-- **Interactions**: Drag with momentum spring; unique `layoutId` per face; modal preview when tapped
-- **Sections UX**: Only one section expanded at a time; click-outside collapses all; active sections automatically move to top position for improved visibility (Admin reference)
+  - `targetFaces`: 12 (mobile ≤640px), 16 (desktop)
+  - `cylinderWidth`: 1500 (mobile), 2000 (desktop)
+  - `maxThumb`: 64 (mobile), 120 (desktop)
+  - `faceWidth = min(maxThumb, cylinderWidth / max(targetFaces, 1))`
+  - Per-face padding: `p-0.5` for subtle spacing
+- **Thumbnail Shape & Effects**: `aspect-square`, `rounded-2xl`, neon ring/shadow
+- **Overlay**: Top-aligned Unit/Date glass badges (`bg-black/40`, `backdrop-blur-sm`, `ring-1 ring-vice-cyan/30`)
+- **Interactions**: Per-card pointer overlay for tight scrubbing, small deadzone, snap-to-nearest-face on release, disabled drag momentum, modal preview on tap with tiny-move click-through
+- **Sections UX**: Only one section expanded at a time; click-outside collapses all; active sections can move to top for visibility (Admin reference)
 
 #### Camera Component (`src/components/CameraCapture.tsx`)
 - **Rear Camera Priority**: Automatically attempts to use rear camera (environment) first for accurate violation documentation

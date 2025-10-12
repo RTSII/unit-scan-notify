@@ -428,7 +428,7 @@ npm run migrate
 - **DATABASE_MANAGEMENT.md** - Database schema and migrations
 - **AUTHENTICATION_SETUP.md** - Auth setup and user management
 - **MOBILE_RESPONSIVE_IMPLEMENTATION.md** - Mobile optimization
-- **UI_3D_CAROUSEL_SPEC.md** - Carousel implementation
+- **docs/3d-carousel.md** - Carousel implementation
 - **TOOLBAR_INTEGRATION.md** - Dev toolbar usage
 
 ### Migration Documentation

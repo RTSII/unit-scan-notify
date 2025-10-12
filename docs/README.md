@@ -107,12 +107,6 @@ Note:
 - Viewport configuration
 - Mobile-first design
 
-**[UI_3D_CAROUSEL_SPEC.md](UI_3D_CAROUSEL_SPEC.md)**
-- 3D carousel implementation
-- Visual specifications
-- Behavioral specifications
-- Integration guide
-
 **[3d-carousel.md](3d-carousel.md)**
 - Unified Books/Export usage
 - Quick-start API notes (heightClass, containerClassName)
@@ -211,7 +205,7 @@ Use these steps to switch between your Home and Work PCs reliably.
 ### For Understanding System
 1. [WORKFLOW_REVIEW.md](WORKFLOW_REVIEW.md)
 2. [PERMISSIONS_STRUCTURE.md](PERMISSIONS_STRUCTURE.md)
-3. [UI_3D_CAROUSEL_SPEC.md](UI_3D_CAROUSEL_SPEC.md)
+3. [3d-carousel.md](3d-carousel.md)
 
 ---
 
