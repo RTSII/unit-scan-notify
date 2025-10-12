@@ -23,7 +23,9 @@ import {
   Home,
   User,
   ChevronDown,
-  Key
+  Key,
+  Search,
+  Filter
 } from 'lucide-react';
 import {
   Select,
@@ -193,6 +195,7 @@ export default function Admin() {
   
   // Violation forms state
   const [violationForms, setViolationForms] = useState<SavedForm[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [timeFilter, setTimeFilter] = useState<'this_week' | 'this_month' | 'all'>('this_week');
   const [deletingFormId, setDeletingFormId] = useState<string | null>(null);
 
@@ -372,14 +375,36 @@ export default function Admin() {
   }, [user, profile]);
 
 
-  // Get filtered forms based on time filter
+  // Get filtered forms based on time filter and search
   const getFilteredForms = () => {
+    let filtered = violationForms;
+
+    // Apply time filter first
     if (timeFilter === 'this_week') {
-      return getThisWeekForms();
+      filtered = getThisWeekForms();
     } else if (timeFilter === 'this_month') {
-      return getThisMonthForms();
+      filtered = getThisMonthForms();
     }
-    return violationForms;
+
+    // Apply search filter
+    if (searchTerm) {
+      const searchTermLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(form => {
+        const unitMatch = form.unit_number?.toLowerCase().includes(searchTermLower);
+        const descMatch = form.description?.toLowerCase().includes(searchTermLower);
+        const locationMatch = form.location?.toLowerCase().includes(searchTermLower);
+        const userMatch = form.profiles?.email?.toLowerCase().includes(searchTermLower) ||
+          form.profiles?.full_name?.toLowerCase().includes(searchTermLower);
+        
+        // Date matching
+        const dateStr = form.occurred_at || form.date || '';
+        const dateMatch = dateStr.toLowerCase().includes(searchTermLower);
+        
+        return Boolean(unitMatch || descMatch || locationMatch || userMatch || dateMatch);
+      });
+    }
+
+    return filtered;
   };
 
   // Get time filter label
@@ -634,25 +659,45 @@ Welcome to the team!`);
         {/* Profile Card with Active Users - REMOVED */}
         {/* This profile section has been moved to Dashboard page profile avatar */}
 
-        {/* Unified Violation Forms Section with 3D Carousel */}
-        <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-white flex items-center gap-2">
-                <FileText className="w-5 h-5 text-vice-cyan" />
-                {getTimeFilterLabel()} ({getFilteredForms().length})
-              </CardTitle>
+        {/* Integrated Search + Filter */}
+        <div className="max-w-xl mx-auto">
+          <div className="flex items-stretch gap-0 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.35)] border border-vice-cyan/30 bg-gradient-to-br from-black/50 via-black/40 to-black/30 backdrop-blur-sm">
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-vice-cyan/80" />
+              <Input
+                placeholder="Search Unit #, Date, or Violation type..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-transparent border-0 text-white placeholder:text-vice-cyan/70 min-h-[48px] w-full focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+            </div>
+            {/* Divider */}
+            <div className="self-stretch w-px bg-vice-cyan/30" />
+            {/* Filter */}
+            <div className="w-auto">
               <Select value={timeFilter} onValueChange={(value: 'this_week' | 'this_month' | 'all') => setTimeFilter(value)}>
-                <SelectTrigger className="w-[180px] bg-black/20 border-vice-cyan/30 text-white">
-                  <SelectValue />
+                <SelectTrigger className="h-[48px] bg-transparent border-0 text-white rounded-none justify-start px-3 w-auto">
+                  <Filter className="w-4 h-4 mr-2 text-vice-cyan/80 flex-shrink-0" />
+                  <SelectValue placeholder="Filter by time range" />
                 </SelectTrigger>
-                <SelectContent className="bg-black/90 border-vice-cyan/30">
+                <SelectContent className="bg-black/90 border-vice-cyan/50 w-auto">
                   <SelectItem value="this_week" className="text-white hover:bg-vice-cyan/20">This Week</SelectItem>
                   <SelectItem value="this_month" className="text-white hover:bg-vice-cyan/20">This Month</SelectItem>
                   <SelectItem value="all" className="text-white hover:bg-vice-cyan/20">All Forms</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+          </div>
+        </div>
+
+        {/* Unified Violation Forms Section with 3D Carousel */}
+        <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <FileText className="w-5 h-5 text-vice-cyan" />
+              {getTimeFilterLabel()} ({getFilteredForms().length})
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ViolationCarousel3D 
