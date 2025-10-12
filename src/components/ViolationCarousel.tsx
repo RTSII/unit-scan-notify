@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import { AnimatePresence, motion, useAnimation, useMotionValue, useTransform } from "framer-motion";
 import { useMediaQuery } from "./ui/3d-carousel";
 import { X, Trash2, Calendar, Clock, MapPin, Image as ImageIcon, User } from "lucide-react";
@@ -68,6 +68,13 @@ export const ViolationCarousel3D: React.FC<{
   const [hoveredCardIndex, setHoveredCardIndex] = useState<number | null>(null);
   const controls = useAnimation();
   const isScreenSizeSm = useMediaQuery("(max-width: 640px)");
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  const pointerActiveRef = useRef(false);
+  const lastXRef = useRef(0);
+  const totalDxRef = useRef(0);
+  const sensitivity = 0.02;
+  const clickThreshold = 3;
 
   const baseItems = useMemo(() => {
     const items = mapFormsToCarouselItems(forms);
@@ -198,8 +205,22 @@ export const ViolationCarousel3D: React.FC<{
     return location;
   };
 
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        setIsCarouselActive(entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className={`w-full ${containerClassName ?? ''}`.trim()} id="carousel-container">
+    <div className={`w-full ${containerClassName ?? ''}`.trim()} id="carousel-container" ref={containerRef}>
       <motion.div layout className="relative">
 
         <div 
@@ -265,6 +286,42 @@ export const ViolationCarousel3D: React.FC<{
                         layout="position"
                         animate={{ filter: "blur(0px)" }}
                         transition={{ duration: 0.15, ease: [0.32, 0.72, 0, 1] }}
+                      />
+                      <div
+                        className="absolute inset-0 cursor-grab active:cursor-grabbing"
+                        onPointerDown={(e) => {
+                          if (!item.fullForm) return;
+                          pointerActiveRef.current = true;
+                          lastXRef.current = e.clientX;
+                          totalDxRef.current = 0;
+                          setIsCarouselActive(false);
+                          (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+                          e.preventDefault();
+                        }}
+                        onPointerMove={(e) => {
+                          if (!pointerActiveRef.current) return;
+                          const dx = e.clientX - lastXRef.current;
+                          if (Math.abs(dx) < 0.5) return;
+                          lastXRef.current = e.clientX;
+                          totalDxRef.current += dx;
+                          rotation.set(rotation.get() + dx * sensitivity);
+                        }}
+                        onPointerUp={(e) => {
+                          if (!pointerActiveRef.current) return;
+                          pointerActiveRef.current = false;
+                          const moved = Math.abs(totalDxRef.current);
+                          const step = 360 / faceCount;
+                          const snapped = Math.round(rotation.get() / step) * step;
+                          controls.start({
+                            rotateY: snapped,
+                            transition: { type: "spring", stiffness: 120, damping: 32, mass: 0.22 },
+                          });
+                          setIsCarouselActive(true);
+                          if (moved < clickThreshold && item.fullForm) {
+                            handleClick(item.fullForm);
+                          }
+                          (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
+                        }}
                       />
                       {/* Neon cyan overlay - Date and Unit stacked vertically */}
                       {(item.date || item.unit) && (
