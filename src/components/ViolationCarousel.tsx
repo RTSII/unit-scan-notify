@@ -300,10 +300,6 @@ export const ViolationCarousel3D: React.FC<{
                   ) : (
                     <div 
                       className="relative w-full aspect-square touch-none select-none"
-                      onMouseEnter={() => setHoveredCardIndex(i)}
-                      onMouseLeave={() => setHoveredCardIndex(null)}
-                      onTouchStart={() => setHoveredCardIndex(i)}
-                      onTouchEnd={() => setHoveredCardIndex(null)}
                     >
                       <motion.img
                         src={item.imageUrl}
