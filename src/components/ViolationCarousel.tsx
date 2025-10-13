@@ -99,7 +99,7 @@ export const ViolationCarousel3D: React.FC<{
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging) return;
     const dx = e.clientX - dragStart.current.x;
-    const newRotation = dragStart.current.rotation + dx * 0.7; // Enhanced touch sensitivity
+    const newRotation = dragStart.current.rotation + dx * 0.5; // Increased sensitivity
     rotation.set(newRotation);
     x.set(e.clientX);
   };
@@ -255,15 +255,15 @@ export const ViolationCarousel3D: React.FC<{
       <motion.div layout className="relative">
 
         <div 
-          className={`relative ${heightClass ?? 'h-[200px]'} w-full overflow-hidden rounded-xl bg-black/20 py-1 sm:py-3 touch-none`}
+          className={`relative ${heightClass ?? 'h-[200px]'} w-full overflow-hidden rounded-xl bg-black/20 py-1 sm:py-3 touch-pan-y`}
         >
           <div
             className="flex h-full items-center justify-center bg-black/10"
             style={{ perspective: isScreenSizeSm ? "700px" : "1000px", transformStyle: "preserve-3d", willChange: "transform" }}
           >
             <motion.div
-              className={`relative flex h-full origin-center justify-center touch-none select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-              style={{ transform, rotateY: rotation, width: cylinderWidth, transformStyle: "preserve-3d", touchAction: 'none' }}
+              className={`relative flex h-full origin-center justify-center ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+              style={{ transform, rotateY: rotation, width: cylinderWidth, transformStyle: "preserve-3d" }}
               onPointerDown={handlePointerDown}
               onPointerUp={handlePointerUp}
               onPointerMove={handlePointerMove}
@@ -282,9 +282,7 @@ export const ViolationCarousel3D: React.FC<{
                     width: `${faceWidth}px`, 
                     transform: `rotateY(${i * (360 / faceCount)}deg) translateZ(${radius}px)`,
                     cursor: item.imageUrl === "placeholder" ? "default" : "pointer",
-                    backfaceVisibility: 'hidden',
-                    WebkitBackfaceVisibility: 'hidden',
-                    opacity: 1
+                    backfaceVisibility: 'hidden'
                   }}
                   onClick={(e) => {
                     // Prevent click during drag
@@ -296,19 +294,21 @@ export const ViolationCarousel3D: React.FC<{
                   }}
                 >
                   {item.imageUrl === "placeholder" ? (
-                    <div className="relative w-full rounded-2xl bg-black ring-1 ring-vice-cyan aspect-square opacity-100" />
+                    <div className="relative w-full rounded-2xl bg-black/90 ring-1 ring-vice-cyan aspect-square" />
                   ) : (
                     <div 
-                      className="relative w-full aspect-square touch-none select-none"
+                      className="relative w-full aspect-square"
+                      onMouseEnter={() => setHoveredCardIndex(i)}
+                      onMouseLeave={() => setHoveredCardIndex(null)}
                     >
                       <motion.img
                         src={item.imageUrl}
                         alt={`${item.unit} ${item.date}`}
                         layoutId={`img-${item.imageUrl}-${i}`}
-                        className="pointer-events-none w-full rounded-2xl object-cover aspect-square ring-2 ring-vice-pink shadow-[0_0_12px_#ff1493,0_0_24px_#ff149350] opacity-100"
-                        initial={{ filter: "blur(4px)", opacity: 1 }}
+                        className="pointer-events-none w-full rounded-2xl object-cover aspect-square ring-2 ring-vice-pink shadow-[0_0_12px_#ff1493,0_0_24px_#ff149350]"
+                        initial={{ filter: "blur(4px)" }}
                         layout="position"
-                        animate={{ filter: "blur(0px)", opacity: 1 }}
+                        animate={{ filter: "blur(0px)" }}
                         transition={{ duration: 0.15, ease: [0.32, 0.72, 0, 1] }}
                       />
                       <div
