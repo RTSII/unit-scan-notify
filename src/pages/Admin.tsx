@@ -639,11 +639,11 @@ Welcome to the team!`);
   return (
     <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue p-4 pb-safe">
       {/* Header */}
-      <div className="flex items-center justify-center p-6 border-b border-vice-cyan/20 relative">
+      <div className="flex items-center justify-center py-4 px-6 border-b border-vice-cyan/20 relative">
         <img
           src="/Admin.png"
           alt="Admin Panel"
-          className="h-24 w-auto object-contain"
+          className="h-20 w-auto object-contain"
         />
         <Button
           onClick={() => navigate('/')}
