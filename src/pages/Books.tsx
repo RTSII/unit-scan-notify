@@ -303,11 +303,14 @@ const Books = () => {
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     if (timeFilter === 'this_week') {
+      // Past 6 days + today = 7 days total
       const startOfWeek = new Date(today);
-      startOfWeek.setDate(today.getDate() - today.getDay()); // Sunday
+      startOfWeek.setDate(today.getDate() - 6); // 6 days ago at 00:00:00
       return base.filter(form => {
         const formDate = new Date(form.occurred_at || form.created_at);
-        return formDate >= startOfWeek;
+        // Normalize to date only (ignore time)
+        const formDateOnly = new Date(formDate.getFullYear(), formDate.getMonth(), formDate.getDate());
+        return formDateOnly >= startOfWeek;
       });
     }
 
@@ -440,7 +443,7 @@ const Books = () => {
           <CardContent className="pt-0 pb-3">
             <div className="my-0 -mx-2 sm:mx-0 flex items-center justify-center">
               <div className="w-full max-w-5xl">
-                <ViolationCarousel3D forms={filteredForms} heightClass="h-[420px] sm:h-[480px]" containerClassName="mx-auto" />
+                <ViolationCarousel3D forms={filteredForms} heightClass="h-[160px] sm:h-[200px]" containerClassName="mx-auto" />
               </div>
             </div>
           </CardContent>

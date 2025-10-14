@@ -184,16 +184,22 @@ export default function Export() {
     // Time-based filtering
     if (timeFilter !== 'all') {
       const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       let startDate: Date;
       if (timeFilter === 'this_week') {
-        startDate = new Date(now);
-        startDate.setHours(0, 0, 0, 0);
-        startDate.setDate(startDate.getDate() - startDate.getDay());
+        // Past 6 days + today = 7 days total
+        startDate = new Date(today);
+        startDate.setDate(today.getDate() - 6); // 6 days ago at 00:00:00
       } else {
         // this_month
         startDate = new Date(now.getFullYear(), now.getMonth(), 1);
       }
-      filtered = filtered.filter((form) => new Date(form.created_at) >= startDate);
+      filtered = filtered.filter((form) => {
+        const formDate = new Date(form.occurred_at || form.created_at);
+        // Normalize to date only (ignore time)
+        const formDateOnly = new Date(formDate.getFullYear(), formDate.getMonth(), formDate.getDate());
+        return formDateOnly >= startDate;
+      });
     }
 
     return filtered;
@@ -201,13 +207,16 @@ export default function Export() {
 
   const thisWeekCount = useMemo(() => {
     const now = new Date();
-    const startOfWeek = new Date(now);
-    startOfWeek.setHours(0, 0, 0, 0);
-    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    // Past 6 days + today = 7 days total
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - 6); // 6 days ago at 00:00:00
 
     return forms.filter((form) => {
-      const formDate = new Date(form.created_at);
-      return formDate >= startOfWeek;
+      const formDate = new Date(form.occurred_at || form.created_at);
+      // Normalize to date only (ignore time)
+      const formDateOnly = new Date(formDate.getFullYear(), formDate.getMonth(), formDate.getDate());
+      return formDateOnly >= startOfWeek;
     }).length;
   }, [forms]);
 
@@ -215,15 +224,21 @@ export default function Export() {
   const carouselForms = useMemo(() => {
     if (timeFilter === 'all') return forms;
     const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     let startDate: Date;
     if (timeFilter === 'this_week') {
-      startDate = new Date(now);
-      startDate.setHours(0, 0, 0, 0);
-      startDate.setDate(startDate.getDate() - startDate.getDay());
+      // Past 6 days + today = 7 days total
+      startDate = new Date(today);
+      startDate.setDate(today.getDate() - 6); // 6 days ago at 00:00:00
     } else {
       startDate = new Date(now.getFullYear(), now.getMonth(), 1);
     }
-    return forms.filter((form) => new Date(form.created_at) >= startDate);
+    return forms.filter((form) => {
+      const formDate = new Date(form.occurred_at || form.created_at);
+      // Normalize to date only (ignore time)
+      const formDateOnly = new Date(formDate.getFullYear(), formDate.getMonth(), formDate.getDate());
+      return formDateOnly >= startDate;
+    });
   }, [forms, timeFilter]);
 
   
@@ -468,7 +483,7 @@ export default function Export() {
               {/* 3D Carousel (enlarged and centered) */}
               <div className="my-2 sm:my-3 -mx-2 sm:mx-0 flex items-center justify-center">
                 <div className="w-full max-w-5xl">
-                  <ViolationCarousel3D forms={filteredForms} heightClass="h-[260px] sm:h-[320px]" containerClassName="mx-auto" />
+                  <ViolationCarousel3D forms={filteredForms} heightClass="h-[160px] sm:h-[200px]" containerClassName="mx-auto" />
                 </div>
               </div>
               {/* Selected Notices Display (only when selections exist) */}

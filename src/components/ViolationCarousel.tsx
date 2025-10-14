@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState, useEffect } from "react";
+import React, { useMemo, useRef, useState, useEffect, useCallback } from "react";
 import { AnimatePresence, motion, useAnimation, useMotionValue, useTransform } from "framer-motion";
 import { useMediaQuery } from "./ui/3d-carousel";
 import { X, Trash2, Calendar, Clock, MapPin, Image as ImageIcon, User } from "lucide-react";
@@ -57,58 +57,16 @@ export const ViolationCarousel3D: React.FC<{
   heightClass?: string;
   containerClassName?: string;
 }> = ({ forms, onDelete, heightClass, containerClassName }) => {
-  const [activeForm, setActiveForm] = useState<FormLike | null>(null);
   const [isCarouselActive, setIsCarouselActive] = useState(true);
-  const [selectedForDelete, setSelectedForDelete] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [hoveredCardIndex, setHoveredCardIndex] = useState<number | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
+  const [activeForm, setActiveForm] = useState<FormLike | null>(null);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [selectedForDelete, setSelectedForDelete] = useState(false);
   const controls = useAnimation();
-  const isScreenSizeSm = useMediaQuery("(max-width: 640px)");
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const x = useMotionValue(0);
-  const dragStart = useRef({ x: 0, rotation: 0 });
+  const popoverRef = useRef<HTMLDivElement | null>(null);
+  const isScreenSizeSm = useMediaQuery("(max-width: 640px)");
 
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    setIsDragging(true);
-    setIsCarouselActive(false);
-    dragStart.current = { x: e.clientX, rotation: rotation.get() };
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    e.preventDefault();
-  };
-
-  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    setIsDragging(false);
-    (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-    
-    const step = 360 / faceCount;
-    const currentRotation = rotation.get();
-    const velocity = x.getVelocity() / 1000;
-    const projectedRotation = currentRotation + velocity * 0.3; // Reduced momentum
-    const targetRotation = Math.round(projectedRotation / step) * step;
-    
-    controls.start({
-      rotateY: targetRotation,
-      transition: { type: "spring", stiffness: 150, damping: 30, mass: 0.3 }
-    });
-    
-    setIsCarouselActive(true);
-  };
-
-  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDragging) return;
-    const dx = e.clientX - dragStart.current.x;
-    const newRotation = dragStart.current.rotation + dx * 0.7; // Enhanced touch sensitivity
-    rotation.set(newRotation);
-    x.set(e.clientX);
-  };
-
-  const pointerActiveRef = useRef(false);
-  const lastXRef = useRef(0);
-  const totalDxRef = useRef(0);
-  const sensitivity = 0.02;
-  const clickThreshold = 3;
 
   const baseItems = useMemo(() => {
     const items = mapFormsToCarouselItems(forms);
@@ -118,8 +76,8 @@ export const ViolationCarousel3D: React.FC<{
   // Mobile density: reduce faces for smoother perf and tighter control
   const targetFaces = isScreenSizeSm ? 10 : 14;
   // Smaller mobile cylinder to increase curvature (smaller radius)
-  const cylinderWidth = isScreenSizeSm ? 1400 : 1900;
-  const maxThumb = isScreenSizeSm ? 110 : 140;
+  const cylinderWidth = isScreenSizeSm ? 1200 : 1800;
+  const maxThumb = isScreenSizeSm ? 120 : 140;
 
   const displayItems = useMemo(() => {
     if (baseItems.length >= targetFaces) return baseItems;
@@ -146,19 +104,20 @@ export const ViolationCarousel3D: React.FC<{
   const transform = useTransform(rotation, (value) => `rotate3d(0, 1, 0, ${value}deg)`);
 
   const handleClick = (form?: FormLike) => {
-    // Only allow clicking on real cards with forms, not placeholders
     if (form) {
       setActiveForm(form);
       setIsPopoverOpen(true);
       setSelectedForDelete(false);
+      setIsCarouselActive(false);
     }
   };
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setActiveForm(null);
     setIsPopoverOpen(false);
     setSelectedForDelete(false);
-  };
+    setIsCarouselActive(true);
+  }, []);
 
   const handleCardHover = (index: number | null) => {
     setHoveredCardIndex(index);
@@ -172,14 +131,14 @@ export const ViolationCarousel3D: React.FC<{
   };
 
   // Auto-rotation effect - clockwise (using requestAnimationFrame for smooth animation)
-  // Stops on hover or when popover is open
+  // Stops when popover is open or card is hovered
   React.useEffect(() => {
     let animationFrameId: number;
-    const autoRotateSpeed = 0.02; // Same speed as circular-gallery
+    const autoRotateSpeed = 0.015;
     
     const autoRotate = () => {
-      if (isCarouselActive && !isHovered && !isPopoverOpen && hoveredCardIndex === null) {
-        rotation.set(rotation.get() - autoRotateSpeed); // Negative for clockwise rotation
+      if (isCarouselActive && !isPopoverOpen && hoveredCardIndex === null) {
+        rotation.set(rotation.get() - autoRotateSpeed);
       }
       animationFrameId = requestAnimationFrame(autoRotate);
     };
@@ -191,7 +150,7 @@ export const ViolationCarousel3D: React.FC<{
         cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [isCarouselActive, isHovered, isPopoverOpen, hoveredCardIndex, rotation]);
+  }, [isCarouselActive, isPopoverOpen, hoveredCardIndex, rotation]);
 
   const formatDate = (form: FormLike) => {
     // Handle both legacy 'date' field and new 'occurred_at' field
@@ -250,26 +209,71 @@ export const ViolationCarousel3D: React.FC<{
     return () => observer.disconnect();
   }, []);
 
+  // Click outside to close popover
+  useEffect(() => {
+    if (!isPopoverOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
+        handleClose();
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        handleClose();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isPopoverOpen, handleClose]);
+
   return (
     <div className={`w-full ${containerClassName ?? ''}`.trim()} id="carousel-container" ref={containerRef}>
       <motion.div layout className="relative">
 
         <div 
-          className={`relative ${heightClass ?? 'h-[200px]'} w-full overflow-hidden rounded-xl bg-black/20 py-1 sm:py-3 touch-none`}
+          className={`relative ${heightClass ?? 'h-[140px] sm:h-[160px]'} w-full overflow-hidden rounded-xl bg-black/20 py-1`}
+          style={{ touchAction: 'pan-y' }}
         >
           <div
             className="flex h-full items-center justify-center bg-black/10"
-            style={{ perspective: isScreenSizeSm ? "700px" : "1000px", transformStyle: "preserve-3d", willChange: "transform" }}
+            style={{ 
+              perspective: isScreenSizeSm ? "600px" : "800px", 
+              transformStyle: "preserve-3d", 
+              willChange: "transform"
+            }}
           >
             <motion.div
-              className={`relative flex h-full origin-center justify-center touch-none select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-              style={{ transform, rotateY: rotation, width: cylinderWidth, transformStyle: "preserve-3d", touchAction: 'none' }}
-              onPointerDown={handlePointerDown}
-              onPointerUp={handlePointerUp}
-              onPointerMove={handlePointerMove}
-              onPointerLeave={(e) => {
-                if (isDragging) {
-                  handlePointerUp(e);
+              drag={isCarouselActive ? "x" : false}
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0}
+              dragMomentum={true}
+              className="relative flex h-full origin-center justify-center select-none cursor-grab active:cursor-grabbing"
+              style={{ 
+                transform, 
+                rotateY: rotation, 
+                width: cylinderWidth, 
+                transformStyle: "preserve-3d",
+                willChange: 'transform'
+              }}
+              onDrag={(_, info) => {
+                if (isCarouselActive) {
+                  rotation.set(rotation.get() + info.offset.x * 0.15);
+                }
+              }}
+              onDragEnd={(_, info) => {
+                if (isCarouselActive) {
+                  controls.start({
+                    rotateY: rotation.get() + info.velocity.x * 0.08,
+                    transition: { type: "spring", stiffness: 120, damping: 25, mass: 0.15 }
+                  });
                 }
               }}
               animate={controls}
@@ -277,29 +281,25 @@ export const ViolationCarousel3D: React.FC<{
               {displayItems.map((item, i) => (
                 <motion.div
                   key={`key-${item.imageUrl}-${i}`}
-                  className="absolute flex h-full origin-center items-center justify-center rounded-2xl p-0.5"
+                  data-card-index={i}
+                  className="absolute flex h-full origin-center items-center justify-center rounded-2xl p-0.5 pointer-events-none"
                   style={{ 
                     width: `${faceWidth}px`, 
                     transform: `rotateY(${i * (360 / faceCount)}deg) translateZ(${radius}px)`,
-                    cursor: item.imageUrl === "placeholder" ? "default" : "pointer",
                     backfaceVisibility: 'hidden',
                     WebkitBackfaceVisibility: 'hidden',
-                    opacity: 1
-                  }}
-                  onClick={(e) => {
-                    // Prevent click during drag
-                    if (Math.abs(x.getVelocity()) > 200) {
-                      e.stopPropagation();
-                      return;
-                    }
-                    handleClick(item.fullForm);
+                    opacity: 1,
+                    willChange: 'transform'
                   }}
                 >
                   {item.imageUrl === "placeholder" ? (
                     <div className="relative w-full rounded-2xl bg-black ring-1 ring-vice-cyan aspect-square opacity-100" />
                   ) : (
                     <div 
-                      className="relative w-full aspect-square touch-none select-none"
+                      className="relative w-full aspect-square"
+                      onClick={() => handleClick(item.fullForm)}
+                      onMouseEnter={() => handleCardHover(i)}
+                      onMouseLeave={() => handleCardHover(null)}
                     >
                       <motion.img
                         src={item.imageUrl}
@@ -310,10 +310,6 @@ export const ViolationCarousel3D: React.FC<{
                         layout="position"
                         animate={{ filter: "blur(0px)", opacity: 1 }}
                         transition={{ duration: 0.15, ease: [0.32, 0.72, 0, 1] }}
-                      />
-                      <div
-                        className="absolute inset-0"
-                        style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
                       />
                       {/* Overlay badges - Unit and Date */}
                       {(item.date || item.unit) && (
@@ -344,6 +340,7 @@ export const ViolationCarousel3D: React.FC<{
           {isPopoverOpen && activeForm && (
             <div className="mt-6 w-full flex justify-center">
               <motion.div
+                ref={popoverRef}
                 initial={{ opacity: 0, scale: 0.95, y: -20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: -20 }}
@@ -351,11 +348,16 @@ export const ViolationCarousel3D: React.FC<{
                 className="w-[95vw] max-w-2xl p-0 bg-gradient-to-br from-vice-purple/20 via-black/95 to-vice-blue/20 border border-vice-cyan/30 backdrop-blur-sm rounded-2xl shadow-2xl"
               >
               <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-                {/* Header with close button */}
-                <div className="flex items-center justify-end border-b border-vice-cyan/30 pb-2">
+                {/* Header with title and close button */}
+                <div className="flex items-center justify-between border-b border-vice-cyan/30 pb-3">
+                  <div>
+                    <h3 className="text-xl font-bold text-white">Violation Details</h3>
+                    <p className="text-sm text-vice-cyan/70">Unit {activeForm.unit_number}</p>
+                  </div>
                   <button
                     onClick={handleClose}
                     className="p-2 rounded-lg bg-black/40 hover:bg-black/60 text-white transition-colors"
+                    aria-label="Close"
                   >
                     <X className="w-5 h-5" />
                   </button>

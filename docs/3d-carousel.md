@@ -17,20 +17,20 @@ This single document is the authoritative spec and usage guide for the 3D carous
 
 ## Visual Spec
 - **Container**
-  - `div.relative.h-[200px].w-full.overflow-hidden.rounded-xl.bg-black/20`
-  - Pages may pass a taller height via `heightClass`:
-    - Mobile: `h-[240px]–h-[260px]`
-    - Desktop: `h-[300px]–h-[320px]`
+  - `div.relative.h-[140px].sm:h-[160px].w-full.overflow-hidden.rounded-xl.bg-black/20`
+  - Pages may pass a custom height via `heightClass`:
+    - Recommended: `h-[160px] sm:h-[200px]` (optimized for mobile)
+    - Default: `h-[140px] sm:h-[160px]`
   - Inner wrapper with perspective and 3D preservation:
     - `div.flex.h-full.items-center.justify-center.bg-black/10`
-    - Inline style: `{ perspective: 700–1000px, transformStyle: 'preserve-3d', willChange: 'transform' }`
+    - Inline style: `{ perspective: 600–800px, transformStyle: 'preserve-3d', willChange: 'transform' }`
 - **Cylinder**
-  - `cylinderWidth`: ~1500 (mobile ≤640px), ~2000 (desktop)
+  - `cylinderWidth`: ~1200 (mobile ≤640px), ~1800 (desktop)
   - `radius = cylinderWidth / (2 * Math.PI)`
 - **Density and face sizing**
-  - `targetFaces`: 12 (mobile), 16 (desktop)
+  - `targetFaces`: 10 (mobile), 14 (desktop)
   - Densify if fewer items than `targetFaces` (duplicate items + placeholders)
-  - `maxThumb`: 64 (mobile), 120 (desktop)
+  - `maxThumb`: 120 (mobile), 140 (desktop)
   - `faceWidth = min(maxThumb, cylinderWidth / max(targetFaces, 1))`
 - **Face placement (each face i)**
   - Classes: `absolute flex h-full origin-center items-center justify-center rounded-2xl p-0.5`
@@ -47,19 +47,28 @@ This single document is the authoritative spec and usage guide for the 3D carous
 ---
 
 ## Interaction Spec
-- **Grip and drag**
-  - Per-card absolute pointer overlay captures pointer events for tight scrubbing.
-  - Small deadzone filters jitters; horizontal deltas rotate the cylinder with low sensitivity.
-  - Tiny moves (< few px) are treated as clicks to open the popover.
-- **Snapping**
-  - On release, rotation snaps to the nearest `360/faceCount` step.
-  - Spring config tuned for quick settle without overshoot.
+- **Drag System** (Framer Motion)
+  - Uses Framer Motion's built-in `drag="x"` prop for smooth, physics-based dragging
+  - Drag only active when `isCarouselActive` is true (disabled when popover is open)
+  - Sensitivity: `0.15` for fine control during slow dragging
+  - Velocity multiplier: `0.08` for flick/momentum on release
+  - Spring physics: `stiffness: 120, damping: 25, mass: 0.15`
+  - `dragConstraints={{ left: 0, right: 0 }}` - no position constraints
+  - `dragElastic={0}` - no elastic bounce
+  - `dragMomentum={true}` - enables flick momentum
+- **Click Detection**
+  - Simple `onClick` handler on each card div
+  - Framer Motion automatically distinguishes drag vs click
+  - Opens popover with full form details on click
 - **Auto-rotate**
-  - Slow clockwise auto-rotation while idle.
-  - Pauses on hover, touch/drag interaction, and when the carousel is offscreen (IntersectionObserver).
-- **Touch ergonomics**
-  - `touch-pan-y` on the container to mitigate vertical scroll conflicts.
-  - Cursor feedback: hand/grab cursors on each card for affordance.
+  - Slow clockwise auto-rotation while idle (0.015 speed)
+  - Pauses when: popover is open, card is hovered, or carousel is offscreen (IntersectionObserver)
+  - Uses `requestAnimationFrame` for smooth 60fps animation
+- **Touch & Mobile**
+  - `touch-pan-y` on container to allow vertical scrolling
+  - Enhanced sensitivity (0.15) for fine control during touch-and-hold
+  - Flick support with natural momentum physics
+  - Cursor: `cursor-grab active:cursor-grabbing` (shows only during active drag)
 
 ---
 
@@ -94,8 +103,15 @@ This single document is the authoritative spec and usage guide for the 3D carous
 ## Standard Usage Pattern
 - Books and Export render a single expanded carousel card with:
   - Unified Search + Time filter (This Week | This Month | All)
+    - **This Week**: Past 6 days + today (7 days total)
+      - Uses date normalization to ignore time components
+      - Compares `formDateOnly >= startOfWeek` where both are at 00:00:00
+    - **This Month**: Current calendar month (1st to last day)
+      - Filters by `occurred_at` or `created_at` (fallback)
+    - **All**: All saved forms
   - Count label in the card header for the selected scope
   - Carousel populated by filtered forms
+  - **Important**: Date filtering normalizes timestamps to date-only (strips time) to ensure consistent filtering regardless of time zones
 
 ### Example
 ```
