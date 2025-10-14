@@ -236,10 +236,10 @@ export const ViolationCarousel3D: React.FC<{
 
   return (
     <div className={`w-full ${containerClassName ?? ''}`.trim()} id="carousel-container" ref={containerRef}>
-      <motion.div layout className="relative">
+      <motion.div layout className="relative w-full">
 
         <div 
-          className={`relative ${heightClass ?? 'h-[140px] sm:h-[160px]'} w-full overflow-hidden rounded-xl bg-black/20 py-1`}
+          className={`relative ${heightClass ?? 'h-[140px] sm:h-[160px]'} w-full overflow-hidden rounded-xl bg-black/20 py-1 mb-4`}
           style={{ touchAction: 'pan-y' }}
         >
           <div
@@ -305,27 +305,25 @@ export const ViolationCarousel3D: React.FC<{
                         src={item.imageUrl}
                         alt={`${item.unit} ${item.date}`}
                         layoutId={`img-${item.imageUrl}-${i}`}
-                        className="pointer-events-none w-full rounded-2xl object-cover aspect-square ring-2 ring-vice-pink shadow-[0_0_12px_#ff1493,0_0_24px_#ff149350] opacity-100"
+                        className="pointer-events-none w-full rounded-2xl object-cover aspect-square ring-2 ring-vice-cyan shadow-[0_0_12px_#00ffff,0_0_24px_#00ffff50] opacity-100"
                         initial={{ filter: "blur(4px)", opacity: 1 }}
                         layout="position"
                         animate={{ filter: "blur(0px)", opacity: 1 }}
                         transition={{ duration: 0.15, ease: [0.32, 0.72, 0, 1] }}
                       />
-                      {/* Overlay badges - Unit and Date */}
+                      {/* Overlay badges - Date left, Unit right */}
                       {(item.date || item.unit) && (
-                        <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-1 p-2 pointer-events-none z-10">
-                          <div className="flex items-center gap-1.5">
-                            {item.unit && (
-                              <div className="text-xs font-semibold text-vice-cyan drop-shadow-[0_0_6px_#00ffff] bg-black/40 backdrop-blur-sm ring-1 ring-vice-cyan/30 px-1.5 py-0.5 rounded-md">
-                                {item.unit}
-                              </div>
-                            )}
-                            {item.date && (
-                              <div className="text-xs font-medium text-vice-cyan drop-shadow-[0_0_6px_#00ffff] bg-black/40 backdrop-blur-sm ring-1 ring-vice-cyan/30 px-1.5 py-0.5 rounded-md">
-                                {item.date}
-                              </div>
-                            )}
-                          </div>
+                        <div className="absolute inset-x-0 top-0 flex items-center justify-center gap-2 p-1.5 sm:p-2 pointer-events-none z-10">
+                          {item.date && (
+                            <div className="text-[10px] sm:text-xs font-medium text-vice-cyan drop-shadow-[0_0_6px_#00ffff] bg-black/50 backdrop-blur-sm ring-1 ring-vice-cyan/40 px-1.5 sm:px-2 py-0.5 rounded-md whitespace-nowrap">
+                              {item.date}
+                            </div>
+                          )}
+                          {item.unit && (
+                            <div className="text-[10px] sm:text-xs font-semibold text-vice-cyan drop-shadow-[0_0_6px_#00ffff] bg-black/50 backdrop-blur-sm ring-1 ring-vice-cyan/40 px-1.5 sm:px-2 py-0.5 rounded-md whitespace-nowrap">
+                              {item.unit}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -338,16 +336,16 @@ export const ViolationCarousel3D: React.FC<{
 
         <AnimatePresence mode="wait">
           {isPopoverOpen && activeForm && (
-            <div className="mt-6 w-full flex justify-center">
+            <div className="w-full flex justify-center px-2 sm:px-0">
               <motion.div
                 ref={popoverRef}
                 initial={{ opacity: 0, scale: 0.95, y: -20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: -20 }}
                 transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-                className="w-[95vw] max-w-2xl p-0 bg-gradient-to-br from-vice-purple/20 via-black/95 to-vice-blue/20 border border-vice-cyan/30 backdrop-blur-sm rounded-2xl shadow-2xl"
+                className="w-full max-w-2xl p-0 bg-gradient-to-br from-vice-purple/20 via-black/95 to-vice-blue/20 border border-vice-cyan/30 backdrop-blur-sm rounded-2xl shadow-2xl"
               >
-              <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+              <div className="p-4 sm:p-6 space-y-4 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-vice-cyan/20 scrollbar-track-transparent">
                 {/* Header with title and close button */}
                 <div className="flex items-center justify-between border-b border-vice-cyan/30 pb-3">
                   <div>
