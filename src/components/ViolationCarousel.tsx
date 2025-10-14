@@ -243,7 +243,7 @@ export const ViolationCarousel3D: React.FC<{
           style={{ touchAction: 'pan-y' }}
         >
           <div
-            className="flex h-full items-center justify-center bg-black/10"
+            className="flex h-full items-center justify-center bg-black/10 px-2 sm:px-3"
             style={{ 
               perspective: isScreenSizeSm ? "600px" : "800px", 
               transformStyle: "preserve-3d", 
@@ -282,7 +282,7 @@ export const ViolationCarousel3D: React.FC<{
                 <motion.div
                   key={`key-${item.imageUrl}-${i}`}
                   data-card-index={i}
-                  className="absolute flex h-full origin-center items-center justify-center rounded-2xl p-0.5 pointer-events-none"
+                  className="absolute flex h-full origin-center items-center justify-center rounded-2xl p-1.5 sm:p-2 pointer-events-none"
                   style={{ 
                     width: `${faceWidth}px`, 
                     transform: `rotateY(${i * (360 / faceCount)}deg) translateZ(${radius}px)`,
