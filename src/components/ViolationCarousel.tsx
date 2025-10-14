@@ -236,10 +236,10 @@ export const ViolationCarousel3D: React.FC<{
 
   return (
     <div className={`w-full ${containerClassName ?? ''}`.trim()} id="carousel-container" ref={containerRef}>
-      <motion.div layout className="relative w-full">
+      <motion.div layout className="relative w-full mb-6">
 
         <div 
-          className={`relative ${heightClass ?? 'h-[140px] sm:h-[160px]'} w-full overflow-hidden rounded-xl bg-black/20 py-1 mb-4`}
+          className={`relative ${heightClass ?? 'h-[140px] sm:h-[160px]'} w-full overflow-hidden rounded-xl bg-black/20 py-1`}
           style={{ touchAction: 'pan-y' }}
         >
           <div
@@ -305,7 +305,7 @@ export const ViolationCarousel3D: React.FC<{
                         src={item.imageUrl}
                         alt={`${item.unit} ${item.date}`}
                         layoutId={`img-${item.imageUrl}-${i}`}
-                        className="pointer-events-none w-full rounded-2xl object-cover aspect-square ring-2 ring-vice-cyan shadow-[0_0_12px_#00ffff,0_0_24px_#00ffff50] opacity-100"
+                        className="pointer-events-none w-full rounded-2xl object-cover aspect-square ring-2 ring-vice-pink shadow-[0_0_12px_#ff1493,0_0_24px_#ff149350] opacity-100"
                         initial={{ filter: "blur(4px)", opacity: 1 }}
                         layout="position"
                         animate={{ filter: "blur(0px)", opacity: 1 }}
@@ -315,12 +315,12 @@ export const ViolationCarousel3D: React.FC<{
                       {(item.date || item.unit) && (
                         <div className="absolute inset-x-0 top-0 flex items-center justify-center gap-2 p-1.5 sm:p-2 pointer-events-none z-10">
                           {item.date && (
-                            <div className="text-[10px] sm:text-xs font-medium text-vice-cyan drop-shadow-[0_0_6px_#00ffff] bg-black/50 backdrop-blur-sm ring-1 ring-vice-cyan/40 px-1.5 sm:px-2 py-0.5 rounded-md whitespace-nowrap">
+                            <div className="text-[10px] sm:text-xs font-medium text-vice-pink drop-shadow-[0_0_6px_#ff1493] bg-black/50 backdrop-blur-sm ring-1 ring-vice-pink/40 px-1.5 sm:px-2 py-0.5 rounded-md whitespace-nowrap">
                               {item.date}
                             </div>
                           )}
                           {item.unit && (
-                            <div className="text-[10px] sm:text-xs font-semibold text-vice-cyan drop-shadow-[0_0_6px_#00ffff] bg-black/50 backdrop-blur-sm ring-1 ring-vice-cyan/40 px-1.5 sm:px-2 py-0.5 rounded-md whitespace-nowrap">
+                            <div className="text-[10px] sm:text-xs font-semibold text-vice-pink drop-shadow-[0_0_6px_#ff1493] bg-black/50 backdrop-blur-sm ring-1 ring-vice-pink/40 px-1.5 sm:px-2 py-0.5 rounded-md whitespace-nowrap">
                               {item.unit}
                             </div>
                           )}
@@ -336,7 +336,7 @@ export const ViolationCarousel3D: React.FC<{
 
         <AnimatePresence mode="wait">
           {isPopoverOpen && activeForm && (
-            <div className="w-full flex justify-center px-2 sm:px-0">
+            <div className="w-full flex justify-center px-2 sm:px-0 mt-4">
               <motion.div
                 ref={popoverRef}
                 initial={{ opacity: 0, scale: 0.95, y: -20 }}
