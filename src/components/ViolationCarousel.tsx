@@ -236,15 +236,15 @@ export const ViolationCarousel3D: React.FC<{
 
   return (
     <div className={`w-full ${containerClassName ?? ''}`.trim()} id="carousel-container" ref={containerRef}>
-      <motion.div layout className="relative w-full mb-6">
+      <motion.div layout className="relative w-full mb-8 sm:mb-10">
 
         <div 
           className={`relative ${heightClass ?? 'h-[140px] sm:h-[160px]'} w-full overflow-hidden rounded-xl bg-black/20 py-1`}
           style={{ touchAction: 'pan-y' }}
         >
           <div
-            className="flex h-full items-center justify-center bg-black/10 px-2 sm:px-3"
-            style={{ 
+            className="flex h-full items-center justify-center bg-black/10 px-4 sm:px-6"
+            style={{
               perspective: isScreenSizeSm ? "600px" : "800px", 
               transformStyle: "preserve-3d", 
               willChange: "transform"
@@ -282,8 +282,8 @@ export const ViolationCarousel3D: React.FC<{
                 <motion.div
                   key={`key-${item.imageUrl}-${i}`}
                   data-card-index={i}
-                  className="absolute flex h-full origin-center items-center justify-center rounded-2xl p-1.5 sm:p-2 pointer-events-none"
-                  style={{ 
+                  className="absolute flex h-full origin-center items-center justify-center rounded-2xl p-2 sm:p-3 pointer-events-none"
+                  style={{
                     width: `${faceWidth}px`, 
                     transform: `rotateY(${i * (360 / faceCount)}deg) translateZ(${radius}px)`,
                     backfaceVisibility: 'hidden',
