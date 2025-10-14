@@ -305,7 +305,7 @@ export const ViolationCarousel3D: React.FC<{
                         src={item.imageUrl}
                         alt={`${item.unit} ${item.date}`}
                         layoutId={`img-${item.imageUrl}-${i}`}
-                        className="pointer-events-none w-full rounded-2xl object-cover aspect-square ring-2 ring-vice-pink shadow-[0_0_12px_#ff1493,0_0_24px_#ff149350] opacity-100"
+                        className="pointer-events-none w-full rounded-2xl object-cover aspect-square ring-2 ring-vice-cyan shadow-[0_0_12px_#00ffff,0_0_24px_#00ffff50] opacity-100"
                         initial={{ filter: "blur(4px)", opacity: 1 }}
                         layout="position"
                         animate={{ filter: "blur(0px)", opacity: 1 }}

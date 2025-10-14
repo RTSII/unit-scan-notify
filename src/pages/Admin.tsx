@@ -661,7 +661,7 @@ Welcome to the team!`);
 
         {/* Integrated Search + Filter */}
         <div className="max-w-xl mx-auto">
-          <div className="flex items-stretch gap-0 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.35)] border border-vice-cyan/30 bg-gradient-to-br from-black/50 via-black/40 to-black/30 backdrop-blur-sm">
+          <div className="flex flex-col sm:flex-row items-stretch gap-0 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.35)] border border-vice-cyan/30 bg-gradient-to-br from-black/50 via-black/40 to-black/30 backdrop-blur-sm">
             {/* Search */}
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-vice-cyan/80" />
@@ -672,12 +672,13 @@ Welcome to the team!`);
                 className="pl-10 bg-transparent border-0 text-white placeholder:text-vice-cyan/70 min-h-[48px] w-full focus-visible:ring-0 focus-visible:ring-offset-0"
               />
             </div>
-            {/* Divider */}
-            <div className="self-stretch w-px bg-vice-cyan/30" />
+            {/* Divider (vertical on desktop, horizontal on mobile) */}
+            <div className="hidden sm:block self-stretch w-px bg-vice-cyan/30" />
+            <div className="block sm:hidden h-px w-full bg-vice-cyan/30" />
             {/* Filter */}
-            <div className="w-auto">
+            <div className="w-full sm:w-auto">
               <Select value={timeFilter} onValueChange={(value: 'this_week' | 'this_month' | 'all') => setTimeFilter(value)}>
-                <SelectTrigger className="h-[48px] bg-transparent border-0 text-white rounded-none justify-start px-3 w-auto">
+                <SelectTrigger className="h-[48px] bg-transparent border-0 text-white rounded-none justify-between sm:justify-start px-3 w-full sm:w-auto">
                   <Filter className="w-4 h-4 mr-2 text-vice-cyan/80 flex-shrink-0" />
                   <SelectValue placeholder="Filter by time range" />
                 </SelectTrigger>
