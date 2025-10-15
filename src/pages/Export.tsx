@@ -424,8 +424,11 @@ export default function Export() {
               className="h-24 w-auto object-contain"
             />
           </div>
-          {/* Black gradient mask at bottom to fade reflection */}
+          {/* Black gradient masks on all sides to blend logo */}
           <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-black to-transparent pointer-events-none z-10" />
+          <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-black to-transparent pointer-events-none z-10" />
+          <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-black to-transparent pointer-events-none z-10" />
+          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-black to-transparent pointer-events-none z-10" />
           <div className="ml-auto">
             <Button
               onClick={() => navigate('/')}
