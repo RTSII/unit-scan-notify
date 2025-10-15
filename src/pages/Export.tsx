@@ -415,22 +415,25 @@ export default function Export() {
 
       {/* Content */}
       <div className="relative z-30 min-h-screen">
-        {/* Header */}
-        <div className="flex items-center justify-center p-6 bg-black backdrop-blur-sm border-b border-vice-cyan/20 relative">
-          <img
-            src="/Export.png"
-            alt="Export"
-            className="h-24 w-auto object-contain"
-          />
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/')}
-            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:bg-white/10"
-          >
-            <Home className="h-5 w-5" />
-          </Button>
+        {/* Header with centered Export.png image */}
+        <div className="relative flex items-center p-6 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20">
+          <div className="absolute left-1/2 transform -translate-x-1/2">
+            <img
+              src="/Export.png"
+              alt="Export"
+              className="h-24 w-auto object-contain"
+            />
+          </div>
+          <div className="ml-auto">
+            <Button
+              onClick={() => navigate('/')}
+              variant="ghost"
+              size="sm"
+              className="text-white hover:bg-vice-cyan/20 min-h-[44px] min-w-[44px]"
+            >
+              <Home className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
 
         <div className="p-4 space-y-4">
