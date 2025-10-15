@@ -416,7 +416,7 @@ export default function Export() {
       {/* Content */}
       <div className="relative z-30 min-h-screen">
         {/* Header with centered Export.png image */}
-        <div className="relative flex items-center p-6 bg-black backdrop-blur-sm border-b border-vice-cyan/20">
+        <div className="relative flex items-center p-6 bg-black backdrop-blur-sm border-b border-vice-cyan/20 overflow-hidden">
           <div className="absolute left-1/2 transform -translate-x-1/2">
             <img
               src="/Export.png"
@@ -424,6 +424,8 @@ export default function Export() {
               className="h-24 w-auto object-contain"
             />
           </div>
+          {/* Black gradient mask at bottom to fade reflection */}
+          <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-black to-transparent pointer-events-none z-10" />
           <div className="ml-auto">
             <Button
               onClick={() => navigate('/')}
