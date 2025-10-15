@@ -416,7 +416,7 @@ export default function Export() {
       {/* Content */}
       <div className="relative z-30 min-h-screen">
         {/* Header with centered Export.png image */}
-        <div className="relative flex items-center p-6 bg-black/20 backdrop-blur-sm border-b border-vice-cyan/20">
+        <div className="relative flex items-center p-6 bg-black backdrop-blur-sm border-b border-vice-cyan/20">
           <div className="absolute left-1/2 transform -translate-x-1/2">
             <img
               src="/Export.png"
