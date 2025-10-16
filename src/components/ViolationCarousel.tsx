@@ -240,7 +240,10 @@ export const ViolationCarousel3D: React.FC<{
 
         <div 
           className={`relative ${heightClass ?? 'h-[140px] sm:h-[160px]'} w-full overflow-hidden rounded-xl bg-black/20 py-1`}
-          style={{ touchAction: 'pan-y' }}
+          style={{ touchAction: 'none' }}
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
+          onTouchEnd={(e) => e.stopPropagation()}
         >
           <div
             className="flex h-full items-center justify-center bg-black/10 px-4 sm:px-6"
@@ -252,27 +255,32 @@ export const ViolationCarousel3D: React.FC<{
           >
             <motion.div
               drag={isCarouselActive ? "x" : false}
-              dragConstraints={{ left: 0, right: 0 }}
-              dragElastic={0}
+              dragElastic={0.05}
               dragMomentum={true}
+              dragTransition={{ bounceStiffness: 300, bounceDamping: 20 }}
               className="relative flex h-full origin-center justify-center select-none cursor-grab active:cursor-grabbing"
               style={{ 
                 transform, 
                 rotateY: rotation, 
                 width: cylinderWidth, 
                 transformStyle: "preserve-3d",
-                willChange: 'transform'
+                willChange: 'transform',
+                touchAction: 'none'
               }}
               onDrag={(_, info) => {
                 if (isCarouselActive) {
-                  rotation.set(rotation.get() + info.offset.x * 0.15);
+                  // Increased sensitivity for smoother, more responsive touch control
+                  const sensitivity = isScreenSizeSm ? 0.25 : 0.18;
+                  rotation.set(rotation.get() + info.offset.x * sensitivity);
                 }
               }}
               onDragEnd={(_, info) => {
                 if (isCarouselActive) {
+                  // Smoother momentum with increased velocity multiplier
+                  const velocityMultiplier = isScreenSizeSm ? 0.12 : 0.1;
                   controls.start({
-                    rotateY: rotation.get() + info.velocity.x * 0.08,
-                    transition: { type: "spring", stiffness: 120, damping: 25, mass: 0.15 }
+                    rotateY: rotation.get() + info.velocity.x * velocityMultiplier,
+                    transition: { type: "spring", stiffness: 100, damping: 22, mass: 0.2 }
                   });
                 }
               }}
@@ -296,10 +304,11 @@ export const ViolationCarousel3D: React.FC<{
                     <div className="relative w-full rounded-2xl bg-black ring-1 ring-vice-cyan aspect-square opacity-100" />
                   ) : (
                     <div 
-                      className="relative w-full aspect-square"
+                      className="relative w-full aspect-square pointer-events-auto"
                       onClick={() => handleClick(item.fullForm)}
                       onMouseEnter={() => handleCardHover(i)}
                       onMouseLeave={() => handleCardHover(null)}
+                      onTouchStart={(e) => e.stopPropagation()}
                     >
                       <motion.img
                         src={item.imageUrl}
@@ -336,7 +345,13 @@ export const ViolationCarousel3D: React.FC<{
 
         <AnimatePresence mode="wait">
           {isPopoverOpen && activeForm && (
-            <div className="w-full flex justify-center px-2 sm:px-0 mt-4">
+            <div 
+              className="w-full flex justify-center px-2 sm:px-0 mt-4"
+              style={{ touchAction: 'auto' }}
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchMove={(e) => e.stopPropagation()}
+              onTouchEnd={(e) => e.stopPropagation()}
+            >
               <motion.div
                 ref={popoverRef}
                 initial={{ opacity: 0, scale: 0.95, y: -20 }}
