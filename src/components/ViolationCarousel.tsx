@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState, useEffect, useCallback } from "react";
 import { AnimatePresence, motion, useAnimation, useMotionValue, useTransform } from "framer-motion";
 import { useMediaQuery } from "./ui/3d-carousel";
-import { X, Trash2, Calendar, Clock, MapPin, Image as ImageIcon, User } from "lucide-react";
+import { X, Trash2, Calendar, Clock, MapPin, Image as ImageIcon, User, Hand } from "lucide-react";
 import { Checkbox } from "./ui/checkbox";
 
 export interface FormLike {
@@ -62,6 +62,9 @@ export const ViolationCarousel3D: React.FC<{
   const [activeForm, setActiveForm] = useState<FormLike | null>(null);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [selectedForDelete, setSelectedForDelete] = useState(false);
+  const [isGripMode, setIsGripMode] = useState(false);
+  const [gripPosition, setGripPosition] = useState<{ x: number; y: number } | null>(null);
+  const gripTimerRef = useRef<NodeJS.Timeout | null>(null);
   const controls = useAnimation();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const popoverRef = useRef<HTMLDivElement | null>(null);
@@ -118,6 +121,37 @@ export const ViolationCarousel3D: React.FC<{
     setSelectedForDelete(false);
     setIsCarouselActive(true);
   }, []);
+
+  const startGripTimer = useCallback((event: React.TouchEvent | React.MouseEvent) => {
+    const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
+    const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY;
+    
+    if (gripTimerRef.current) {
+      clearTimeout(gripTimerRef.current);
+    }
+    
+    gripTimerRef.current = setTimeout(() => {
+      setIsGripMode(true);
+      setGripPosition({ x: clientX, y: clientY });
+    }, 2000);
+  }, []);
+
+  const cancelGripTimer = useCallback(() => {
+    if (gripTimerRef.current) {
+      clearTimeout(gripTimerRef.current);
+      gripTimerRef.current = null;
+    }
+    setIsGripMode(false);
+    setGripPosition(null);
+  }, []);
+
+  const updateGripPosition = useCallback((event: React.TouchEvent | React.MouseEvent) => {
+    if (isGripMode) {
+      const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
+      const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY;
+      setGripPosition({ x: clientX, y: clientY });
+    }
+  }, [isGripMode]);
 
   const handleCardHover = (index: number | null) => {
     setHoveredCardIndex(index);
@@ -267,20 +301,46 @@ export const ViolationCarousel3D: React.FC<{
                 willChange: 'transform',
                 touchAction: 'none'
               }}
+              onPointerDown={(e) => {
+                startGripTimer(e as any);
+              }}
+              onPointerUp={() => {
+                cancelGripTimer();
+              }}
+              onPointerCancel={() => {
+                cancelGripTimer();
+              }}
+              onPointerLeave={() => {
+                cancelGripTimer();
+              }}
               onDrag={(_, info) => {
                 if (isCarouselActive) {
-                  // Increased sensitivity for smoother, more responsive touch control
-                  const sensitivity = isScreenSizeSm ? 0.25 : 0.18;
+                  // Enhanced sensitivity in grip mode for precise control
+                  const baseSensitivity = isScreenSizeSm ? 0.25 : 0.18;
+                  const gripMultiplier = isGripMode ? 0.7 : 1; // More precise in grip mode
+                  const sensitivity = baseSensitivity * gripMultiplier;
                   rotation.set(rotation.get() + info.offset.x * sensitivity);
                 }
               }}
               onDragEnd={(_, info) => {
+                cancelGripTimer();
                 if (isCarouselActive) {
-                  // Smoother momentum with increased velocity multiplier
+                  // Apply physics/inertia with velocity-based momentum
                   const velocityMultiplier = isScreenSizeSm ? 0.12 : 0.1;
+                  const velocity = info.velocity.x;
+                  
+                  // Enhanced momentum for fast swipes/flicks
+                  const momentumBoost = Math.abs(velocity) > 500 ? 1.3 : 1;
+                  
                   controls.start({
-                    rotateY: rotation.get() + info.velocity.x * velocityMultiplier,
-                    transition: { type: "spring", stiffness: 100, damping: 22, mass: 0.2 }
+                    rotateY: rotation.get() + velocity * velocityMultiplier * momentumBoost,
+                    transition: { 
+                      type: "spring", 
+                      stiffness: 100, 
+                      damping: 22, 
+                      mass: 0.2,
+                      velocity: velocity * 0.01
+                    }
                   });
                 }
               }}
@@ -303,12 +363,17 @@ export const ViolationCarousel3D: React.FC<{
                   {item.imageUrl === "placeholder" ? (
                     <div className="relative w-full rounded-2xl bg-black ring-1 ring-vice-cyan aspect-square opacity-100" />
                   ) : (
-                    <div 
+                     <div 
                       className="relative w-full aspect-square pointer-events-auto"
                       onClick={() => handleClick(item.fullForm)}
                       onMouseEnter={() => handleCardHover(i)}
                       onMouseLeave={() => handleCardHover(null)}
-                      onTouchStart={(e) => e.stopPropagation()}
+                      onTouchStart={(e) => {
+                        e.stopPropagation();
+                      }}
+                      onTouchMove={(e) => {
+                        updateGripPosition(e as any);
+                      }}
                     >
                       <motion.img
                         src={item.imageUrl}
@@ -342,6 +407,28 @@ export const ViolationCarousel3D: React.FC<{
             </motion.div>
           </div>
         </div>
+
+        {/* Grip Mode Hand Icon */}
+        <AnimatePresence>
+          {isGripMode && gripPosition && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              transition={{ duration: 0.2 }}
+              className="fixed pointer-events-none z-50"
+              style={{
+                left: gripPosition.x - 20,
+                top: gripPosition.y - 20,
+              }}
+            >
+              <div className="relative">
+                <Hand className="w-10 h-10 text-vice-pink drop-shadow-[0_0_12px_#ff1493]" />
+                <div className="absolute inset-0 bg-vice-pink/30 blur-xl rounded-full animate-pulse" />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <AnimatePresence mode="wait">
           {isPopoverOpen && activeForm && (
