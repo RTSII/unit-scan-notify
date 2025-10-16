@@ -181,3 +181,39 @@
     min-height: -webkit-fill-available;
   }
 }
+
+/* Portrait and landscape orientation utilities for mobile responsiveness */
+@media (orientation: portrait) {
+  .portrait\:min-h-\[60vh\] {
+    min-height: 60vh;
+  }
+  .portrait\:h-\[320px\] {
+    height: 320px;
+  }
+}
+
+@media (orientation: landscape) {
+  .landscape\:min-h-\[70vh\] {
+    min-height: 70vh;
+  }
+  .landscape\:h-\[240px\] {
+    height: 240px;
+  }
+  
+  /* Optimize layout for landscape on mobile */
+  body {
+    overflow-x: hidden;
+  }
+}
+
+/* Mobile-first responsive height utilities */
+.min-h-dvh {
+  min-height: 100dvh;
+}
+
+/* Better containment for mobile browsers */
+@supports (min-height: 100dvh) {
+  .min-h-screen {
+    min-height: 100dvh;
+  }
+}

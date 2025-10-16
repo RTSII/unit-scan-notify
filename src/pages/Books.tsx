@@ -393,7 +393,7 @@ const Books = () => {
       </div>
 
       {/* Main Content Container */}
-      <div className="w-full max-w-7xl mx-auto px-4 pb-2">
+      <div className="w-full max-w-7xl mx-auto px-4 pb-2 md:pb-6">
         {/* Integrated Search + Filter */}
         <div className="py-3">
           <div className="max-w-xl mx-auto">
@@ -427,9 +427,11 @@ const Books = () => {
             </div>
           </div>
         </div>
-        {/* Single expanded carousel card (matches Export sizing) */}
-        <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.35)] max-w-7xl mx-auto">
-          <CardHeader className="pb-1">
+        {/* Expanded carousel card - optimized for mobile portrait and landscape */}
+        <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.35)] max-w-7xl mx-auto 
+                         min-h-[60vh] portrait:min-h-[60vh] landscape:min-h-[70vh] 
+                         md:min-h-[400px] flex flex-col">
+          <CardHeader className="pb-2 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-vice-cyan">
@@ -440,10 +442,14 @@ const Books = () => {
               <Clock className="w-6 h-6 text-vice-pink" />
             </div>
           </CardHeader>
-          <CardContent className="pt-0 pb-3">
-            <div className="my-0 -mx-2 sm:mx-0 flex items-center justify-center">
-              <div className="w-full max-w-5xl">
-                <ViolationCarousel3D forms={filteredForms} heightClass="h-[160px] sm:h-[200px]" containerClassName="mx-auto" />
+          <CardContent className="pt-0 pb-3 flex-1 flex items-center justify-center">
+            <div className="w-full h-full flex items-center justify-center -mx-2 sm:mx-0">
+              <div className="w-full max-w-5xl h-full flex items-center">
+                <ViolationCarousel3D 
+                  forms={filteredForms} 
+                  heightClass="h-[280px] portrait:h-[320px] landscape:h-[240px] sm:h-[280px] md:h-[320px]" 
+                  containerClassName="mx-auto w-full" 
+                />
               </div>
             </div>
           </CardContent>
