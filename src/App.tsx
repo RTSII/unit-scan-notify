@@ -1,9 +1,9 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { TwentyFirstToolbar } from '@21st-extension/toolbar-react';
 import { ReactPlugin } from '@21st-extension/react';
 
-import { AuthProvider } from '@/hooks/useAuth';
+import { AuthProvider, useAuth } from '@/hooks/useAuth';
 // Temporarily disabled: import { Toaster } from '@/components/ui/toaster';
 // Temporarily disabled: import { Toaster as SonnerToaster } from '@/components/ui/sonner';
 
@@ -18,8 +18,11 @@ import Export from '@/pages/Export';
 import Admin from '@/pages/Admin';
 import NotFound from '@/pages/NotFound';
 
-function App() {
-  // Dev-only toolbar toggle persisted to localStorage
+function ToolbarWrapper() {
+  const location = useLocation();
+  const { profile } = useAuth();
+  
+  // Toolbar toggle persisted to localStorage
   const [toolbarEnabled, setToolbarEnabled] = useState<boolean>(() => {
     try {
       const v = typeof window !== 'undefined' ? window.localStorage.getItem('toolbarEnabled') : null;
@@ -41,6 +44,45 @@ function App() {
       }
     }
   }, [toolbarEnabled]);
+
+  // Check if we're on the Admin page and user is an admin
+  const isAdminPage = location.pathname === '/admin';
+  const isAdminUser = profile?.role === 'admin';
+  
+  // Enable toolbar in dev mode OR on Admin page for admin users (in any build)
+  const shouldEnableToolbar = toolbarEnabled && (import.meta.env.DEV || (isAdminPage && isAdminUser));
+  
+  // Show toggle button in dev mode OR on Admin page for admin users
+  const shouldShowToggle = import.meta.env.DEV || (isAdminPage && isAdminUser);
+
+  return (
+    <>
+      {/* 21st.dev Toolbar: dev mode OR admin page for admin users */}
+      <TwentyFirstToolbar
+        enabled={shouldEnableToolbar}
+        config={{
+          plugins: [
+            // React plugin enables selection/annotation of React elements in the browser
+            ReactPlugin,
+          ],
+        }}
+      />
+      {shouldShowToggle && (
+        <button
+          type="button"
+          onClick={() => setToolbarEnabled((v) => !v)}
+          className="fixed bottom-4 right-4 z-50 rounded-full bg-black/70 text-xs text-white px-3 py-2 border border-vice-cyan/40 shadow-[0_0_8px_#00ffff60] hover:bg-black/80"
+          aria-pressed={toolbarEnabled}
+          aria-label="Toggle 21st.dev Toolbar"
+        >
+          21st Toolbar: {toolbarEnabled ? 'On' : 'Off'}
+        </button>
+      )}
+    </>
+  );
+}
+
+function App() {
   return (
     <AuthProvider>
       <Router>
@@ -57,28 +99,8 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
+        <ToolbarWrapper />
       </Router>
-      {/* 21st.dev Toolbar: dev-only with toggle */}
-      <TwentyFirstToolbar
-        enabled={import.meta.env.DEV && toolbarEnabled}
-        config={{
-          plugins: [
-            // React plugin enables selection/annotation of React elements in the browser
-            ReactPlugin,
-          ],
-        }}
-      />
-      {import.meta.env.DEV && (
-        <button
-          type="button"
-          onClick={() => setToolbarEnabled((v) => !v)}
-          className="fixed bottom-4 right-4 z-50 rounded-full bg-black/70 text-xs text-white px-3 py-2 border border-vice-cyan/40 shadow-[0_0_8px_#00ffff60] hover:bg-black/80"
-          aria-pressed={toolbarEnabled}
-          aria-label="Toggle 21st.dev Toolbar"
-        >
-          21st Toolbar: {toolbarEnabled ? 'On' : 'Off'}
-        </button>
-      )}
       {/* <Toaster /> */}
       {/* <SonnerToaster /> */}
     </AuthProvider>
