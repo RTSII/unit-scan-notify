@@ -312,22 +312,33 @@ const Books = () => {
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     if (timeFilter === 'this_week') {
-      // Past 6 days + today = 7 days total
+      // Past 6 days + today = 7 days total (e.g., Oct 11-17 if today is Oct 17)
       const startOfWeek = new Date(today);
       startOfWeek.setDate(today.getDate() - 6); // 6 days ago at 00:00:00
+      startOfWeek.setHours(0, 0, 0, 0); // Ensure midnight
+      
       return base.filter(form => {
         const formDate = new Date(form.occurred_at || form.created_at);
-        // Normalize to date only (ignore time)
+        // Normalize to date only (ignore time) for accurate day comparison
         const formDateOnly = new Date(formDate.getFullYear(), formDate.getMonth(), formDate.getDate());
-        return formDateOnly >= startOfWeek;
+        formDateOnly.setHours(0, 0, 0, 0); // Ensure midnight for comparison
+        
+        // Include forms from startOfWeek through today (inclusive)
+        return formDateOnly >= startOfWeek && formDateOnly <= today;
       });
     }
 
     if (timeFilter === 'this_month') {
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      startOfMonth.setHours(0, 0, 0, 0); // Ensure midnight
+      
       return base.filter(form => {
         const formDate = new Date(form.occurred_at || form.created_at);
-        return formDate >= startOfMonth;
+        const formDateOnly = new Date(formDate.getFullYear(), formDate.getMonth(), formDate.getDate());
+        formDateOnly.setHours(0, 0, 0, 0);
+        
+        // Include forms from start of month through today (inclusive)
+        return formDateOnly >= startOfMonth && formDateOnly <= today;
       });
     }
 
