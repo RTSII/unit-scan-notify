@@ -66,7 +66,8 @@ export const ViolationCarousel3D: React.FC<{
   const containerRef = useRef<HTMLDivElement | null>(null);
   const popoverRef = useRef<HTMLDivElement | null>(null);
   const isScreenSizeSm = useMediaQuery("(max-width: 640px)");
-
+  const isDraggingRef = useRef(false);
+  const dragResetTimeoutRef = useRef<number | null>(null);
 
   const baseItems = useMemo(() => {
     const items = mapFormsToCarouselItems(forms);
@@ -162,9 +163,9 @@ export const ViolationCarousel3D: React.FC<{
     const autoRotateSpeed = 0.015;
     
     const autoRotate = () => {
-      if (isCarouselActive && !isPopoverOpen && hoveredCardIndex === null) {
-        rotation.set(rotation.get() - autoRotateSpeed);
-      }
+        if (isCarouselActive && !isPopoverOpen && hoveredCardIndex === null && !isDraggingRef.current) {
+          rotation.set(rotation.get() - autoRotateSpeed);
+        }
       animationFrameId = requestAnimationFrame(autoRotate);
     };
 
@@ -266,9 +267,9 @@ export const ViolationCarousel3D: React.FC<{
         <div 
           className={`relative ${heightClass ?? 'h-[140px] sm:h-[160px]'} w-full overflow-hidden rounded-xl bg-black/20 py-1`}
           style={{ touchAction: 'none' }}
-          onTouchStart={(e) => e.stopPropagation()}
-          onTouchMove={(e) => e.stopPropagation()}
-          onTouchEnd={(e) => e.stopPropagation()}
+          onTouchStart={(e) => { e.stopPropagation(); }}
+          onTouchMove={(e) => { e.stopPropagation(); }}
+          onTouchEnd={(e) => { e.stopPropagation(); }}
         >
           <div
             className="flex h-full items-center justify-center bg-black/10 px-4 sm:px-6"
@@ -292,14 +293,20 @@ export const ViolationCarousel3D: React.FC<{
                 willChange: 'transform',
                 touchAction: 'none'
               }}
+              onDragStart={() => {
+                isDraggingRef.current = true;
+                if (dragResetTimeoutRef.current) { clearTimeout(dragResetTimeoutRef.current); dragResetTimeoutRef.current = null; }
+              }}
               onDrag={(_, info) => {
                 if (isCarouselActive) {
-                  // Reduced sensitivity for more controlled scrolling
-                  const sensitivity = isScreenSizeSm ? 0.08 : 0.06;
+                  // Slightly higher sensitivity for better touch response
+                  const sensitivity = isScreenSizeSm ? 0.12 : 0.1;
                   rotation.set(rotation.get() + info.offset.x * sensitivity);
                 }
               }}
               onDragEnd={(_, info) => {
+                if (dragResetTimeoutRef.current) { clearTimeout(dragResetTimeoutRef.current); }
+                dragResetTimeoutRef.current = window.setTimeout(() => { isDraggingRef.current = false; }, 120);
                 if (isCarouselActive) {
                   const velocity = info.velocity.x;
                   const velocityThreshold = 300;
@@ -330,7 +337,7 @@ export const ViolationCarousel3D: React.FC<{
             >
               {displayItems.map((item, i) => {
                 const cardAngle = (i * (360 / faceCount) + rotDeg) % 360;
-                const isVisible = Math.cos((cardAngle * Math.PI) / 180) > 0.25;
+                const isVisible = Math.cos((cardAngle * Math.PI) / 180) > 0.1;
                 
                 return (
                   <motion.div
@@ -354,11 +361,8 @@ export const ViolationCarousel3D: React.FC<{
                       <div 
                         className="relative w-full aspect-square touch-none"
                         onClick={(e) => {
-                          // Only trigger click if not dragging
-                          const isDragging = Math.abs(rotation.getVelocity()) > 50;
-                          if (!isDragging) {
-                            handleClick(item.fullForm);
-                          }
+                          if (isDraggingRef.current) return;
+                          handleClick(item.fullForm);
                         }}
                         onMouseEnter={() => handleCardHover(i)}
                         onMouseLeave={() => handleCardHover(null)}
