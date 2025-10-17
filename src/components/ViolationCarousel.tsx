@@ -328,59 +328,71 @@ export const ViolationCarousel3D: React.FC<{
               }}
               animate={controls}
             >
-              {displayItems.map((item, i) => (
-                <motion.div
-                  key={`key-${item.imageUrl}-${i}`}
-                  data-card-index={i}
-                  className="absolute flex h-full origin-center items-center justify-center rounded-2xl p-2 sm:p-3 pointer-events-auto"
-                  style={{
-                    width: `${faceWidth}px`,
-                    transform: `rotateY(${i * (360 / faceCount)}deg) translateZ(${radius}px)`,
-                    backfaceVisibility: 'hidden',
-                    WebkitBackfaceVisibility: 'hidden',
-                    opacity: 1,
-                    willChange: 'transform',
-                    pointerEvents: Math.cos(((i * (360 / faceCount) + rotDeg) * Math.PI) / 180) > 0.25 ? 'auto' : 'none'
-                  }}
-                >
-                  {item.imageUrl === "placeholder" ? (
-                    <div className="relative w-full rounded-2xl bg-black ring-1 ring-vice-cyan aspect-square opacity-100" />
-                  ) : (
-                     <div 
-                      className="relative w-full aspect-square pointer-events-auto cursor-grab active:cursor-grabbing"
-                      onClick={() => handleClick(item.fullForm)}
-                      onMouseEnter={() => handleCardHover(i)}
-                      onMouseLeave={() => handleCardHover(null)}
-                    >
-                      <motion.img
-                        src={item.imageUrl}
-                        alt={`${item.unit} ${item.date}`}
-                        layoutId={`img-${item.imageUrl}-${i}`}
-                        className="pointer-events-none w-full rounded-2xl object-cover aspect-square ring-2 ring-vice-cyan shadow-[0_0_12px_#00ffff,0_0_24px_#00ffff50] opacity-100"
-                        initial={{ filter: "blur(4px)", opacity: 1 }}
-                        layout="position"
-                        animate={{ filter: "blur(0px)", opacity: 1 }}
-                        transition={{ duration: 0.15, ease: [0.32, 0.72, 0, 1] }}
-                      />
-                      {/* Overlay badges - Date left, Unit right */}
-                      {(item.date || item.unit) && (
-                        <div className="absolute inset-x-0 top-0 flex items-center justify-center gap-2 p-1.5 sm:p-2 pointer-events-none z-10">
-                          {item.date && (
-                            <div className="text-[10px] sm:text-xs font-medium text-vice-pink drop-shadow-[0_0_6px_#ff1493] bg-black/50 backdrop-blur-sm ring-1 ring-vice-pink/40 px-1.5 sm:px-2 py-0.5 rounded-md whitespace-nowrap">
-                              {item.date}
-                            </div>
-                          )}
-                          {item.unit && (
-                            <div className="text-[10px] sm:text-xs font-semibold text-vice-pink drop-shadow-[0_0_6px_#ff1493] bg-black/50 backdrop-blur-sm ring-1 ring-vice-pink/40 px-1.5 sm:px-2 py-0.5 rounded-md whitespace-nowrap">
-                              {item.unit}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </motion.div>
-              ))}
+              {displayItems.map((item, i) => {
+                const cardAngle = (i * (360 / faceCount) + rotDeg) % 360;
+                const isVisible = Math.cos((cardAngle * Math.PI) / 180) > 0.25;
+                
+                return (
+                  <motion.div
+                    key={`key-${item.imageUrl}-${i}`}
+                    data-card-index={i}
+                    className="absolute flex h-full origin-center items-center justify-center rounded-2xl p-2 sm:p-3"
+                    style={{
+                      width: `${faceWidth}px`,
+                      transform: `rotateY(${i * (360 / faceCount)}deg) translateZ(${radius}px)`,
+                      backfaceVisibility: 'hidden',
+                      WebkitBackfaceVisibility: 'hidden',
+                      opacity: 1,
+                      willChange: 'transform',
+                      pointerEvents: isVisible ? 'auto' : 'none',
+                      touchAction: isVisible ? 'none' : 'auto'
+                    }}
+                  >
+                    {item.imageUrl === "placeholder" ? (
+                      <div className="relative w-full rounded-2xl bg-black ring-1 ring-vice-cyan aspect-square opacity-100" />
+                    ) : (
+                      <div 
+                        className="relative w-full aspect-square touch-none"
+                        onClick={(e) => {
+                          // Only trigger click if not dragging
+                          const isDragging = Math.abs(rotation.getVelocity()) > 50;
+                          if (!isDragging) {
+                            handleClick(item.fullForm);
+                          }
+                        }}
+                        onMouseEnter={() => handleCardHover(i)}
+                        onMouseLeave={() => handleCardHover(null)}
+                      >
+                        <motion.img
+                          src={item.imageUrl}
+                          alt={`${item.unit} ${item.date}`}
+                          layoutId={`img-${item.imageUrl}-${i}`}
+                          className="w-full rounded-2xl object-cover aspect-square ring-2 ring-vice-cyan shadow-[0_0_12px_#00ffff,0_0_24px_#00ffff50] opacity-100 touch-none"
+                          initial={{ filter: "blur(4px)", opacity: 1 }}
+                          layout="position"
+                          animate={{ filter: "blur(0px)", opacity: 1 }}
+                          transition={{ duration: 0.15, ease: [0.32, 0.72, 0, 1] }}
+                        />
+                        {/* Overlay badges - Date left, Unit right */}
+                        {(item.date || item.unit) && (
+                          <div className="absolute inset-x-0 top-0 flex items-center justify-center gap-2 p-1.5 sm:p-2 pointer-events-none z-10">
+                            {item.date && (
+                              <div className="text-[10px] sm:text-xs font-medium text-vice-pink drop-shadow-[0_0_6px_#ff1493] bg-black/50 backdrop-blur-sm ring-1 ring-vice-pink/40 px-1.5 sm:px-2 py-0.5 rounded-md whitespace-nowrap">
+                                {item.date}
+                              </div>
+                            )}
+                            {item.unit && (
+                              <div className="text-[10px] sm:text-xs font-semibold text-vice-pink drop-shadow-[0_0_6px_#ff1493] bg-black/50 backdrop-blur-sm ring-1 ring-vice-pink/40 px-1.5 sm:px-2 py-0.5 rounded-md whitespace-nowrap">
+                                {item.unit}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </motion.div>
+                );
+              })}
             </motion.div>
           </div>
         </div>
