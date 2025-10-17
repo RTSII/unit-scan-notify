@@ -138,9 +138,9 @@ export const ViolationCarousel3D: React.FC<{
       rotateY: currentRotation + (targetRotation - normalizedRotation),
       transition: { 
         type: "spring", 
-        stiffness: 200, 
-        damping: 30, 
-        mass: 0.5
+        stiffness: 250, 
+        damping: 32, 
+        mass: 0.4
       }
     });
   }, [rotation, faceCount, controls]);
@@ -265,8 +265,8 @@ export const ViolationCarousel3D: React.FC<{
       <motion.div layout className="relative w-full mb-8 sm:mb-10">
 
         <div 
-          className={`relative ${heightClass ?? 'h-[140px] sm:h-[160px]'} w-full overflow-hidden rounded-xl bg-black/20 py-1`}
-          style={{ touchAction: 'none' }}
+          className={`relative ${heightClass ?? 'h-[140px] sm:h-[160px]'} w-full overflow-hidden rounded-xl bg-black/20 py-1 ${isCarouselActive ? 'cursor-grab active:cursor-grabbing' : ''}`}
+          style={{ touchAction: 'pan-y' }}
           onTouchStart={(e) => { e.stopPropagation(); }}
           onTouchMove={(e) => { e.stopPropagation(); }}
           onTouchEnd={(e) => { e.stopPropagation(); }}
@@ -281,9 +281,10 @@ export const ViolationCarousel3D: React.FC<{
           >
             <motion.div
               drag={isCarouselActive ? "x" : false}
-              dragElastic={0.02}
+              dragElastic={0}
               dragMomentum={true}
-              dragTransition={{ bounceStiffness: 400, bounceDamping: 30 }}
+              dragConstraints={{ left: 0, right: 0 }}
+              dragTransition={{ bounceStiffness: 0, bounceDamping: 0 }}
               className="relative flex h-full origin-center justify-center select-none"
               style={{ 
                 transform, 
@@ -291,7 +292,8 @@ export const ViolationCarousel3D: React.FC<{
                 width: cylinderWidth, 
                 transformStyle: "preserve-3d",
                 willChange: 'transform',
-                touchAction: 'none'
+                touchAction: 'none',
+                cursor: isCarouselActive ? 'grab' : 'default'
               }}
               onDragStart={() => {
                 isDraggingRef.current = true;
@@ -299,36 +301,36 @@ export const ViolationCarousel3D: React.FC<{
               }}
               onDrag={(_, info) => {
                 if (isCarouselActive) {
-                  // Slightly higher sensitivity for better touch response
-                  const sensitivity = isScreenSizeSm ? 0.12 : 0.1;
+                  // Enhanced sensitivity for grippy, responsive touch control
+                  const sensitivity = isScreenSizeSm ? 0.25 : 0.18;
                   rotation.set(rotation.get() + info.offset.x * sensitivity);
                 }
               }}
               onDragEnd={(_, info) => {
                 if (dragResetTimeoutRef.current) { clearTimeout(dragResetTimeoutRef.current); }
-                dragResetTimeoutRef.current = window.setTimeout(() => { isDraggingRef.current = false; }, 120);
+                dragResetTimeoutRef.current = window.setTimeout(() => { isDraggingRef.current = false; }, 100);
                 if (isCarouselActive) {
                   const velocity = info.velocity.x;
-                  const velocityThreshold = 300;
+                  const velocityThreshold = 500;
                   
                   if (Math.abs(velocity) > velocityThreshold) {
-                    // Fast swipe - apply momentum with physics
-                    const velocityMultiplier = isScreenSizeSm ? 0.04 : 0.03;
+                    // Fast swipe - apply momentum with snappy physics
+                    const velocityMultiplier = isScreenSizeSm ? 0.06 : 0.05;
                     const momentumRotation = velocity * velocityMultiplier;
                     
                     controls.start({
                       rotateY: rotation.get() + momentumRotation,
                       transition: { 
                         type: "spring", 
-                        stiffness: 150, 
-                        damping: 25, 
-                        mass: 0.8
+                        stiffness: 200, 
+                        damping: 28, 
+                        mass: 0.5
                       }
                     }).then(() => {
                       snapToNearestCard();
                     });
                   } else {
-                    // Slow drag - snap to nearest card
+                    // Slow drag - immediate snap to nearest card
                     snapToNearestCard();
                   }
                 }
@@ -359,23 +361,27 @@ export const ViolationCarousel3D: React.FC<{
                       <div className="relative w-full rounded-2xl bg-black ring-1 ring-vice-cyan aspect-square opacity-100 touch-none" />
                     ) : (
                       <div 
-                        className="relative w-full aspect-square touch-none"
+                        className="relative w-full aspect-square touch-none cursor-pointer"
                         onClick={(e) => {
                           if (isDraggingRef.current) return;
                           handleClick(item.fullForm);
                         }}
                         onMouseEnter={() => handleCardHover(i)}
                         onMouseLeave={() => handleCardHover(null)}
+                        onTouchStart={(e) => {
+                          e.stopPropagation();
+                        }}
                       >
                         <motion.img
                           src={item.imageUrl}
                           alt={`${item.unit} ${item.date}`}
                           layoutId={`img-${item.imageUrl}-${i}`}
-                          className="w-full rounded-2xl object-cover aspect-square ring-2 ring-vice-cyan shadow-[0_0_12px_#00ffff,0_0_24px_#00ffff50] opacity-100 touch-none"
+                          className="w-full rounded-2xl object-cover aspect-square ring-2 ring-vice-cyan shadow-[0_0_12px_#00ffff,0_0_24px_#00ffff50] opacity-100 touch-none pointer-events-none"
                           initial={{ filter: "blur(4px)", opacity: 1 }}
                           layout="position"
                           animate={{ filter: "blur(0px)", opacity: 1 }}
                           transition={{ duration: 0.15, ease: [0.32, 0.72, 0, 1] }}
+                          draggable={false}
                         />
                         {/* Overlay badges - Date left, Unit right */}
                         {(item.date || item.unit) && (
