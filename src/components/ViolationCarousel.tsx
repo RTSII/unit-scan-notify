@@ -103,6 +103,13 @@ export const ViolationCarousel3D: React.FC<{
   const rotation = useMotionValue(0);
   const transform = useTransform(rotation, (value) => `rotate3d(0, 1, 0, ${value}deg)`);
 
+  // Track current rotation in degrees for hit-testing visible faces
+  const [rotDeg, setRotDeg] = useState(0);
+  useEffect(() => {
+    const unsub = rotation.on('change', (v) => setRotDeg(v));
+    return () => { if (typeof unsub === 'function') unsub(); };
+  }, [rotation]);
+
   const handleClick = (form?: FormLike) => {
     if (form) {
       setActiveForm(form);
@@ -325,14 +332,15 @@ export const ViolationCarousel3D: React.FC<{
                 <motion.div
                   key={`key-${item.imageUrl}-${i}`}
                   data-card-index={i}
-                  className="absolute flex h-full origin-center items-center justify-center rounded-2xl p-2 sm:p-3 pointer-events-none"
+                  className="absolute flex h-full origin-center items-center justify-center rounded-2xl p-2 sm:p-3 pointer-events-auto"
                   style={{
-                    width: `${faceWidth}px`, 
+                    width: `${faceWidth}px`,
                     transform: `rotateY(${i * (360 / faceCount)}deg) translateZ(${radius}px)`,
                     backfaceVisibility: 'hidden',
                     WebkitBackfaceVisibility: 'hidden',
                     opacity: 1,
-                    willChange: 'transform'
+                    willChange: 'transform',
+                    pointerEvents: Math.cos(((i * (360 / faceCount) + rotDeg) * Math.PI) / 180) > 0.25 ? 'auto' : 'none'
                   }}
                 >
                   {item.imageUrl === "placeholder" ? (
