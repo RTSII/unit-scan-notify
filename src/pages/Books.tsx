@@ -81,6 +81,17 @@ const normalizeViolationForm = (
 
   const normalizedUnit = normalizeUnit(form.unit_number ?? "");
 
+  // Convert storage paths to full public URLs
+  const photos = violationPhotos
+    .map((photo) => {
+      if (!photo?.storage_path) return null;
+      const { data } = supabase.storage
+        .from('violation-photos')
+        .getPublicUrl(photo.storage_path);
+      return data?.publicUrl || null;
+    })
+    .filter((url): url is string => typeof url === "string" && url.length > 0);
+
   return {
     id: String(form.id),
     user_id: form.user_id,
@@ -90,9 +101,7 @@ const normalizeViolationForm = (
     time: legacyFields.time ?? null,
     location: form.location ?? null,
     description: form.description ?? null,
-    photos: violationPhotos
-      .map((photo) => photo?.storage_path)
-      .filter((path): path is string => typeof path === "string" && path.length > 0),
+    photos,
     status: form.status ?? "saved",
     created_at: form.created_at ?? new Date().toISOString(),
     profiles: normalizedProfile,
