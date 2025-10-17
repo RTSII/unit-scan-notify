@@ -14,6 +14,7 @@ import backgroundImage from '/2.png';
 type PresencePayload = {
   user_id: string;
   name: string;
+  email: string;
   role: string;
   online_at: string;
 };
@@ -49,6 +50,7 @@ export default function Dashboard() {
           const payload: PresencePayload = {
             user_id: user.id,
             name: profile?.full_name || user.email || 'User',
+            email: profile?.email || user.email || '',
             role: profile?.role || 'user',
             online_at: new Date().toISOString(),
           };
@@ -258,6 +260,11 @@ export default function Dashboard() {
                               presences.map((presence, index) => {
                                 // Don't show current user in the list
                                 if (presence.user_id === user?.id) return null;
+                                
+                                // Hide board president from non-admin users
+                                if (profile?.role !== 'admin' && presence.email === 'missourirn@aol.com') {
+                                  return null;
+                                }
                                 
                                 return (
                                   <div key={`${key}-${index}`} className="flex items-center justify-between p-2 bg-black/20 rounded border border-white/10">
