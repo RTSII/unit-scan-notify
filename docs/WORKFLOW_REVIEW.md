@@ -39,9 +39,10 @@
 - id: bigint (PK, auto-increment)
 - violation_id: bigint (FK → violation_forms.id)
 - uploaded_by: uuid (FK → auth.users)
-- storage_path: text (base64 or URL)
+- storage_path: text (path in Supabase Storage bucket)
 - created_at: timestamp
 ```
+**Note:** `storage_path` stores the storage bucket path (e.g., `{user_id}/{filename}.jpg`), not full URLs or base64 data. Public URLs are generated via `supabase.storage.getPublicUrl(path)`.
 
 #### 3. **`profiles`** (User Profiles)
 ```sql
@@ -143,13 +144,15 @@
 - ✅ Description field (collapsible)
 - ✅ Converts date/time to `occurred_at` timestamp ✅ FIXED (Oct 9)
 - ✅ Saves to `violation_forms` ✅ FIXED (Oct 9)
-- ✅ Saves photos to `violation_photos` ✅ FIXED (Oct 9)
+- ✅ Uploads photos to Supabase Storage ✅ FIXED (Oct 18)
+- ✅ Client-side photo compression ✅ FIXED (Oct 18)
+- ✅ Saves photo paths to `violation_photos` ✅ FIXED (Oct 18)
 - ✅ Redirects to Books.tsx
 
 **Database Interactions:**
-- Writes: `violation_forms`, `violation_photos`
+- Writes: `violation_forms`, `violation_photos`, Supabase Storage (`violation-photos` bucket)
 
-**Issues:** ✅ All fixed (Oct 9, 2025)
+**Issues:** ✅ All fixed (Oct 18, 2025)
 
 ---
 
@@ -407,17 +410,18 @@ All major functionality is now working correctly with the normalized `violation_
 
 ### 🟢 LOW PRIORITY (Future Enhancement)
 
-#### 3. **Photo Storage Optimization**
+#### 3. **Photo Storage Optimization** ✅ COMPLETED (Oct 18, 2025)
 
-**Issue:** Base64 photos in database (inefficient)  
-**Impact:** Database size, performance  
-**Action Required:**
+**Status:** ✅ Completed  
+**Implementation:**
 
-- Upload photos to Supabase Storage
-- Store URLs instead of base64
-- Update all upload/display logic
+- ✅ Photos now upload to Supabase Storage bucket (`violation-photos`)
+- ✅ Storage paths stored in database (not base64 or full URLs)
+- ✅ Client-side compression (1600px max, JPEG 80% quality)
+- ✅ All workflows updated (DetailsLive.tsx and DetailsPrevious.tsx)
+- ✅ Books.tsx filters out legacy base64 data automatically
 
-**Estimated Time:** 2-3 hours
+**Performance Impact:** Significant database size reduction, improved query performance
 
 ---
 

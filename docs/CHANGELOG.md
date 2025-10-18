@@ -1,3 +1,41 @@
+# SPR Vice City - Changelog
+
+All notable changes to the SPR Vice City project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [3.2.3] - 2025-10-18
+
+### 🔧 **Critical Fixes**
+- **Photo Storage**: Fixed DetailsLive.tsx to upload photos to Supabase Storage instead of storing base64 in database
+  - Added client-side image compression (1600px max, 80% quality JPEG)
+  - Upload to `violation-photos` storage bucket
+  - Store storage paths instead of full URLs or base64 data
+  - Matches DetailsPrevious.tsx implementation
+  - Eliminates database bloat from multi-MB base64 strings
+
+### 🎡 **3D Carousel Unification**
+- **Consistent Filtering**: Unified date filtering logic across Books, Export, and Admin pages
+  - "This Week" filter now consistently shows "past 6 days + today" (7 days total) across all pages
+  - "This Month" filter shows forms from 1st of current month onward (not 30 days ago)
+  - Date normalization to midnight for accurate comparisons
+  - All pages prioritize `occurred_at` over `created_at` consistently
+- **Code Cleanup**: Removed unused `carouselForms` variable from Export.tsx
+- **Touch Controls**: Verified touch isolation to thumbnail cards only (no background dragging)
+
+### 📚 **Documentation**
+- Updated `docs/3d-carousel.md` with App-Wide Consistency section
+- Created `docs/PHOTO_STORAGE_FIX.md` with comprehensive fix documentation
+- Updated `README.md` with October 18 improvements
+- Updated `WORKFLOW_REVIEW.md` with recent fixes
+
+### 🗄️ **Database**
+- `violation_photos.storage_path` now stores: `{user_id}/{filename}.jpg` format
+- Legacy base64 data filtered out automatically in Books.tsx
+- No migration required - existing data continues to work
+
+---
 
 ## [3.2.2] - 2025-10-12
 
@@ -18,27 +56,6 @@
 
 ---
 
-## [2.1.7] - 2025-09-16
-
-### ✨ Documentation & UI Consistency
-- Added `UI_3D_CAROUSEL_SPEC.md` as the canonical Admin-style 3D carousel visual/behavioral spec and integration guide
-- Updated `README.md` to reference the new spec
-- Updated `MOBILE_RESPONSIVE_IMPLEMENTATION.md` with Admin-style carousel details and cross-reference
-
-### 🎨 UI Alignment
-- Standardized the 3D carousel implementation across `src/pages/Admin.tsx` and `src/pages/Books.tsx`:
-  - Dense, square, rounded thumbnails with subtle spacing
-  - In-thumbnail neon cyan overlay (Unit and Date)
-  - Densification to maintain continuous, well-populated ring feel
-  - 140px high track container with `overflow-hidden`
-  - Unique `layoutId` per face for smooth modal transitions
-# SPR Vice City - Changelog
-
-All notable changes to the SPR Vice City project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [semantic Versioning](https://semver.org/spec/v2.0.0.html).
- 
 ## [3.2.1] - 2025-10-10
 
 ### UI & Search Enhancements
