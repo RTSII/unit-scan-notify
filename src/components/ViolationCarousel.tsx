@@ -358,19 +358,16 @@ export const ViolationCarousel3D: React.FC<{
                     }}
                   >
                     {item.imageUrl === "placeholder" ? (
-                      <div className="relative w-full rounded-2xl bg-black ring-1 ring-vice-cyan aspect-square opacity-100" />
+                      <div className="relative w-full rounded-2xl bg-black ring-1 ring-vice-cyan aspect-square opacity-100 cursor-grab active:cursor-grabbing" />
                     ) : (
                       <div 
-                        className="relative w-full aspect-square touch-none cursor-pointer"
+                        className="relative w-full aspect-square touch-none cursor-grab active:cursor-grabbing"
                         onClick={(e) => {
                           if (isDraggingRef.current) return;
                           handleClick(item.fullForm);
                         }}
                         onMouseEnter={() => handleCardHover(i)}
                         onMouseLeave={() => handleCardHover(null)}
-                        onTouchStart={(e) => {
-                          e.stopPropagation();
-                        }}
                       >
                         <motion.img
                           src={item.imageUrl}
