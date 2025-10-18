@@ -459,19 +459,14 @@ export const ViolationCarousel3D: React.FC<{
                           decoding="async"
                           draggable={false}
                         />
-                        {/* Overlay badges - Date left, Unit right */}
+                        {/* Overlay badge - Combined Date & Unit */}
                         {(item.date || item.unit) && (
-                          <div className="absolute inset-x-0 top-0 flex items-center justify-center gap-2 p-1.5 sm:p-2 pointer-events-none z-10">
-                            {item.date && (
-                              <div className="text-[10px] sm:text-xs font-medium text-vice-pink drop-shadow-[0_0_8px_#ff1493] bg-white/10 backdrop-blur-md ring-1 ring-white/30 px-1.5 sm:px-2 py-0.5 rounded-md whitespace-nowrap shadow-lg">
-                                {item.date}
-                              </div>
-                            )}
-                            {item.unit && (
-                              <div className="text-[10px] sm:text-xs font-semibold text-vice-pink drop-shadow-[0_0_8px_#ff1493] bg-white/10 backdrop-blur-md ring-1 ring-white/30 px-1.5 sm:px-2 py-0.5 rounded-md whitespace-nowrap shadow-lg">
-                                {item.unit}
-                              </div>
-                            )}
+                          <div className="absolute inset-x-0 top-0 flex items-center justify-center p-1.5 sm:p-2 pointer-events-none z-10">
+                            <div className="text-[10px] sm:text-xs font-medium text-vice-pink drop-shadow-[0_0_8px_#ff1493] bg-white/10 backdrop-blur-md ring-1 ring-white/30 px-1.5 sm:px-2 py-0.5 rounded-md whitespace-nowrap shadow-lg">
+                              {item.unit && <span className="font-semibold">{item.unit}</span>}
+                              {item.unit && item.date && <span className="mx-1">•</span>}
+                              {item.date && <span>{item.date}</span>}
+                            </div>
                           </div>
                         )}
                       </motion.div>
