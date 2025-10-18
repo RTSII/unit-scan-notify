@@ -358,7 +358,7 @@ export const ViolationCarousel3D: React.FC<{
                     }}
                   >
                     {item.imageUrl === "placeholder" ? (
-                      <div className="relative w-full rounded-2xl bg-black ring-1 ring-vice-cyan aspect-square opacity-100 touch-none" />
+                      <div className="relative w-full rounded-2xl bg-black ring-1 ring-vice-cyan aspect-square opacity-100" />
                     ) : (
                       <div 
                         className="relative w-full aspect-square touch-none cursor-pointer"
