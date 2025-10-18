@@ -41,9 +41,11 @@ export function mapFormsToCarouselItems(forms: FormLike[]): CarouselItem[] {
       displayDate = `${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}`;
     }
     
+    const imageUrl = form.photos?.[0] || "placeholder";
+    
     return {
       id: form.id,
-      imageUrl: form.photos?.[0] || "placeholder",
+      imageUrl,
       date: displayDate,
       unit: form.unit_number || '',
       fullForm: form,
@@ -262,10 +264,10 @@ export const ViolationCarousel3D: React.FC<{
 
   return (
     <div className={`w-full ${containerClassName ?? ''}`.trim()} id="carousel-container" ref={containerRef}>
-      <motion.div layout className="relative w-full mb-8 sm:mb-10">
+      <div className="relative w-full mb-8 sm:mb-10">
 
         <div 
-          className={`relative ${heightClass ?? 'h-[140px] sm:h-[160px]'} w-full overflow-hidden rounded-xl bg-black/20 py-1 ${isCarouselActive ? 'cursor-grab active:cursor-grabbing' : ''}`}
+          className={`relative ${heightClass ?? 'h-[140px] sm:h-[160px]'} w-full overflow-hidden rounded-xl bg-black/20 py-1`}
           style={{ touchAction: 'pan-y' }}
           onTouchStart={(e) => { e.stopPropagation(); }}
           onTouchMove={(e) => { e.stopPropagation(); }}
@@ -280,11 +282,6 @@ export const ViolationCarousel3D: React.FC<{
             }}
           >
             <motion.div
-              drag={isCarouselActive ? "x" : false}
-              dragElastic={0}
-              dragMomentum={true}
-              dragConstraints={{ left: 0, right: 0 }}
-              dragTransition={{ bounceStiffness: 0, bounceDamping: 0 }}
               className="relative flex h-full origin-center justify-center select-none"
               style={{ 
                 transform, 
@@ -292,48 +289,8 @@ export const ViolationCarousel3D: React.FC<{
                 width: cylinderWidth, 
                 transformStyle: "preserve-3d",
                 willChange: 'transform',
-                touchAction: 'none',
-                cursor: isCarouselActive ? 'grab' : 'default'
-              }}
-              onDragStart={() => {
-                isDraggingRef.current = true;
-                if (dragResetTimeoutRef.current) { clearTimeout(dragResetTimeoutRef.current); dragResetTimeoutRef.current = null; }
-              }}
-              onDrag={(_, info) => {
-                if (isCarouselActive) {
-                  // Enhanced sensitivity for grippy, responsive touch control
-                  const sensitivity = isScreenSizeSm ? 0.25 : 0.18;
-                  rotation.set(rotation.get() + info.offset.x * sensitivity);
-                }
-              }}
-              onDragEnd={(_, info) => {
-                if (dragResetTimeoutRef.current) { clearTimeout(dragResetTimeoutRef.current); }
-                dragResetTimeoutRef.current = window.setTimeout(() => { isDraggingRef.current = false; }, 100);
-                if (isCarouselActive) {
-                  const velocity = info.velocity.x;
-                  const velocityThreshold = 500;
-                  
-                  if (Math.abs(velocity) > velocityThreshold) {
-                    // Fast swipe - apply momentum with snappy physics
-                    const velocityMultiplier = isScreenSizeSm ? 0.06 : 0.05;
-                    const momentumRotation = velocity * velocityMultiplier;
-                    
-                    controls.start({
-                      rotateY: rotation.get() + momentumRotation,
-                      transition: { 
-                        type: "spring", 
-                        stiffness: 200, 
-                        damping: 28, 
-                        mass: 0.5
-                      }
-                    }).then(() => {
-                      snapToNearestCard();
-                    });
-                  } else {
-                    // Slow drag - immediate snap to nearest card
-                    snapToNearestCard();
-                  }
-                }
+                touchAction: 'pan-y',
+                pointerEvents: 'none'
               }}
               animate={controls}
             >
@@ -353,31 +310,122 @@ export const ViolationCarousel3D: React.FC<{
                       WebkitBackfaceVisibility: 'hidden',
                       opacity: 1,
                       willChange: 'transform',
-                      pointerEvents: isVisible ? 'auto' : 'none',
-                      touchAction: isVisible ? 'none' : 'auto'
+                      pointerEvents: 'none',
+                      touchAction: 'pan-y'
                     }}
                   >
                     {item.imageUrl === "placeholder" ? (
-                      <div className="relative w-full rounded-2xl bg-black ring-1 ring-vice-cyan aspect-square opacity-100 cursor-grab active:cursor-grabbing" />
+                      <motion.div 
+                        className="relative w-full rounded-2xl bg-black ring-1 ring-vice-cyan aspect-square opacity-100"
+                        drag={isCarouselActive ? "x" : false}
+                        dragElastic={0}
+                        dragMomentum={true}
+                        dragConstraints={{ left: 0, right: 0 }}
+                        dragTransition={{ bounceStiffness: 0, bounceDamping: 0 }}
+                        style={{ 
+                          pointerEvents: isVisible ? 'auto' : 'none',
+                          touchAction: isVisible ? 'none' : 'auto',
+                          cursor: isCarouselActive ? 'grab' : 'default'
+                        }}
+                        onDragStart={() => {
+                          isDraggingRef.current = true;
+                          if (dragResetTimeoutRef.current) { clearTimeout(dragResetTimeoutRef.current); dragResetTimeoutRef.current = null; }
+                        }}
+                        onDrag={(_, info) => {
+                          if (isCarouselActive) {
+                            const sensitivity = isScreenSizeSm ? 0.25 : 0.18;
+                            rotation.set(rotation.get() + info.offset.x * sensitivity);
+                          }
+                        }}
+                        onDragEnd={(_, info) => {
+                          if (dragResetTimeoutRef.current) { clearTimeout(dragResetTimeoutRef.current); }
+                          dragResetTimeoutRef.current = window.setTimeout(() => { isDraggingRef.current = false; }, 100);
+                          if (isCarouselActive) {
+                            const velocity = info.velocity.x;
+                            const velocityThreshold = 500;
+                            
+                            if (Math.abs(velocity) > velocityThreshold) {
+                              const velocityMultiplier = isScreenSizeSm ? 0.06 : 0.05;
+                              const momentumRotation = velocity * velocityMultiplier;
+                              
+                              controls.start({
+                                rotateY: rotation.get() + momentumRotation,
+                                transition: { 
+                                  type: "spring", 
+                                  stiffness: 200, 
+                                  damping: 28, 
+                                  mass: 0.5
+                                }
+                              }).then(() => {
+                                snapToNearestCard();
+                              });
+                            } else {
+                              snapToNearestCard();
+                            }
+                          }
+                        }}
+                      />
                     ) : (
-                      <div 
-                        className="relative w-full aspect-square touch-none cursor-grab active:cursor-grabbing"
+                      <motion.div 
+                        drag={isCarouselActive ? "x" : false}
+                        dragElastic={0}
+                        dragMomentum={true}
+                        dragConstraints={{ left: 0, right: 0 }}
+                        dragTransition={{ bounceStiffness: 0, bounceDamping: 0 }}
+                        className="relative w-full aspect-square"
+                        style={{ 
+                          pointerEvents: isVisible ? 'auto' : 'none',
+                          touchAction: isVisible ? 'none' : 'auto',
+                          cursor: isCarouselActive ? 'grab' : 'default'
+                        }}
                         onClick={(e) => {
                           if (isDraggingRef.current) return;
                           handleClick(item.fullForm);
                         }}
                         onMouseEnter={() => handleCardHover(i)}
                         onMouseLeave={() => handleCardHover(null)}
+                        onDragStart={() => {
+                          isDraggingRef.current = true;
+                          if (dragResetTimeoutRef.current) { clearTimeout(dragResetTimeoutRef.current); dragResetTimeoutRef.current = null; }
+                        }}
+                        onDrag={(_, info) => {
+                          if (isCarouselActive) {
+                            const sensitivity = isScreenSizeSm ? 0.25 : 0.18;
+                            rotation.set(rotation.get() + info.offset.x * sensitivity);
+                          }
+                        }}
+                        onDragEnd={(_, info) => {
+                          if (dragResetTimeoutRef.current) { clearTimeout(dragResetTimeoutRef.current); }
+                          dragResetTimeoutRef.current = window.setTimeout(() => { isDraggingRef.current = false; }, 100);
+                          if (isCarouselActive) {
+                            const velocity = info.velocity.x;
+                            const velocityThreshold = 500;
+                            
+                            if (Math.abs(velocity) > velocityThreshold) {
+                              const velocityMultiplier = isScreenSizeSm ? 0.06 : 0.05;
+                              const momentumRotation = velocity * velocityMultiplier;
+                              
+                              controls.start({
+                                rotateY: rotation.get() + momentumRotation,
+                                transition: { 
+                                  type: "spring", 
+                                  stiffness: 200, 
+                                  damping: 28, 
+                                  mass: 0.5
+                                }
+                              }).then(() => {
+                                snapToNearestCard();
+                              });
+                            } else {
+                              snapToNearestCard();
+                            }
+                          }
+                        }}
                       >
-                        <motion.img
+                        <img
                           src={item.imageUrl}
                           alt={`${item.unit} ${item.date}`}
-                          layoutId={`img-${item.imageUrl}-${i}`}
                           className="w-full rounded-2xl object-cover aspect-square ring-2 ring-vice-cyan shadow-[0_0_12px_#00ffff,0_0_24px_#00ffff50] opacity-100 touch-none pointer-events-none"
-                          initial={{ filter: "blur(4px)", opacity: 1 }}
-                          layout="position"
-                          animate={{ filter: "blur(0px)", opacity: 1 }}
-                          transition={{ duration: 0.15, ease: [0.32, 0.72, 0, 1] }}
                           draggable={false}
                         />
                         {/* Overlay badges - Date left, Unit right */}
@@ -395,7 +443,7 @@ export const ViolationCarousel3D: React.FC<{
                             )}
                           </div>
                         )}
-                      </div>
+                      </motion.div>
                     )}
                   </motion.div>
                 );
@@ -524,7 +572,7 @@ export const ViolationCarousel3D: React.FC<{
           </div>
           )}
         </AnimatePresence>
-      </motion.div>
+      </div>
     </div>
   );
 };

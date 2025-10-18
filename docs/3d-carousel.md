@@ -1,9 +1,12 @@
-# 3D Carousel – Unified Spec and Usage
+# 3D Carousel – Unified Spec and App-Wide Implementation
 
-This single document is the authoritative spec and usage guide for the 3D carousel used on Books and Export. It supersedes the previous separate spec file.
+**Last Updated:** October 18, 2025  
+**Status:** ✅ Consistent across all pages
+
+This document is the authoritative spec and usage guide for the 3D carousel used app-wide.
 
 - **Component**: `ViolationCarousel3D` in `src/components/ViolationCarousel.tsx`
-- **Pages**: `src/pages/Books.tsx`, `src/pages/Export.tsx`
+- **Pages**: `src/pages/Books.tsx`, `src/pages/Export.tsx`, `src/pages/Admin.tsx`
 
 ---
 
@@ -48,16 +51,20 @@ This single document is the authoritative spec and usage guide for the 3D carous
 
 ## Interaction Spec
 - **Drag System** (Framer Motion)
-  - Uses Framer Motion's built-in `drag="x"` prop for smooth, physics-based dragging
-  - Drag only active when `isCarouselActive` is true (disabled when popover is open)
-  - Sensitivity: `0.15` for fine control during slow dragging
-  - Velocity multiplier: `0.08` for flick/momentum on release
-  - Spring physics: `stiffness: 120, damping: 25, mass: 0.15`
+  - **ISOLATED TOUCH AREAS**: Drag is isolated to individual thumbnail cards only
+  - Parent carousel container has `pointerEvents: 'none'` to prevent background/empty area dragging
+  - Each card has `drag="x"` when `isCarouselActive` is true (disabled when popover is open)
+  - Card drag handlers control parent rotation via shared `rotation` MotionValue
+  - Sensitivity: `0.25` (mobile), `0.18` (desktop) for fine control during slow dragging
+  - Velocity multiplier: `0.06` (mobile), `0.05` (desktop) for flick/momentum on release
+  - Velocity threshold: `500` to distinguish between slow drag and fast flick
+  - Spring physics for momentum: `stiffness: 200, damping: 28, mass: 0.5`
+  - Spring physics for snap: `stiffness: 250, damping: 32, mass: 0.4`
   - `dragConstraints={{ left: 0, right: 0 }}` - no position constraints
   - `dragElastic={0}` - no elastic bounce
   - `dragMomentum={true}` - enables flick momentum
 - **Click Detection**
-  - Simple `onClick` handler on each card div
+  - Simple `onClick` handler on each card motion.div
   - Framer Motion automatically distinguishes drag vs click
   - Opens popover with full form details on click
 - **Auto-rotate**
@@ -65,10 +72,12 @@ This single document is the authoritative spec and usage guide for the 3D carous
   - Pauses when: popover is open, card is hovered, or carousel is offscreen (IntersectionObserver)
   - Uses `requestAnimationFrame` for smooth 60fps animation
 - **Touch & Mobile**
-  - `touch-pan-y` on container to allow vertical scrolling
-  - Enhanced sensitivity (0.15) for fine control during touch-and-hold
+  - `touch-pan-y` on container and parent divs to allow vertical page scrolling
+  - `touchAction: 'none'` only on visible thumbnail cards to capture touch events
+  - Cards outside visible angle have `pointerEvents: 'none'` and `touchAction: 'auto'`
+  - Enhanced sensitivity for fine control during touch-and-hold
   - Flick support with natural momentum physics
-  - Cursor: `cursor-grab active:cursor-grabbing` (shows only during active drag)
+  - Cursor: `cursor-grab active:cursor-grabbing` (shows only on cards during active state)
 
 ---
 
@@ -134,4 +143,82 @@ This single document is the authoritative spec and usage guide for the 3D carous
 ---
 
 ## References
-- Implementation references: `src/pages/Books.tsx`, `src/pages/Export.tsx`, `src/components/ViolationCarousel.tsx`
+- Implementation references: `src/pages/Books.tsx`, `src/pages/Export.tsx`, `src/pages/Admin.tsx`, `src/components/ViolationCarousel.tsx`
+
+---
+
+## App-Wide Consistency (October 18, 2025)
+
+All three pages now use **identical filtering logic** and **consistent carousel behavior**.
+
+### Filter Implementations
+
+#### **Books.tsx** (Reference Implementation)
+- Combined search + time filter
+- Search: unit, date, violation type, location, description, user
+- Time filters: This Week | This Month | All Forms
+- Carousel uses `filteredForms` (search + time combined)
+
+#### **Export.tsx** (Matches Books.tsx)
+- Combined search + time filter
+- Search: unit, date, violation type, location, description  
+- Time filters: This Week | This Month | All Forms
+- Carousel uses `filteredForms` (search + time combined)
+- ✅ Removed unused `carouselForms` variable (Oct 18, 2025)
+
+#### **Admin.tsx** (Matches Books.tsx)
+- Time filter + search term
+- Functions: `getThisWeekForms()`, `getThisMonthForms()`
+- Carousel uses `getFilteredForms()` with delete handler
+- ✅ Updated from "7 days ago" to "past 6 days + today" (Oct 18, 2025)
+- ✅ Updated from "30 days ago" to "start of current month" (Oct 18, 2025)
+
+### Consistent Filter Definitions
+
+**This Week:**
+- **Definition:** Past 6 days + today = 7 days total
+- **Example:** Oct 18 shows forms from Oct 12-18 (inclusive)
+- **Logic:** `startOfWeek = today - 6 days` at midnight (00:00:00)
+
+**This Month:**
+- **Definition:** From 1st of current month through today
+- **Example:** Oct 18 shows forms from Oct 1-18 (inclusive)  
+- **Logic:** `startOfMonth = new Date(year, month, 1)` at midnight
+
+**All Forms:**
+- No time filter applied
+- Returns all forms (with search filter if active)
+
+### Date Normalization
+
+All pages use consistent date normalization:
+```typescript
+const formDate = new Date(form.occurred_at || form.created_at);
+const formDateOnly = new Date(formDate.getFullYear(), formDate.getMonth(), formDate.getDate());
+// Strips time component, compares dates at midnight
+return formDateOnly >= startDate;
+```
+
+### Height Classes by Page
+
+- **Books.tsx:** `h-[280px] portrait:h-[320px] landscape:h-[240px] sm:h-[280px] md:h-[320px]`
+- **Admin.tsx:** `h-[320px] sm:h-[400px]`  
+- **Export.tsx:** `h-[160px] sm:h-[200px]` (compact for selection focus)
+
+### Comparison Matrix
+
+| Feature | Books.tsx | Export.tsx | Admin.tsx |
+|---------|-----------|------------|-----------|
+| **This Week** | Past 6 days + today ✅ | Past 6 days + today ✅ | Past 6 days + today ✅ |
+| **This Month** | Start of month ✅ | Start of month ✅ | Start of month ✅ |
+| **Date Priority** | occurred_at first ✅ | occurred_at first ✅ | occurred_at first ✅ |
+| **Date Normalization** | Midnight ✅ | Midnight ✅ | Midnight ✅ |
+| **Touch Controls** | Isolated to cards ✅ | Isolated to cards ✅ | Isolated to cards ✅ |
+| **Delete Handler** | ❌ No | ❌ No | ✅ Admin only |
+
+### Benefits
+
+1. **Predictable:** "This Week" means the same across all pages
+2. **Maintainable:** Single source of truth for filtering logic
+3. **Performant:** Consistent optimization techniques app-wide
+4. **Mobile-First:** Touch controls work identically everywhere

@@ -545,6 +545,12 @@ All major functionality is now working correctly with the normalized `violation_
 
 ---
 
-**Last Updated:** October 11, 2025 - 1:30 AM  
+**Last Updated:** October 18, 2025 - 2:54 AM  
+**Recent Updates:**
+- ✅ Live capture photo storage fixed (Supabase Storage vs base64)
+- ✅ 3D Carousel consistency across Books, Export, Admin pages  
+- ✅ Touch controls isolated to thumbnail cards only
+- ✅ Date filtering unified ("past 6 days + today" for This Week)
+
 **Next Review:** After mobile regression testing  
 **Status:** ✅ 100% Complete - All Critical Workflows Functional

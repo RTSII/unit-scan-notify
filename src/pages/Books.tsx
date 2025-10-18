@@ -85,6 +85,12 @@ const normalizeViolationForm = (
   const photos = violationPhotos
     .map((photo) => {
       if (!photo?.storage_path) return null;
+      
+      // Skip base64-encoded images (legacy data corruption)
+      if (photo.storage_path.startsWith('data:')) {
+        return null;
+      }
+      
       const { data } = supabase.storage
         .from('violation-photos')
         .getPublicUrl(photo.storage_path);
@@ -312,33 +318,30 @@ const Books = () => {
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     if (timeFilter === 'this_week') {
-      // Past 6 days + today = 7 days total (e.g., Oct 11-17 if today is Oct 17)
+      // Past 6 days + today = 7 days total
       const startOfWeek = new Date(today);
-      startOfWeek.setDate(today.getDate() - 6); // 6 days ago at 00:00:00
-      startOfWeek.setHours(0, 0, 0, 0); // Ensure midnight
+      startOfWeek.setDate(today.getDate() - 6);
       
       return base.filter(form => {
         const formDate = new Date(form.occurred_at || form.created_at);
         // Normalize to date only (ignore time) for accurate day comparison
         const formDateOnly = new Date(formDate.getFullYear(), formDate.getMonth(), formDate.getDate());
-        formDateOnly.setHours(0, 0, 0, 0); // Ensure midnight for comparison
         
-        // Include forms from startOfWeek through today (inclusive)
-        return formDateOnly >= startOfWeek && formDateOnly <= today;
+        // Include forms from startOfWeek onward (past 6 days + today)
+        return formDateOnly >= startOfWeek;
       });
     }
 
     if (timeFilter === 'this_month') {
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      startOfMonth.setHours(0, 0, 0, 0); // Ensure midnight
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1); // Ensure midnight
       
       return base.filter(form => {
         const formDate = new Date(form.occurred_at || form.created_at);
+        // Normalize to date only (ignore time)
         const formDateOnly = new Date(formDate.getFullYear(), formDate.getMonth(), formDate.getDate());
-        formDateOnly.setHours(0, 0, 0, 0);
         
-        // Include forms from start of month through today (inclusive)
-        return formDateOnly >= startOfMonth && formDateOnly <= today;
+        // Include forms from start of month onward
+        return formDateOnly >= startOfMonth;
       });
     }
 

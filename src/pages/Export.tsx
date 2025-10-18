@@ -210,7 +210,7 @@ export default function Export() {
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     // Past 6 days + today = 7 days total
     const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - 6); // 6 days ago at 00:00:00
+    startOfWeek.setDate(today.getDate() - 6);
 
     return forms.filter((form) => {
       const formDate = new Date(form.occurred_at || form.created_at);
@@ -219,27 +219,6 @@ export default function Export() {
       return formDateOnly >= startOfWeek;
     }).length;
   }, [forms]);
-
-  // Compute forms for the carousel strictly by timeFilter (independent of search)
-  const carouselForms = useMemo(() => {
-    if (timeFilter === 'all') return forms;
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    let startDate: Date;
-    if (timeFilter === 'this_week') {
-      // Past 6 days + today = 7 days total
-      startDate = new Date(today);
-      startDate.setDate(today.getDate() - 6); // 6 days ago at 00:00:00
-    } else {
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-    }
-    return forms.filter((form) => {
-      const formDate = new Date(form.occurred_at || form.created_at);
-      // Normalize to date only (ignore time)
-      const formDateOnly = new Date(formDate.getFullYear(), formDate.getMonth(), formDate.getDate());
-      return formDateOnly >= startDate;
-    });
-  }, [forms, timeFilter]);
 
   
 

@@ -558,15 +558,21 @@ Welcome to the team!`);
 
   const getThisWeekForms = () => {
     const now = new Date();
-    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    // Past 6 days + today = 7 days total (matches Books.tsx)
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - 6);
+    
     const filtered = violationForms.filter(form => {
-      const dateStr = form.created_at || form.occurred_at || '';
-      const d = dateStr ? new Date(dateStr) : null;
-      return d ? d >= weekAgo : false;
+      const formDate = new Date(form.occurred_at || form.created_at);
+      // Normalize to date only (ignore time)
+      const formDateOnly = new Date(formDate.getFullYear(), formDate.getMonth(), formDate.getDate());
+      return formDateOnly >= startOfWeek;
     });
+    
     filtered.sort((a, b) => {
-      const ad = new Date(a.created_at || a.occurred_at || 0).getTime();
-      const bd = new Date(b.created_at || b.occurred_at || 0).getTime();
+      const ad = new Date(a.occurred_at || a.created_at || 0).getTime();
+      const bd = new Date(b.occurred_at || b.created_at || 0).getTime();
       return bd - ad;
     });
     return filtered;
@@ -574,15 +580,19 @@ Welcome to the team!`);
 
   const getThisMonthForms = () => {
     const now = new Date();
-    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    // Start of current month (matches Books.tsx)
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    
     const filtered = violationForms.filter(form => {
-      const dateStr = form.created_at || form.occurred_at || '';
-      const d = dateStr ? new Date(dateStr) : null;
-      return d ? d >= monthAgo : false;
+      const formDate = new Date(form.occurred_at || form.created_at);
+      // Normalize to date only (ignore time)
+      const formDateOnly = new Date(formDate.getFullYear(), formDate.getMonth(), formDate.getDate());
+      return formDateOnly >= startOfMonth;
     });
+    
     filtered.sort((a, b) => {
-      const ad = new Date(a.created_at || a.occurred_at || 0).getTime();
-      const bd = new Date(b.created_at || b.occurred_at || 0).getTime();
+      const ad = new Date(a.occurred_at || a.created_at || 0).getTime();
+      const bd = new Date(b.occurred_at || b.created_at || 0).getTime();
       return bd - ad;
     });
     return filtered;

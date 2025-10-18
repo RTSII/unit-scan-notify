@@ -646,5 +646,11 @@ npm run build
 **SPR Vice City** - Professional violation management for the digital age 🌴⚡
 
 **Maintained By:** Rob (Admin)  
-**Last Updated:** October 6, 2025  
+**Last Updated:** October 18, 2025  
 **Status:** Production Ready - 100% Functional
+
+**Recent Updates (October 18, 2025):**
+- ✅ **Photo Storage Fixed** - Live capture now uploads to Supabase Storage (not base64)
+- ✅ **Carousel Consistency** - Unified 3D carousel behavior across all pages
+- ✅ **Touch Controls Optimized** - Touch isolated to thumbnail cards only
+- ✅ **Filter Logic Unified** - "This Week" and "This Month" work identically app-wide

@@ -144,23 +144,113 @@ const DetailsLive = () => {
 
       if (error) throw error;
 
-      // Save photos to violation_photos table if we have any
+      // Upload photos to Supabase Storage and save URLs to violation_photos table
       if (photos.length > 0 && formResult) {
         const formId = formResult.id;
+        const nowIso = new Date().toISOString();
 
-        const photoRecords: ViolationPhotoInsert[] = photos.map(photoBase64 => ({
-          violation_id: formId,
-          uploaded_by: user.id,
-          storage_path: photoBase64
-        }));
+        // Helper: Compress base64 image
+        const compressBase64Image = async (
+          dataUrl: string,
+          maxDim = 1600,
+          quality = 0.8
+        ): Promise<Blob> => {
+          return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+              const { width, height } = img;
+              const scale = Math.min(1, maxDim / Math.max(width, height));
+              const canvas = document.createElement('canvas');
+              canvas.width = Math.max(1, Math.round(width * scale));
+              canvas.height = Math.max(1, Math.round(height * scale));
+              const ctx = canvas.getContext('2d');
+              if (!ctx) {
+                reject(new Error('Canvas context unavailable'));
+                return;
+              }
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+              canvas.toBlob(
+                (blob) => {
+                  if (!blob) {
+                    reject(new Error('Failed to compress image'));
+                    return;
+                  }
+                  resolve(blob);
+                },
+                'image/jpeg',
+                quality
+              );
+            };
+            img.onerror = () => reject(new Error('Failed to load image'));
+            img.src = dataUrl;
+          });
+        };
 
-        const { error: photosError } = await supabase
-          .from('violation_photos')
-          .insert(photoRecords);
+        // Helper: Generate random hex string
+        const randHex = (len = 12) => {
+          const arr = new Uint8Array(len);
+          crypto.getRandomValues(arr);
+          return Array.from(arr, (b) => b.toString(16).padStart(2, '0')).join('');
+        };
 
-        if (photosError) {
-          console.error('Error saving photos:', photosError);
-          // Don't throw - form is saved, just log the photo error
+        const photoRecords: ViolationPhotoInsert[] = [];
+
+        for (let i = 0; i < photos.length; i++) {
+          const photoBase64 = photos[i];
+          
+          try {
+            // Compress image
+            const compressedBlob = await compressBase64Image(photoBase64, 1600, 0.8);
+            
+            if (compressedBlob.size > 4 * 1024 * 1024) {
+              console.warn('Photo exceeded 4MB after compression, skipping');
+              continue;
+            }
+
+            // Generate unique filename
+            const fileName = `${formId}_${i}_${Date.now()}.jpg`;
+            const path = `${user.id}/${fileName}`;
+
+            // Upload to Supabase Storage
+            const { error: uploadError } = await supabase.storage
+              .from('violation-photos')
+              .upload(path, compressedBlob, {
+                contentType: 'image/jpeg',
+                upsert: false,
+                cacheControl: '31536000'
+              });
+
+            if (uploadError) {
+              console.error('Upload error:', uploadError);
+              continue;
+            }
+
+            // Get public URL
+            const { data: publicUrlData } = supabase.storage
+              .from('violation-photos')
+              .getPublicUrl(path);
+
+            photoRecords.push({
+              violation_id: formId,
+              uploaded_by: user.id,
+              storage_path: path, // Store the storage path, not the full URL
+              created_at: nowIso,
+            });
+          } catch (compressionError) {
+            console.error('Error processing photo:', compressionError);
+          }
+        }
+
+        // Save photo records to database
+        if (photoRecords.length > 0) {
+          const { error: photosError } = await supabase
+            .from('violation_photos')
+            .insert(photoRecords);
+
+          if (photosError) {
+            console.error('Error saving photo records:', photosError);
+            // Don't throw - form is saved, just log the photo error
+          }
         }
       }
 
