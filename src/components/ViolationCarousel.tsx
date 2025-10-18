@@ -329,7 +329,7 @@ export const ViolationCarousel3D: React.FC<{
                   <motion.div
                     key={`key-${item.imageUrl}-${i}`}
                     data-card-index={i}
-                    className="absolute flex h-full origin-center items-center justify-center rounded-2xl p-2 sm:p-3"
+                    className="absolute flex h-full origin-center items-center justify-center rounded-2xl p-2"
                     style={{
                       width: `${faceWidth}px`,
                       transform: `rotateY(${i * (360 / faceCount)}deg) translateZ(${radius}px)`,
