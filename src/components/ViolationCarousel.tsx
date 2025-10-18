@@ -3,6 +3,7 @@ import { AnimatePresence, motion, useAnimation, useMotionValue, useTransform } f
 import { useMediaQuery } from "./ui/3d-carousel";
 import { X, Trash2, Calendar, Clock, MapPin, Image as ImageIcon, User } from "lucide-react";
 import { Checkbox } from "./ui/checkbox";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface FormLike {
   id: string;
@@ -29,6 +30,30 @@ export type CarouselItem = {
   fullForm?: FormLike;
 };
 
+// Helper function to convert storage path to public URL with thumbnail optimization
+function getPhotoUrl(storagePath: string, isThumbnail: boolean = true): string {
+  // Check if already a full URL (starts with http/https or data:)
+  if (storagePath.startsWith('http://') || storagePath.startsWith('https://') || storagePath.startsWith('data:')) {
+    // For full URLs from storage, add transformation params for thumbnails
+    if (isThumbnail && storagePath.includes('supabase.co/storage')) {
+      // Add width limit and quality reduction for thumbnails
+      return `${storagePath}?width=300&quality=60`;
+    }
+    return storagePath;
+  }
+  // Convert storage path to public URL
+  const { data } = supabase.storage
+    .from('violation-photos')
+    .getPublicUrl(storagePath, {
+      transform: isThumbnail ? {
+        width: 300,
+        height: 300,
+        quality: 60
+      } : undefined
+    });
+  return data?.publicUrl || storagePath;
+}
+
 export function mapFormsToCarouselItems(forms: FormLike[]): CarouselItem[] {
   return (forms || []).map((form, index) => {
     // Handle both legacy 'date' field and new 'occurred_at' field
@@ -41,7 +66,8 @@ export function mapFormsToCarouselItems(forms: FormLike[]): CarouselItem[] {
       displayDate = `${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}`;
     }
     
-    const imageUrl = form.photos?.[0] || "placeholder";
+    // Convert storage path to public URL if needed
+    const imageUrl = form.photos?.[0] ? getPhotoUrl(form.photos[0]) : "placeholder";
     
     return {
       id: form.id,
@@ -76,11 +102,12 @@ export const ViolationCarousel3D: React.FC<{
     return items.length > 0 ? items : [{ id: "placeholder-1", imageUrl: "placeholder", unit: "", date: "" }];
   }, [forms]);
 
-  // Mobile density: reduce faces for smoother perf and tighter control
-  const targetFaces = isScreenSizeSm ? 10 : 14;
-  // Smaller mobile cylinder to increase curvature (smaller radius)
-  const cylinderWidth = isScreenSizeSm ? 1200 : 1800;
-  const maxThumb = isScreenSizeSm ? 120 : 140;
+  // Mobile density: ensure at least 3 cards visible on iPhone
+  const targetFaces = isScreenSizeSm ? 14 : 14;
+  // Much larger mobile cylinder radius to prevent overlapping with many cards
+  const cylinderWidth = isScreenSizeSm ? 2000 : 1800;
+  // Smaller mobile cards (90px) to fit at least 3 on screen
+  const maxThumb = isScreenSizeSm ? 90 : 140;
 
   const displayItems = useMemo(() => {
     if (baseItems.length >= targetFaces) return baseItems;
@@ -276,7 +303,7 @@ export const ViolationCarousel3D: React.FC<{
           <div
             className="flex h-full items-center justify-center bg-black/10 px-4 sm:px-6"
             style={{
-              perspective: isScreenSizeSm ? "600px" : "800px", 
+              perspective: isScreenSizeSm ? "900px" : "800px", 
               transformStyle: "preserve-3d", 
               willChange: "transform"
             }}
@@ -372,11 +399,12 @@ export const ViolationCarousel3D: React.FC<{
                         dragMomentum={true}
                         dragConstraints={{ left: 0, right: 0 }}
                         dragTransition={{ bounceStiffness: 0, bounceDamping: 0 }}
-                        className="relative w-full aspect-square"
+                        className="relative w-full aspect-square overflow-hidden rounded-2xl ring-2 ring-vice-cyan shadow-[0_0_12px_#00ffff,0_0_24px_#00ffff50]"
                         style={{ 
                           pointerEvents: isVisible ? 'auto' : 'none',
                           touchAction: isVisible ? 'none' : 'auto',
-                          cursor: isCarouselActive ? 'grab' : 'default'
+                          cursor: isCarouselActive ? 'grab' : 'default',
+                          backgroundColor: '#0a0a0a'
                         }}
                         onClick={(e) => {
                           if (isDraggingRef.current) return;
@@ -425,19 +453,22 @@ export const ViolationCarousel3D: React.FC<{
                         <img
                           src={item.imageUrl}
                           alt={`${item.unit} ${item.date}`}
-                          className="w-full rounded-2xl object-cover aspect-square ring-2 ring-vice-cyan shadow-[0_0_12px_#00ffff,0_0_24px_#00ffff50] opacity-100 touch-none pointer-events-none"
+                          className="absolute inset-0 w-full h-full object-cover touch-none pointer-events-none"
+                          style={{ opacity: 1 }}
+                          loading="lazy"
+                          decoding="async"
                           draggable={false}
                         />
                         {/* Overlay badges - Date left, Unit right */}
                         {(item.date || item.unit) && (
                           <div className="absolute inset-x-0 top-0 flex items-center justify-center gap-2 p-1.5 sm:p-2 pointer-events-none z-10">
                             {item.date && (
-                              <div className="text-[10px] sm:text-xs font-medium text-vice-pink drop-shadow-[0_0_6px_#ff1493] bg-black/50 backdrop-blur-sm ring-1 ring-vice-pink/40 px-1.5 sm:px-2 py-0.5 rounded-md whitespace-nowrap">
+                              <div className="text-[10px] sm:text-xs font-medium text-vice-pink drop-shadow-[0_0_8px_#ff1493] bg-white/10 backdrop-blur-md ring-1 ring-white/30 px-1.5 sm:px-2 py-0.5 rounded-md whitespace-nowrap shadow-lg">
                                 {item.date}
                               </div>
                             )}
                             {item.unit && (
-                              <div className="text-[10px] sm:text-xs font-semibold text-vice-pink drop-shadow-[0_0_6px_#ff1493] bg-black/50 backdrop-blur-sm ring-1 ring-vice-pink/40 px-1.5 sm:px-2 py-0.5 rounded-md whitespace-nowrap">
+                              <div className="text-[10px] sm:text-xs font-semibold text-vice-pink drop-shadow-[0_0_8px_#ff1493] bg-white/10 backdrop-blur-md ring-1 ring-white/30 px-1.5 sm:px-2 py-0.5 rounded-md whitespace-nowrap shadow-lg">
                                 {item.unit}
                               </div>
                             )}
@@ -545,8 +576,9 @@ export const ViolationCarousel3D: React.FC<{
                         {activeForm.photos.map((photo, idx) => (
                           <img
                             key={idx}
-                            src={photo}
+                            src={getPhotoUrl(photo, false)}
                             alt={`Photo ${idx + 1}`}
+                            loading="lazy"
                             className="w-full aspect-square object-cover rounded-lg ring-1 ring-vice-cyan/30 hover:ring-2 hover:ring-vice-pink transition-all cursor-pointer"
                           />
                         ))}

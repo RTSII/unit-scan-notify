@@ -5,6 +5,54 @@ All notable changes to the SPR Vice City project will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.4] - 2025-10-18
+
+### 🔧 **Critical Fixes**
+- **Books Carousel Data Contract**: Fixed 500 database error and missing thumbnails in Books.tsx
+  - **Root cause**: Books.tsx used custom query (specific columns) and custom interface (SavedForm) instead of Export.tsx pattern
+  - **Solution**: Unified data fetching across all pages using Export.tsx pattern:
+    - Changed query from specific columns to `SELECT *` with joins
+    - Replaced SavedForm interface with ViolationForm interface (matching Export.tsx)
+    - Removed custom `normalizeViolationForm()` function
+    - Implemented Export.tsx data mapping pattern directly
+  - **Result**: Books.tsx now displays thumbnails correctly, matching Export.tsx behavior
+  - Added `getPhotoUrl()` helper in ViolationCarousel.tsx to handle both storage paths and full URLs
+  - **Documentation**: Updated `docs/3d-carousel.md` with critical "Data Contract" section to prevent future mismatches
+
+### ⚡ **Performance Optimizations**
+- **Carousel Thumbnail Loading**: Implemented Supabase image transformations for faster carousel performance
+  - Thumbnails now load at 300x300px, 60% quality (10-20x smaller file size)
+  - Added `loading="lazy"` and `decoding="async"` attributes for optimized loading
+  - Stabilized layout with fixed aspect-ratio containers to prevent jumping/glitching
+  - Added dark background placeholder while images load
+  - Popover displays full-quality images (no compression)
+  - **Result**: Eliminates layout thrashing on iPhone Safari, dramatically faster carousel scrolling
+
+- **Mobile Carousel Sizing**: Fixed iPhone display to show at least 3 cards at once
+  - Reduced mobile card size from 120px to 90px
+  - Reduced mobile container height from 320px to 220px portrait
+  - Increased cylinder radius from 1200px to 2000px to prevent overlapping
+  - Increased perspective from 600px to 900px for less 3D distortion
+  - Ensures consistent spacing regardless of form count (2 forms vs 9 forms)
+  - **Result**: Always shows 3+ thumbnail cards on iPhone, no overlapping
+
+### 🎨 **UI Improvements**
+- **Carousel Badge Readability**: Updated date/unit badges with liquid glass effect
+  - Changed background from `bg-black/50` to `bg-white/10` with `backdrop-blur-md`
+  - Updated border from pink to white (`ring-white/30`) for better contrast
+  - Added `shadow-lg` and increased glow intensity
+  - **Result**: C3F, 10/05, and other labels are now clearly readable over any photo background
+
+### 📚 **Documentation**
+- **3d-carousel.md**: Added ⚠️ CRITICAL section with:
+  - Required ViolationForm interface
+  - Required database query pattern (Export.tsx as reference)
+  - Required data mapping pattern
+  - DON'T DO list of common mistakes
+  - Clear explanation of why consistency matters
+
+---
+
 ## [3.2.3] - 2025-10-18
 
 ### 🔧 **Critical Fixes**

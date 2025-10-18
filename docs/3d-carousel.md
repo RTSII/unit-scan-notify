@@ -10,10 +10,106 @@ This document is the authoritative spec and usage guide for the 3D carousel used
 
 ---
 
+## ⚠️ CRITICAL: Data Contract (MUST FOLLOW)
+
+**ALL pages using ViolationCarousel3D MUST use the EXACT SAME data structure.**
+
+### Required Interface
+
+```typescript
+interface ViolationForm {
+  id: string;
+  unit_number: string;
+  date?: string; // Legacy field - MM/DD format
+  time?: string; // Legacy field
+  occurred_at?: string; // New timestamp field - ISO format
+  location: string;
+  description: string;
+  status: string;
+  created_at: string;
+  photos: string[]; // Array of storage paths or URLs
+  violation_photos: Array<{
+    id: string;
+    storage_path: string;
+    created_at: string;
+  }>;
+}
+```
+
+### Required Database Query Pattern
+
+**DO THIS (Export.tsx pattern):**
+```typescript
+const { data, error } = await supabase
+  .from('violation_forms')
+  .select(`
+    *,
+    violation_photos (
+      id,
+      storage_path,
+      created_at
+    )
+  `)
+  .order('created_at', { ascending: false })
+  .limit(500)
+  .returns<(ViolationFormRow & { violation_photos: ViolationPhotoRow[] | null })[]>();
+```
+
+### Required Data Mapping Pattern
+
+**DO THIS (Export.tsx pattern):**
+```typescript
+const formsWithPhotos: ViolationForm[] = (data ?? []).map((form) => {
+  const photosArray = Array.isArray(form.violation_photos)
+    ? form.violation_photos.filter(
+        (photo): photo is ViolationPhotoRow => Boolean(photo)
+      )
+    : [];
+
+  return {
+    id: String(form.id),
+    unit_number: normalizeUnit(form.unit_number ?? ''),
+    occurred_at: form.occurred_at ?? undefined,
+    location: form.location ?? '',
+    description: form.description ?? '',
+    status: form.status ?? 'saved',
+    created_at: form.created_at ?? new Date().toISOString(),
+    photos: photosArray
+      .map((photo) => photo.storage_path)
+      .filter((path): path is string => typeof path === 'string' && path.length > 0),
+    violation_photos: photosArray
+      .map((photo) => ({
+        id: String(photo.id),
+        storage_path: photo.storage_path ?? '',
+        created_at: photo.created_at ?? '',
+      }))
+      .filter((photo) => photo.storage_path.length > 0),
+  };
+});
+```
+
+### ❌ DON'T DO THIS
+
+- **DON'T** select specific columns instead of `*`
+- **DON'T** create custom interfaces (SavedForm, CustomForm, etc.)
+- **DON'T** use custom normalization functions
+- **DON'T** convert storage paths to URLs in the data layer (ViolationCarousel handles this)
+
+### Why This Matters
+
+The carousel component (`ViolationCarousel.tsx`) has a `FormLike` interface that expects this exact structure. Any deviation causes:
+- ❌ 500 database errors (wrong column selection)
+- ❌ Photos not displaying (wrong data mapping)
+- ❌ Inconsistent behavior across pages
+
+**When adding carousel to a new page:** Copy Export.tsx data fetching pattern exactly, then add any page-specific fields to the interface.
+
+---
+
 ## Purpose
 - **Dense ring** of square, rounded thumbnail cards with minimal spacing.
 - **Continuous drag/rotate** experience with an “infinite” feel and snapping for control.
-- **Readable overlay**: Unit and Date on each thumbnail with glass-style badges.
+- **Readable overlay**: Date (xx/xx) and Unit# (XXX) centered at top of card in neon pink color on each thumbnail.
 - **Mobile-first** responsiveness and short track containment.
 
 ---

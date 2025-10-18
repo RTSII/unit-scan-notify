@@ -30,104 +30,26 @@ type ProfileRow = Tables<"profiles">;
 type ProfileSummary = Pick<ProfileRow, "email" | "full_name" | "role">;
 type ProfileLookup = Pick<ProfileRow, "user_id" | "email" | "full_name" | "role">;
 
-type ViolationFormWithRelations = ViolationFormRow & {
-  violation_photos?: ViolationPhotoRow[] | null;
-  profiles?: ProfileSummary | null;
-  date?: string | null;
-  time?: string | null;
-};
-
-interface SavedForm {
+// Using same interface as Export.tsx for consistency
+interface ViolationForm {
   id: string;
-  user_id: string;
   unit_number: string;
-  date: string | null;
-  occurred_at: string | null;
-  time: string | null;
-  location: string | null;
-  description: string | null;
-  photos: string[];
-  status: string | null;
+  date?: string; // Legacy field
+  time?: string; // Legacy field
+  occurred_at?: string; // New timestamp field
+  location: string;
+  description: string;
+  status: string;
   created_at: string;
-  profiles?: ProfileSummary | null;
-  violation_photos?: Array<{
+  photos: string[]; // Photos array from violation_photos join
+  violation_photos: Array<{
     id: string;
     storage_path: string;
-    created_at: string | null;
+    created_at: string;
   }>;
+  // Books-specific: add profile info
+  profiles?: ProfileSummary | null;
 }
-
-const normalizeViolationForm = (
-  form: ViolationFormWithRelations,
-  fallbackProfile?: ProfileSummary | null
-): SavedForm => {
-  const violationPhotos = Array.isArray(form.violation_photos)
-    ? form.violation_photos
-    : [];
-
-  const legacyFields = form as unknown as {
-    date?: string | null;
-    time?: string | null;
-  };
-
-  const mergedProfile = form.profiles ?? fallbackProfile ?? null;
-  const normalizedProfile = mergedProfile
-    ? {
-        email: mergedProfile.email,
-        full_name: mergedProfile.full_name,
-        role: mergedProfile.role ?? "user",
-      }
-    : null;
-
-  const normalizedUnit = normalizeUnit(form.unit_number ?? "");
-
-  // Convert storage paths to full public URLs
-  const photos = violationPhotos
-    .map((photo) => {
-      if (!photo?.storage_path) return null;
-      
-      // Skip base64-encoded images (legacy data corruption)
-      if (photo.storage_path.startsWith('data:')) {
-        return null;
-      }
-      
-      const { data } = supabase.storage
-        .from('violation-photos')
-        .getPublicUrl(photo.storage_path);
-      return data?.publicUrl || null;
-    })
-    .filter((url): url is string => typeof url === "string" && url.length > 0);
-
-  return {
-    id: String(form.id),
-    user_id: form.user_id,
-    unit_number: normalizedUnit,
-    date: legacyFields.date ?? null,
-    occurred_at: form.occurred_at ?? null,
-    time: legacyFields.time ?? null,
-    location: form.location ?? null,
-    description: form.description ?? null,
-    photos,
-    status: form.status ?? "saved",
-    created_at: form.created_at ?? new Date().toISOString(),
-    profiles: normalizedProfile,
-    violation_photos: violationPhotos.map((photo) => ({
-      id: String(photo?.id),
-      storage_path: photo?.storage_path ?? "",
-      created_at: photo?.created_at ?? null,
-    })),
-  };
-};
-
-const sanitizeForms = (rows: unknown): ViolationFormWithRelations[] => {
-  if (!Array.isArray(rows)) return [];
-
-  return rows.filter((row): row is ViolationFormWithRelations => {
-    if (!row || typeof row !== "object") return false;
-    if ("error" in row) return false;
-    return true;
-  });
-};
 
 const sanitizeProfiles = (rows: unknown): ProfileLookup[] => {
   if (!Array.isArray(rows)) return [];
@@ -140,7 +62,7 @@ const sanitizeProfiles = (rows: unknown): ProfileLookup[] => {
 };
 
 const Books = () => {
-  const [forms, setForms] = useState<SavedForm[]>([]);
+  const [forms, setForms] = useState<ViolationForm[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   // Time filter like Export: this_week | this_month | all
@@ -160,19 +82,12 @@ const Books = () => {
     }
 
     try {
-      // Fetch violation forms with minimal columns and photos join
+      // Using Export.tsx pattern - fetch all columns with photos join
       // IMPORTANT: Fetches ALL forms from ALL users (team visibility)
-      const { data: formsDataRaw, error: formsError } = await supabase
+      const { data, error } = await supabase
         .from('violation_forms')
         .select(`
-          id,
-          user_id,
-          unit_number,
-          occurred_at,
-          location,
-          description,
-          status,
-          created_at,
+          *,
           violation_photos (
             id,
             storage_path,
@@ -180,11 +95,12 @@ const Books = () => {
           )
         `)
         .order('created_at', { ascending: false })
-        .limit(500);
+        .limit(500)
+        .returns<(ViolationFormRow & { violation_photos: ViolationPhotoRow[] | null })[]>();
 
-      if (formsError) throw formsError;
+      if (error) throw error;
 
-      // Fetch all profiles (minimal columns)
+      // Fetch all profiles for Books-specific user attribution
       const { data: rawProfiles, error: profilesError } = await supabase
         .from('profiles')
         .select('user_id, email, full_name, role');
@@ -192,10 +108,16 @@ const Books = () => {
       if (profilesError) throw profilesError;
 
       const profilesData = sanitizeProfiles(rawProfiles);
-      const formsData = sanitizeForms(formsDataRaw);
 
-      // Manually join the data and map photos
-      const formsWithProfiles = formsData.map(form => {
+      // Map forms using Export.tsx pattern, adding profile join
+      const formsWithPhotos: ViolationForm[] = (data ?? []).map((form) => {
+        const photosArray = Array.isArray(form.violation_photos)
+          ? form.violation_photos.filter(
+              (photo): photo is ViolationPhotoRow => Boolean(photo)
+            )
+          : [];
+
+        // Find matching profile for Books page
         const matchedProfile = profilesData.find(profile => profile.user_id === form.user_id) || null;
         const profileSummary = matchedProfile
           ? {
@@ -205,10 +127,29 @@ const Books = () => {
             }
           : null;
 
-        return normalizeViolationForm(form, profileSummary);
+        return {
+          id: String(form.id),
+          unit_number: normalizeUnit(form.unit_number ?? ''),
+          occurred_at: form.occurred_at ?? undefined,
+          location: form.location ?? '',
+          description: form.description ?? '',
+          status: form.status ?? 'saved',
+          created_at: form.created_at ?? new Date().toISOString(),
+          photos: photosArray
+            .map((photo) => photo.storage_path)
+            .filter((path): path is string => typeof path === 'string' && path.length > 0),
+          violation_photos: photosArray
+            .map((photo) => ({
+              id: String(photo.id),
+              storage_path: photo.storage_path ?? '',
+              created_at: photo.created_at ?? '',
+            }))
+            .filter((photo) => photo.storage_path.length > 0),
+          profiles: profileSummary, // Books-specific addition
+        };
       });
 
-      setForms(formsWithProfiles);
+      setForms(formsWithPhotos);
     } catch (error: unknown) {
       console.error('Error fetching forms:', error);
       toast({
@@ -242,7 +183,7 @@ const Books = () => {
   // No collapsible handlers needed
 
 
-  const applyFilters = (formsToFilter: SavedForm[]) => {
+  const applyFilters = (formsToFilter: ViolationForm[]) => {
     let filtered = formsToFilter;
 
     // Apply search filter (now includes user names)
@@ -250,7 +191,7 @@ const Books = () => {
       const normalizedSearchUnit = normalizeUnit(searchTerm);
       const searchTermLower = searchTerm.toLowerCase();
 
-      const matchesDate = (form: SavedForm) => {
+      const matchesDate = (form: ViolationForm) => {
         // Support matching against legacy `date` (e.g., MM/DD) and `occurred_at` (ISO)
         const legacyDate = form.date?.toString() ?? '';
         const occurredAt = form.occurred_at ?? '';
@@ -470,7 +411,7 @@ const Books = () => {
               <div className="w-full max-w-5xl h-full flex items-center">
                 <ViolationCarousel3D 
                   forms={filteredForms} 
-                  heightClass="h-[280px] portrait:h-[320px] landscape:h-[240px] sm:h-[280px] md:h-[320px]" 
+                  heightClass="h-[200px] portrait:h-[220px] landscape:h-[180px] sm:h-[280px] md:h-[320px]" 
                   containerClassName="mx-auto w-full" 
                 />
               </div>
