@@ -326,10 +326,10 @@ export const ViolationCarousel3D: React.FC<{
                 const isVisible = Math.cos((cardAngle * Math.PI) / 180) > 0.1;
                 
                 return (
-                  <motion.div
+                  <motion.div 
                     key={`key-${item.imageUrl}-${i}`}
                     data-card-index={i}
-                    className="absolute flex h-full origin-center items-center justify-center rounded-2xl p-2"
+                    className="absolute flex h-full origin-center items-center justify-center p-3"
                     style={{
                       width: `${faceWidth}px`,
                       transform: `rotateY(${i * (360 / faceCount)}deg) translateZ(${radius}px)`,
