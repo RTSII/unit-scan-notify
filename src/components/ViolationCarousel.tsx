@@ -104,8 +104,8 @@ export const ViolationCarousel3D: React.FC<{
 
   // Mobile density: ensure at least 3 cards visible on iPhone
   const targetFaces = isScreenSizeSm ? 14 : 14;
-  // Much larger mobile cylinder radius to prevent overlapping with many cards
-  const cylinderWidth = isScreenSizeSm ? 2000 : 1800;
+  // Balanced mobile cylinder radius - closer spacing, no overlap
+  const cylinderWidth = isScreenSizeSm ? 1400 : 1800;
   // Smaller mobile cards (90px) to fit at least 3 on screen
   const maxThumb = isScreenSizeSm ? 90 : 140;
 
@@ -294,14 +294,14 @@ export const ViolationCarousel3D: React.FC<{
       <div className="relative w-full mb-8 sm:mb-10">
 
         <div 
-          className={`relative ${heightClass ?? 'h-[140px] sm:h-[160px]'} w-full overflow-hidden rounded-xl bg-black/20 py-1`}
+          className={`relative ${heightClass ?? 'h-[140px] sm:h-[160px]'} w-full overflow-hidden rounded-xl bg-black/20`}
           style={{ touchAction: 'pan-y' }}
           onTouchStart={(e) => { e.stopPropagation(); }}
           onTouchMove={(e) => { e.stopPropagation(); }}
           onTouchEnd={(e) => { e.stopPropagation(); }}
         >
           <div
-            className="flex h-full items-center justify-center bg-black/10 px-4 sm:px-6"
+            className="flex h-full items-center justify-center bg-black/10 px-2 sm:px-4"
             style={{
               perspective: isScreenSizeSm ? "900px" : "800px", 
               transformStyle: "preserve-3d", 

@@ -28,13 +28,16 @@ and this project adheres to [semantic Versioning](https://semver.org/spec/v2.0.0
   - Popover displays full-quality images (no compression)
   - **Result**: Eliminates layout thrashing on iPhone Safari, dramatically faster carousel scrolling
 
-- **Mobile Carousel Sizing**: Fixed iPhone display to show at least 3 cards at once
+- **Mobile Carousel Sizing & Layout**: Optimized iPhone display for maximum carousel space
   - Reduced mobile card size from 120px to 90px
-  - Reduced mobile container height from 320px to 220px portrait
-  - Increased cylinder radius from 1200px to 2000px to prevent overlapping
+  - Increased mobile carousel height from 220px to 300px portrait (36% larger)
+  - Optimized cylinder radius: 1400px for balanced spacing (no overlapping, not too far apart)
   - Increased perspective from 600px to 900px for less 3D distortion
-  - Ensures consistent spacing regardless of form count (2 forms vs 9 forms)
-  - **Result**: Always shows 3+ thumbnail cards on iPhone, no overlapping
+  - Minimized parent card padding: header (pb-2→pb-1, pt-3, px-4), content (pt-2, pb-2, px-2)
+  - Removed unnecessary nested divs that wasted space
+  - Reduced carousel wrapper padding (py-1→removed, px-4→px-2)
+  - Increased card min-height from 60vh to 65vh
+  - **Result**: Carousel dominates mobile screen with 3+ cards visible, tight spacing, minimal wasted space
 
 ### 🎨 **UI Improvements**
 - **Carousel Badge Readability**: Updated date/unit badges with liquid glass effect

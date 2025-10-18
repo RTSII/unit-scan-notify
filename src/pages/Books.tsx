@@ -391,11 +391,11 @@ const Books = () => {
             </div>
           </div>
         </div>
-        {/* Expanded carousel card - optimized for mobile portrait and landscape */}
+        {/* Expanded carousel card - maximized for mobile carousel display */}
         <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.35)] max-w-7xl mx-auto 
-                         min-h-[60vh] portrait:min-h-[60vh] landscape:min-h-[70vh] 
+                         min-h-[65vh] portrait:min-h-[65vh] landscape:min-h-[75vh] 
                          md:min-h-[400px] flex flex-col">
-          <CardHeader className="pb-2 flex-shrink-0">
+          <CardHeader className="pb-1 pt-3 px-4 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-vice-cyan">
@@ -403,19 +403,15 @@ const Books = () => {
                 </p>
                 <CardTitle className="text-white text-lg">{filteredForms.length}</CardTitle>
               </div>
-              <Clock className="w-6 h-6 text-vice-pink" />
+              <Clock className="w-5 h-5 text-vice-pink" />
             </div>
           </CardHeader>
-          <CardContent className="pt-0 pb-3 flex-1 flex items-center justify-center">
-            <div className="w-full h-full flex items-center justify-center -mx-2 sm:mx-0">
-              <div className="w-full max-w-5xl h-full flex items-center">
-                <ViolationCarousel3D 
-                  forms={filteredForms} 
-                  heightClass="h-[200px] portrait:h-[220px] landscape:h-[180px] sm:h-[280px] md:h-[320px]" 
-                  containerClassName="mx-auto w-full" 
-                />
-              </div>
-            </div>
+          <CardContent className="pt-2 pb-2 px-2 flex-1 flex items-center justify-center">
+            <ViolationCarousel3D 
+              forms={filteredForms} 
+              heightClass="h-[280px] portrait:h-[300px] landscape:h-[240px] sm:h-[280px] md:h-[320px]" 
+              containerClassName="w-full" 
+            />
           </CardContent>
         </Card>
 
