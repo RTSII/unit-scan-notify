@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate, useLocation, Navigate } from "react-router-dom";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useNavigate, Navigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Input } from "../components/ui/input";
@@ -72,7 +72,7 @@ const Books = () => {
   const navigate = useNavigate();
   const cardsContainerRef = useRef<HTMLDivElement>(null);
 
-  const location = useLocation();
+  
 
   const fetchSavedForms = useCallback(async () => {
     if (!user) {
@@ -82,9 +82,18 @@ const Books = () => {
     }
 
     try {
-      // Using Export.tsx pattern - fetch all columns with photos join
-      // IMPORTANT: Fetches ALL forms from ALL users (team visibility)
-      const { data, error } = await supabase
+      // Server-side time filter (This Week default) with occurred_at priority
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      let startDate: Date | null = null;
+      if (timeFilter === 'this_week') {
+        startDate = new Date(today);
+        startDate.setDate(today.getDate() - 6);
+      } else if (timeFilter === 'this_month') {
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      }
+
+      let baseQuery = supabase
         .from('violation_forms')
         .select(`
           *,
@@ -93,10 +102,18 @@ const Books = () => {
             storage_path,
             created_at
           )
-        `)
+        `);
+
+      if (startDate) {
+        const startIso = startDate.toISOString();
+        baseQuery = baseQuery.filter('created_at', 'gte', startIso);
+      }
+
+      const { data, error } = await baseQuery
         .order('created_at', { ascending: false })
-        .limit(500)
-        .returns<(ViolationFormRow & { violation_photos: ViolationPhotoRow[] | null })[]>();
+        .order('created_at', { foreignTable: 'violation_photos', ascending: false })
+        .limit(200)
+        .limit(1, { foreignTable: 'violation_photos' });
 
       if (error) throw error;
 
@@ -160,23 +177,13 @@ const Books = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast, user]);
+  }, [toast, user, timeFilter]);
 
   useEffect(() => {
     fetchSavedForms();
   }, [fetchSavedForms, user]);
 
-  // Refetch data when navigating to books page (e.g., after saving a new form)
-  // Avoid immediate duplicate refetch when arriving on /books
-  const hasRefetchedOnNav = useRef(false);
-  useEffect(() => {
-    if (location.pathname === '/books' && !loading && !hasRefetchedOnNav.current) {
-      hasRefetchedOnNav.current = true;
-      fetchSavedForms();
-      // reset flag after a short interval to allow later navigations to refetch
-      setTimeout(() => { hasRefetchedOnNav.current = false; }, 2000);
-    }
-  }, [fetchSavedForms, location.pathname, loading]);
+  // Removed duplicate refetch-on-navigation to prevent double queries
 
   // No collapsibles now; no click-outside behavior needed
 
@@ -250,8 +257,8 @@ const Books = () => {
     return filtered;
   };
 
-  // Time-filtered set for the carousel matching Export.tsx
-  const filteredForms = (() => {
+  // Time-filtered set for the carousel matching Export.tsx (memoized)
+  const filteredForms = useMemo(() => {
     const base = applyFilters(forms);
     if (timeFilter === 'all') return base;
 
@@ -259,35 +266,26 @@ const Books = () => {
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     if (timeFilter === 'this_week') {
-      // Past 6 days + today = 7 days total
       const startOfWeek = new Date(today);
       startOfWeek.setDate(today.getDate() - 6);
-      
       return base.filter(form => {
         const formDate = new Date(form.occurred_at || form.created_at);
-        // Normalize to date only (ignore time) for accurate day comparison
         const formDateOnly = new Date(formDate.getFullYear(), formDate.getMonth(), formDate.getDate());
-        
-        // Include forms from startOfWeek onward (past 6 days + today)
         return formDateOnly >= startOfWeek;
       });
     }
 
     if (timeFilter === 'this_month') {
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1); // Ensure midnight
-      
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       return base.filter(form => {
         const formDate = new Date(form.occurred_at || form.created_at);
-        // Normalize to date only (ignore time)
         const formDateOnly = new Date(formDate.getFullYear(), formDate.getMonth(), formDate.getDate());
-        
-        // Include forms from start of month onward
         return formDateOnly >= startOfMonth;
       });
     }
 
     return base;
-  })();
+  }, [forms, searchTerm, timeFilter]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {

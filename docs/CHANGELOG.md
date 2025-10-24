@@ -5,6 +5,43 @@ All notable changes to the SPR Vice City project will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.0] - 2025-10-23
+
+### 🎯 **New Feature - IDE Preview Toggle**
+
+Added interactive device preview toggle to Dashboard.tsx for responsive design testing directly in Windsurf IDE.
+
+### ✨ **Added**
+- **Device Preview Toggle**: Three-option toggle (Mobile/Tablet/Desktop) positioned below Siri Orb with liquid glass styling
+- **IDE Viewport Control**: Toggle actually adjusts browser viewport dimensions for realistic responsive testing
+- **Visual Feedback**: 
+  - Liquid glass badge with Vice City gradient background
+  - Active state indicator with animated gradient
+  - Current dimension display above toggle (iPhone 13, iPad Pro, Desktop)
+  - Smooth transitions between preview modes
+- **Mobile-First Testing**: Direct viewport manipulation for accurate mobile/tablet/desktop preview
+  - Mobile: 390px (iPhone 13 width)
+  - Tablet: 834px (iPad Pro width)
+  - Desktop: Full browser width
+
+### 🎨 **UI Improvements**
+- **Liquid Glass Effect**: Enhanced backdrop blur with gradient overlay for premium glass morphism
+- **Vice City Styling**: Cyan → Purple → Pink gradient active states
+- **Positioning**: Centered below Siri Orb (80px offset) for optimal UX
+- **Responsive Icons**: Smartphone, Tablet, and Monitor icons with proper scaling
+
+### 🔧 **Technical Implementation**
+- **DOM Manipulation**: Direct `document.documentElement` and `document.body` style modification
+- **Viewport Constraints**: CSS `maxWidth`, `margin: 0 auto`, and `overflow: auto` for proper centering
+- **Cleanup Logic**: Automatic removal of constraints on component unmount
+- **State Management**: React useEffect with previewMode dependency for immediate updates
+
+### 📱 **Development Workflow Enhancement**
+- **Instant Responsive Testing**: No need to resize browser manually or use external tools
+- **Accurate Device Simulation**: Real viewport constraints matching actual device dimensions
+- **Visual Mode Indicator**: Always-visible current mode display for team collaboration
+- **Smooth Transitions**: 500ms ease-out animations for professional feel
+
 ## [3.2.4] - 2025-10-18
 
 ### 🔧 **Critical Fixes**

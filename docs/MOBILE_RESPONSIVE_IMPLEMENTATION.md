@@ -114,6 +114,26 @@ This document outlines the comprehensive mobile optimizations implemented for iP
 - Evaluate Progressive Web App (PWA) installation prompts
 - Consider implementing iOS-specific features like Face ID integration
 
+## Recent Updates (October 23, 2025)
+
+### IDE Preview Toggle System
+- **Interactive Device Testing**: Three-option toggle (Mobile/Tablet/Desktop) positioned below Siri Orb for real-time responsive testing in Windsurf IDE
+- **Direct Viewport Manipulation**: Toggle actually adjusts browser viewport dimensions via DOM manipulation for accurate device simulation
+- **Liquid Glass UI**: Enhanced backdrop blur with Vice City gradient overlays for premium visual effects
+- **Visual Mode Indicators**: Active state highlighting with animated gradient transitions and current dimension display
+- **Development Workflow Enhancement**: Eliminates need for manual browser resizing or external testing tools
+
+#### Viewport Dimensions Supported:
+- **Mobile**: 390px (iPhone 13 standard width) - Perfect for mobile-first development
+- **Tablet**: 834px (iPad Pro width) - Standard tablet breakpoint testing
+- **Desktop**: Full browser width - Unrestricted desktop development
+
+#### Technical Implementation:
+- **DOM Style Manipulation**: Direct `document.documentElement` and `document.body` CSS modification
+- **Responsive Constraints**: `maxWidth`, `margin: 0 auto`, and `overflow: auto` for proper centering
+- **State Management**: React useEffect with previewMode dependency for immediate viewport updates
+- **Cleanup Logic**: Automatic constraint removal on component unmount
+
 ## Recent Updates (September 9, 2025)
 
 ### Dashboard Navigation Redesign

@@ -206,8 +206,18 @@ export default function Admin() {
 
   const fetchViolationForms = useCallback(async () => {
     try {
-      // Fetch forms and photos separately, then join with profiles
-      const { data: formsData, error: formsError } = await supabase
+      // Server-side time filter (coarse on created_at) and limit to first photo for carousel
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      let startDate: Date | null = null;
+      if (timeFilter === 'this_week') {
+        startDate = new Date(today);
+        startDate.setDate(today.getDate() - 6);
+      } else if (timeFilter === 'this_month') {
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      }
+
+      let baseQuery = supabase
         .from('violation_forms')
         .select(`
           *,
@@ -216,10 +226,18 @@ export default function Admin() {
             storage_path,
             created_at
           )
-        `)
+        `);
+
+      if (startDate) {
+        const startIso = startDate.toISOString();
+        baseQuery = baseQuery.filter('created_at', 'gte', startIso);
+      }
+
+      const { data: formsData, error: formsError } = await baseQuery
         .order('created_at', { ascending: false })
-        .limit(1000)
-        .returns<JoinedViolationForm[]>();
+        .order('created_at', { foreignTable: 'violation_photos', ascending: false })
+        .limit(300)
+        .limit(1, { foreignTable: 'violation_photos' });
 
       if (formsError) throw formsError;
 
@@ -230,7 +248,7 @@ export default function Admin() {
 
       if (profilesError) throw profilesError;
 
-      const formsWithProfiles = (formsData ?? []).map((form) => {
+      const formsWithProfiles = ((formsData as JoinedViolationForm[]) ?? []).map((form) => {
         const matchedProfile =
           profilesData?.find((profile) => profile.user_id === form.user_id) ?? null;
         return normalizeFormRecord(form, matchedProfile);
@@ -246,7 +264,7 @@ export default function Admin() {
         variant: "destructive",
       });
     }
-  }, [toast]);
+  }, [toast, timeFilter]);
 
   const fetchData = useCallback(async () => {
     try {
@@ -282,37 +300,19 @@ export default function Admin() {
 
       setUserActivity([]);
 
-      const { data: violationsData, error: violationsError } = await supabase
-        .from('violation_forms')
-        .select('id, created_at, status')
-        .returns<Pick<ViolationFormRow, 'id' | 'created_at' | 'status'>[]>();
-
-      if (violationsError) throw violationsError;
-
-      const violationRows = violationsData ?? [];
-      const now = new Date();
-      const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const thisWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-      const totalViolations = violationRows.length;
-      const completedViolations = violationRows.filter((row) => row.status === 'completed').length;
+      const rpcRes = await (supabase.rpc as any)('get_violation_stats');
+      if (rpcRes.error) throw rpcRes.error;
+      const row = (Array.isArray(rpcRes.data) ? rpcRes.data[0] : rpcRes.data) ?? {};
 
       const statsPayload: ViolationStats = {
-        total_violations: totalViolations,
-        this_month: violationRows.filter(
-          (row) => new Date(row.created_at) >= thisMonth
-        ).length,
-        violations_this_week: violationRows.filter(
-          (row) => new Date(row.created_at) >= thisWeek
-        ).length,
-        pending_violations: violationRows.filter((row) => row.status === 'pending').length,
-        completed_violations: completedViolations,
-        draft_violations: violationRows.filter((row) => row.status === 'saved').length,
+        total_violations: Number(row.total_violations ?? 0),
+        this_month: Number(row.this_month ?? 0),
+        violations_this_week: Number(row.violations_this_week ?? 0),
+        pending_violations: Number(row.pending_violations ?? 0),
+        completed_violations: Number(row.completed_violations ?? 0),
+        draft_violations: Number(row.draft_violations ?? 0),
+        team_completion_rate: Number(row.team_completion_rate ?? 0),
         total_users: 0,
-        team_completion_rate:
-          totalViolations > 0
-            ? Math.round((completedViolations / totalViolations) * 100)
-            : 0,
       };
 
       setStats(statsPayload);
@@ -336,6 +336,13 @@ export default function Admin() {
       fetchData();
     }
   }, [user]);
+
+  // Refetch just violation forms when timeFilter changes
+  useEffect(() => {
+    if (user) {
+      fetchViolationForms();
+    }
+  }, [user, timeFilter, fetchViolationForms]);
 
   // Set up real-time presence tracking
   useEffect(() => {

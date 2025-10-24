@@ -60,7 +60,18 @@ export default function Export() {
 
   const fetchForms = useCallback(async () => {
     try {
-      const { data, error } = await supabase
+      // Server-side time filter based on selected timeFilter
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      let startDate: Date | null = null;
+      if (timeFilter === 'this_week') {
+        startDate = new Date(today);
+        startDate.setDate(today.getDate() - 6);
+      } else if (timeFilter === 'this_month') {
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      }
+
+      let baseQuery = supabase
         .from('violation_forms')
         .select(`
           *,
@@ -69,10 +80,18 @@ export default function Export() {
             storage_path,
             created_at
           )
-        `)
+        `);
+
+      if (startDate) {
+        const startIso = startDate.toISOString();
+        baseQuery = baseQuery.filter('created_at', 'gte', startIso);
+      }
+
+      const { data, error } = await baseQuery
         .order('created_at', { ascending: false })
-        .limit(500)
-        .returns<(ViolationFormRow & { violation_photos: ViolationPhotoRow[] | null })[]>();
+        .order('created_at', { foreignTable: 'violation_photos', ascending: false })
+        .limit(200)
+        .limit(1, { foreignTable: 'violation_photos' });
 
       if (error) throw error;
 
@@ -114,13 +133,13 @@ export default function Export() {
         variant: "destructive",
       });
     }
-  }, [toast]);
+  }, [toast, timeFilter]);
 
   useEffect(() => {
     if (user) {
       fetchForms();
     }
-  }, [fetchForms, user]);
+  }, [fetchForms, user, timeFilter]);
 
   const filteredForms = useMemo(() => {
     let filtered = [...forms];
@@ -272,6 +291,13 @@ export default function Export() {
     window.location.href = mailtoLink;
   };
 
+  const getPublicUrl = (path: string) => {
+    if (!path) return path;
+    if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) return path;
+    const { data } = supabase.storage.from('violation-photos').getPublicUrl(path);
+    return data?.publicUrl || path;
+  };
+
   const handlePrintExport = () => {
     if (selectedForms.length === 0) {
       toast({
@@ -333,6 +359,7 @@ export default function Export() {
                 timeStr = form.time;
               }
               
+              const imgSrc = (form.photos && form.photos.length > 0) ? getPublicUrl(form.photos[0]) : '';
               return `
               <div class="notice">
                 <h3>SPR Violation Notice</h3>
@@ -342,9 +369,9 @@ export default function Export() {
                 <p><span class="label">Location:</span> ${form.location}</p>
                 <p><span class="label">Description:</span> ${form.description}</p>
                 <p><span class="label">Status:</span> ${form.status}</p>
-                ${form.photos && form.photos.length > 0 ? `
+                ${imgSrc ? `
                   <p><span class="label">Photo:</span></p>
-                  <img src="${form.photos[0]}" alt="Violation photo" />
+                  <img src="${imgSrc}" alt="Violation photo" />
                 ` : ''}
               </div>
             `;

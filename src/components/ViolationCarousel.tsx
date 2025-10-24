@@ -20,6 +20,11 @@ export interface FormLike {
     full_name: string | null;
     role: string;
   } | null;
+  violation_photos?: Array<{
+    id: string;
+    storage_path: string;
+    created_at: string;
+  }>;
 }
 
 export type CarouselItem = {
@@ -36,8 +41,8 @@ function getPhotoUrl(storagePath: string, isThumbnail: boolean = true): string {
   if (storagePath.startsWith('http://') || storagePath.startsWith('https://') || storagePath.startsWith('data:')) {
     // For full URLs from storage, add transformation params for thumbnails
     if (isThumbnail && storagePath.includes('supabase.co/storage')) {
-      // Add width limit and quality reduction for thumbnails
-      return `${storagePath}?width=300&quality=60`;
+      // Add width/height limit and quality reduction for smaller thumbnail payloads
+      return `${storagePath}?width=240&height=240&quality=55`;
     }
     return storagePath;
   }
@@ -46,9 +51,9 @@ function getPhotoUrl(storagePath: string, isThumbnail: boolean = true): string {
     .from('violation-photos')
     .getPublicUrl(storagePath, {
       transform: isThumbnail ? {
-        width: 300,
-        height: 300,
-        quality: 60
+        width: 240,
+        height: 240,
+        quality: 55
       } : undefined
     });
   return data?.publicUrl || storagePath;
@@ -102,12 +107,10 @@ export const ViolationCarousel3D: React.FC<{
     return items.length > 0 ? items : [{ id: "placeholder-1", imageUrl: "placeholder", unit: "", date: "" }];
   }, [forms]);
 
-  // Mobile density: ensure at least 3 cards visible on iPhone
-  const targetFaces = isScreenSizeSm ? 14 : 14;
-  // Balanced mobile cylinder radius - closer spacing, no overlap
-  const cylinderWidth = isScreenSizeSm ? 1400 : 1800;
-  // Smaller mobile cards (90px) to fit at least 3 on screen
-  const maxThumb = isScreenSizeSm ? 90 : 140;
+  // Mobile density and sizing per unified spec
+  const targetFaces = isScreenSizeSm ? 10 : 14;
+  const cylinderWidth = isScreenSizeSm ? 1200 : 1800;
+  const maxThumb = isScreenSizeSm ? 120 : 140;
 
   const displayItems = useMemo(() => {
     if (baseItems.length >= targetFaces) return baseItems;
@@ -127,7 +130,14 @@ export const ViolationCarousel3D: React.FC<{
   }, [baseItems, targetFaces]);
 
   const faceCount = displayItems.length;
-  const faceWidth = Math.min(maxThumb, cylinderWidth / Math.max(targetFaces, 1));
+  // Optimized spacing: consistent gap between cards to prevent overlap
+  const gapArc = isScreenSizeSm ? 18 : 24; // Increased gap for better visual separation
+  const circumference = cylinderWidth;
+  const availableSpace = circumference / Math.max(faceCount, 1);
+  const faceWidth = Math.min(
+    maxThumb,
+    Math.max(70, availableSpace - gapArc) // Min 70px for readability
+  );
   const radius = cylinderWidth / (2 * Math.PI);
 
   const rotation = useMotionValue(0);
@@ -135,8 +145,16 @@ export const ViolationCarousel3D: React.FC<{
 
   // Track current rotation in degrees for hit-testing visible faces
   const [rotDeg, setRotDeg] = useState(0);
+  const lastUpdateRef = useRef<number>(0);
   useEffect(() => {
-    const unsub = rotation.on('change', (v) => setRotDeg(v));
+    const unsub = rotation.on('change', (v) => {
+      const now = Date.now();
+      // Throttle updates to ~20fps to avoid re-rendering all faces every frame
+      if (now - (lastUpdateRef.current || 0) > 50) {
+        lastUpdateRef.current = now;
+        setRotDeg(v);
+      }
+    });
     return () => { if (typeof unsub === 'function') unsub(); };
   }, [rotation]);
 
@@ -289,6 +307,39 @@ export const ViolationCarousel3D: React.FC<{
     };
   }, [isPopoverOpen, handleClose]);
 
+  // Lazy-load full photo set for the active form when popover opens (initial queries may limit to 1 photo)
+  useEffect(() => {
+    const loadFullPhotos = async () => {
+      if (!isPopoverOpen || !activeForm) return;
+      const currentCount = (activeForm.violation_photos?.length ?? activeForm.photos?.length ?? 0);
+      if (currentCount > 1) return; // Already have more than one photo
+
+      const idNum = Number(activeForm.id);
+      if (Number.isNaN(idNum)) return;
+
+      const { data, error } = await supabase
+        .from('violation_photos')
+        .select('id, storage_path, created_at')
+        .eq('violation_id', idNum)
+        .order('created_at', { ascending: false })
+        .limit(25);
+
+      if (error || !data) return;
+
+      const paths = data
+        .map((p) => p.storage_path)
+        .filter((p): p is string => typeof p === 'string' && p.length > 0);
+
+      setActiveForm((prev) => prev ? {
+        ...prev,
+        photos: paths,
+        violation_photos: data.map((p) => ({ id: String(p.id), storage_path: p.storage_path ?? '', created_at: p.created_at ?? '' }))
+      } : prev);
+    };
+
+    loadFullPhotos();
+  }, [isPopoverOpen, activeForm]);
+
   return (
     <div className={`w-full ${containerClassName ?? ''}`.trim()} id="carousel-container" ref={containerRef}>
       <div className="relative w-full mb-8 sm:mb-10">
@@ -323,7 +374,8 @@ export const ViolationCarousel3D: React.FC<{
             >
               {displayItems.map((item, i) => {
                 const cardAngle = (i * (360 / faceCount) + rotDeg) % 360;
-                const isVisible = Math.cos((cardAngle * Math.PI) / 180) > 0.1;
+                const normalizedAngle = ((cardAngle + 180) % 360) - 180;
+                const isVisible = Math.abs(normalizedAngle) < 90; // Improved visibility check
                 
                 return (
                   <motion.div 
@@ -335,10 +387,11 @@ export const ViolationCarousel3D: React.FC<{
                       transform: `rotateY(${i * (360 / faceCount)}deg) translateZ(${radius}px)`,
                       backfaceVisibility: 'hidden',
                       WebkitBackfaceVisibility: 'hidden',
-                      opacity: 1,
+                      opacity: isVisible ? 1 : 0.3,
                       willChange: 'transform',
                       pointerEvents: 'none',
-                      touchAction: 'pan-y'
+                      touchAction: 'pan-y',
+                      zIndex: isVisible ? 10 : 1
                     }}
                   >
                     {item.imageUrl === "placeholder" ? (
@@ -360,7 +413,8 @@ export const ViolationCarousel3D: React.FC<{
                         }}
                         onDrag={(_, info) => {
                           if (isCarouselActive) {
-                            const sensitivity = isScreenSizeSm ? 0.25 : 0.18;
+                            // Optimized sensitivity for smooth, fine control
+                            const sensitivity = isScreenSizeSm ? 0.22 : 0.15;
                             rotation.set(rotation.get() + info.offset.x * sensitivity);
                           }
                         }}
@@ -418,7 +472,8 @@ export const ViolationCarousel3D: React.FC<{
                         }}
                         onDrag={(_, info) => {
                           if (isCarouselActive) {
-                            const sensitivity = isScreenSizeSm ? 0.25 : 0.18;
+                            // Optimized sensitivity for smooth, fine control
+                            const sensitivity = isScreenSizeSm ? 0.22 : 0.15;
                             rotation.set(rotation.get() + info.offset.x * sensitivity);
                           }
                         }}

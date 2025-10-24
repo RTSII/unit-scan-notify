@@ -2,11 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
-import { Loader2, Camera, BookOpen, FileText, Download, Settings, User, LogOut, ChevronDown } from 'lucide-react';
+import { Loader2, Camera, BookOpen, FileText, Download, Settings, User, LogOut, ChevronDown, Monitor, Smartphone, Tablet } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 
 import { SiriOrb } from '../components/ui/siri-orb';
+import { cn } from '@/lib/utils';
 
 // Import the background image properly
 import backgroundImage from '/2.png';
@@ -21,6 +23,8 @@ type PresencePayload = {
 
 type PresenceState = Record<string, PresencePayload[]>;
 
+type PreviewMode = 'mobile' | 'tablet' | 'desktop';
+
 export default function Dashboard() {
   const { user, loading, profile, signOut } = useAuth();
   const navigate = useNavigate();
@@ -29,6 +33,7 @@ export default function Dashboard() {
   const [profileExpanded, setProfileExpanded] = useState(false);
   const [activeUsers, setActiveUsers] = useState<PresenceState>({});
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const [previewMode, setPreviewMode] = useState<PreviewMode>('mobile');
 
   // Subscribe to presence for active users
   useEffect(() => {
@@ -183,198 +188,300 @@ export default function Dashboard() {
     return { x, y };
   };
 
+  // Preview mode constraints for responsive simulation
+  const previewConstraints = {
+    mobile: {
+      maxWidth: '390px',
+      minHeight: '100vh',
+      label: 'iPhone 13 (390px)',
+      borderClass: 'border-vice-pink/40',
+      shadowClass: 'shadow-[0_0_40px_rgba(255,20,147,0.35)]',
+      bgColor: 'bg-gradient-to-br from-black/60 via-vice-purple/20 to-black/60',
+    },
+    tablet: {
+      maxWidth: '834px',
+      minHeight: '100vh',
+      label: 'iPad Pro (834px)',
+      borderClass: 'border-vice-cyan/40',
+      shadowClass: 'shadow-[0_0_40px_rgba(0,255,255,0.35)]',
+      bgColor: 'bg-gradient-to-br from-black/60 via-vice-cyan/10 to-black/60',
+    },
+    desktop: {
+      maxWidth: '1200px',
+      minHeight: '100vh',
+      label: 'Desktop (1200px)',
+      borderClass: 'border-white/30',
+      shadowClass: 'shadow-[0_0_40px_rgba(255,255,255,0.15)]',
+      bgColor: 'bg-gradient-to-br from-black/60 via-white/5 to-black/60',
+    },
+  } as const;
+
+  const currentPreview = previewConstraints[previewMode];
+
   return (
-    <div
-      className="dashboard-container bg-cover bg-center bg-gray-900 min-h-screen relative"
-      style={{
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
-      }}
-    >
-      {/* Background overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-vice-purple/20 to-black/60 z-10" />
+    <div className="min-h-screen bg-black overflow-hidden">
+      {/* Global Background */}
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{
+          backgroundImage: `url(${backgroundImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-vice-purple/30 to-black/70" />
 
-      {/* User Avatar with Sign Out - Top Right Corner */}
-      <div className="fixed top-4 right-4 z-50" ref={userMenuRef}>
-        <div className="relative">
-          <Button
-            variant="ghost"
-            onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-            className="relative h-10 w-10 rounded-full bg-vice-cyan/20 backdrop-blur-sm border-2 border-vice-pink/30 hover:border-vice-pink/60 transition-all duration-300"
+      <div className="relative min-h-screen flex flex-col items-center">
+        <div className="w-full flex justify-center px-4 py-12 sm:px-6 lg:px-8">
+          <div
+            className={cn(
+              'relative w-full overflow-hidden border backdrop-blur-3xl transition-all duration-500 ease-out',
+              currentPreview.borderClass,
+              currentPreview.shadowClass,
+              currentPreview.bgColor
+            )}
+            style={{
+              maxWidth: currentPreview.maxWidth,
+              minHeight: currentPreview.minHeight,
+              borderRadius: previewMode === 'desktop' ? '28px' : '36px'
+            }}
           >
-            <User className="h-5 w-5 text-vice-cyan" />
-          </Button>
+            {/* Preview Background */}
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{
+                backgroundImage: `url(${backgroundImage})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-vice-purple/30 to-black/70" />
 
-          {/* User Menu Dropdown */}
-          {isUserMenuOpen && (
-            <div className="absolute right-0 top-12 w-80 bg-black/90 backdrop-blur-sm border border-vice-cyan/30 rounded-lg shadow-xl z-50">
-              <div className="px-3 py-2 border-b border-vice-cyan/20">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-vice-purple to-vice-pink rounded-full flex items-center justify-center">
-                    <User className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="text-left flex-1">
-                    <div className="text-white font-medium">
-                      {profile?.full_name || user?.email || 'User'}
-                    </div>
-                    <div className="text-sm text-vice-cyan">
-                      {profile?.role || 'user'}
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setProfileExpanded(!profileExpanded)}
-                    className="p-1 hover:bg-vice-cyan/20 rounded transition-colors"
+            {/* Dashboard Content */}
+            <div className="relative flex flex-col min-h-full px-4 sm:px-6 lg:px-10 pb-24 pt-10">
+              {/* User Avatar - Top Right */}
+              <div className="absolute top-4 right-4 z-50" ref={userMenuRef}>
+                <div className="relative">
+                  <Button
+                    variant="ghost"
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className="relative h-10 w-10 rounded-full bg-vice-cyan/20 backdrop-blur-sm border-2 border-vice-pink/30 hover:border-vice-pink/60 transition-all duration-300"
                   >
-                    <motion.div
-                      animate={{ rotate: profileExpanded ? 180 : 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <ChevronDown className="w-4 h-4 text-vice-cyan" />
-                    </motion.div>
-                  </button>
-                </div>
-              </div>
-              
-              <AnimatePresence>
-                {profileExpanded && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                    className="overflow-hidden border-b border-vice-cyan/20"
-                  >
-                    <div className="p-3">
-                      <div className="bg-black/40 rounded-lg p-3 border border-vice-cyan/20">
-                        <h4 className="text-white font-medium mb-3 flex items-center gap-2 text-sm">
-                          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                          Active Users
-                        </h4>
-                        <div className="space-y-2 max-h-40 overflow-y-auto">
-                          {Object.keys(activeUsers).length === 0 ? (
-                            <div className="text-gray-400 text-xs">No other users currently active</div>
-                          ) : (
-                            Object.entries(activeUsers).map(([key, presences]) =>
-                              presences.map((presence, index) => {
-                                // Don't show current user in the list
-                                if (presence.user_id === user?.id) return null;
-                                
-                                // Hide board president from non-admin users
-                                if (profile?.role !== 'admin' && presence.email === 'missourirn@aol.com') {
-                                  return null;
-                                }
-                                
-                                return (
-                                  <div key={`${key}-${index}`} className="flex items-center justify-between p-2 bg-black/20 rounded border border-white/10">
-                                    <div className="flex items-center gap-2">
-                                      <div className="w-6 h-6 bg-gradient-to-br from-vice-cyan to-vice-blue rounded-full flex items-center justify-center">
-                                        <span className="text-white font-bold text-xs">
-                                          {presence.name.charAt(0).toUpperCase()}
-                                        </span>
-                                      </div>
-                                      <div>
-                                        <div className="text-white font-medium text-xs">
-                                          {presence.name}
-                                        </div>
-                                        <div className="text-xs text-vice-cyan">
-                                          {presence.role}
-                                        </div>
-                                      </div>
-                                    </div>
-                                    <div className="bg-green-500/20 text-green-400 border-green-500/30 text-xs px-2 py-1 rounded">
-                                      Active
-                                    </div>
-                                  </div>
-                                );
-                              })
-                            )
-                          )}
+                    <User className="h-5 w-5 text-vice-cyan" />
+                  </Button>
+
+                  {/* User Menu Dropdown */}
+                  {isUserMenuOpen && (
+                    <div className="absolute right-0 top-12 w-80 bg-black/90 backdrop-blur-sm border border-vice-cyan/30 rounded-lg shadow-xl z-50">
+                      <div className="px-3 py-2 border-b border-vice-cyan/20">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-vice-purple to-vice-pink rounded-full flex items-center justify-center">
+                            <User className="w-5 h-5 text-white" />
+                          </div>
+                          <div className="text-left flex-1">
+                            <div className="text-white font-medium">
+                              {profile?.full_name || user?.email || 'User'}
+                            </div>
+                            <div className="text-sm text-vice-cyan">
+                              {profile?.role || 'user'}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => setProfileExpanded(!profileExpanded)}
+                            className="p-1 hover:bg-vice-cyan/20 rounded transition-colors"
+                          >
+                            <motion.div
+                              animate={{ rotate: profileExpanded ? 180 : 0 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <ChevronDown className="w-4 h-4 text-vice-cyan" />
+                            </motion.div>
+                          </button>
                         </div>
                       </div>
+
+                      <AnimatePresence>
+                        {profileExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                            className="overflow-hidden border-b border-vice-cyan/20"
+                          >
+                            <div className="p-3">
+                              <div className="bg-black/40 rounded-lg p-3 border border-vice-cyan/20">
+                                <h4 className="text-white font-medium mb-3 flex items-center gap-2 text-sm">
+                                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                                  Active Users
+                                </h4>
+                                <div className="space-y-2 max-h-40 overflow-y-auto">
+                                  {Object.keys(activeUsers).length === 0 ? (
+                                    <div className="text-gray-400 text-xs">No other users currently active</div>
+                                  ) : (
+                                    Object.entries(activeUsers).map(([key, presences]) =>
+                                      presences.map((presence, index) => {
+                                        // Don't show current user in the list
+                                        if (presence.user_id === user?.id) return null;
+
+                                        // Hide board president from non-admin users
+                                        if (profile?.role !== 'admin' && presence.email === 'missourirn@aol.com') {
+                                          return null;
+                                        }
+
+                                        return (
+                                          <div key={`${key}-${index}`} className="flex items-center justify-between p-2 bg-black/20 rounded border border-white/10">
+                                            <div className="flex items-center gap-2">
+                                              <div className="w-6 h-6 bg-gradient-to-br from-vice-cyan to-vice-blue rounded-full flex items-center justify-center">
+                                                <span className="text-white font-bold text-xs">
+                                                  {presence.name?.[0]?.toUpperCase() || '?'}
+                                                </span>
+                                              </div>
+                                              <div>
+                                                <div className="text-white font-medium text-xs">
+                                                  {presence.name}
+                                                </div>
+                                                <div className="text-xs text-vice-cyan">
+                                                  {presence.role}
+                                                </div>
+                                              </div>
+                                            </div>
+                                            <div className="bg-green-500/20 text-green-400 border-green-500/30 text-xs px-2 py-1 rounded">
+                                              Active
+                                            </div>
+                                          </div>
+                                        );
+                                      })
+                                    )
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      <button
+                        onClick={() => {
+                          handleSignOut();
+                          setIsUserMenuOpen(false);
+                        }}
+                        className="w-full px-3 py-2 text-vice-pink hover:bg-vice-pink/10 transition-colors duration-200 flex items-center justify-center text-center"
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Sign Out
+                      </button>
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              
-              <button
-                onClick={() => {
-                  handleSignOut();
-                  setIsUserMenuOpen(false);
-                }}
-                className="w-full px-3 py-2 text-vice-pink hover:bg-vice-pink/10 transition-colors duration-200 flex items-center justify-center text-center"
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Sign Out
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-
-      {/* Vertically Centered Navigation */}
-      <div className="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
-        <div className="relative">
-          {/* Arc Menu Buttons - Books, Capture, Details, Export, Admin (if admin) */}
-          {menuItems.map((item, index) => {
-            const position = getButtonPosition(index);
-
-            return (
-              <Button
-                key={index}
-                onClick={() => {
-                  item.onClick();
-                  setIsMenuOpen(false);
-                }}
-                className={`
-                  absolute touch-target-lg rounded-full backdrop-blur-sm
-                  border-2 transition-all duration-500 ease-out shadow-lg group hover:scale-105
-                  flex items-center justify-center no-select
-                  w-12 h-12 xs:w-14 xs:h-14
-                  ${item.label === 'Admin'
-                    ? 'bg-vice-pink/90 hover:bg-vice-pink border-vice-cyan/50'
-                    : 'bg-vice-cyan/90 hover:bg-vice-cyan border-vice-pink/50'
-                  }
-                  ${isMenuOpen
-                    ? 'opacity-100 scale-100 pointer-events-auto'
-                    : 'opacity-0 scale-75 pointer-events-none'
-                  }
-                `}
-                style={{
-                  left: '50%',
-                  top: '50%',
-                  transform: isMenuOpen
-                    ? `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px))`
-                    : 'translate(-50%, -50%)',
-                  transitionDelay: isMenuOpen ? `${index * 80}ms` : `${(menuItems.length - 1 - index) * 80}ms`,
-                  zIndex: 40
-                }}
-              >
-                <div className="group-hover:scale-110 transition-transform duration-200 text-white">
-                  {item.icon}
+                  )}
                 </div>
-              </Button>
-            );
-          })}
+              </div>
 
-          {/* Siri Orb Button - Vertically Centered */}
-          <div className="relative touch-target-lg rounded-full bg-transparent backdrop-blur-sm
-                          transition-all duration-300 shadow-xl group
-                          flex items-center justify-center no-select">
-            <SiriOrb
-              size={64}
-              animationDuration={2}
-              colors={{
-                bg: "linear-gradient(45deg, #8b2fa0, #ff1493)",
-                c1: "rgba(255, 255, 255, 0.7)",
-                c2: "rgba(255, 255, 255, 0.5)",
-                c3: "rgba(255, 255, 255, 0.3)",
-              }}
-              className="drop-shadow-2xl"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            />
+              {/* Centered Navigation */}
+              <div className="flex flex-1 items-center justify-center">
+                <div className="relative">
+                  {/* Arc Menu Buttons */}
+                  {menuItems.map((item, index) => {
+                    const position = getButtonPosition(index);
+
+                    return (
+                      <Button
+                        key={index}
+                        onClick={() => {
+                          item.onClick();
+                          setIsMenuOpen(false);
+                        }}
+                        className={`
+                          absolute touch-target-lg rounded-full backdrop-blur-sm
+                          border-2 transition-all duration-500 ease-out shadow-lg group hover:scale-105
+                          flex items-center justify-center no-select
+                          w-12 h-12 xs:w-14 xs:h-14
+                          ${item.label === 'Admin'
+                            ? 'bg-vice-pink/90 hover:bg-vice-pink border-vice-cyan/50'
+                            : 'bg-vice-cyan/90 hover:bg-vice-cyan border-vice-pink/50'
+                          }
+                          ${isMenuOpen
+                            ? 'opacity-100 scale-100 pointer-events-auto'
+                            : 'opacity-0 scale-75 pointer-events-none'
+                          }
+                        `}
+                        style={{
+                          left: '50%',
+                          top: '50%',
+                          transform: isMenuOpen
+                            ? `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px))`
+                            : 'translate(-50%, -50%)',
+                          transitionDelay: isMenuOpen ? `${index * 80}ms` : `${(menuItems.length - 1 - index) * 80}ms`,
+                          zIndex: 40
+                        }}
+                      >
+                        <div className="group-hover:scale-110 transition-transform duration-200 text-white">
+                          {item.icon}
+                        </div>
+                      </Button>
+                    );
+                  })}
+
+                  {/* Siri Orb Button - Center */}
+                  <div className="relative touch-target-lg rounded-full bg-transparent backdrop-blur-sm
+                                  transition-all duration-300 shadow-xl group
+                                  flex items-center justify-center no-select">
+                    <SiriOrb
+                      size={64}
+                      animationDuration={2}
+                      colors={{
+                        bg: "linear-gradient(45deg, #8b2fa0, #ff1493)",
+                        c1: "rgba(255, 255, 255, 0.7)",
+                        c2: "rgba(255, 255, 255, 0.5)",
+                        c3: "rgba(255, 255, 255, 0.3)",
+                      }}
+                      className="drop-shadow-2xl"
+                      onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    />
+                  </div>
+
+                  {/* Device Preview Toggle - Below Siri Orb with Liquid Glass */}
+                  <div className="absolute left-1/2 transform -translate-x-1/2" style={{ top: 'calc(100% + 80px)' }}>
+                    <div className="relative">
+                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-xs text-vice-cyan whitespace-nowrap">
+                        {currentPreview.label}
+                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-vice-cyan/20 via-vice-purple/20 to-vice-pink/20 rounded-2xl blur-xl" />
+                      <div className="relative flex items-center gap-1 bg-black/40 backdrop-blur-2xl rounded-2xl border border-white/10 p-1 shadow-2xl">
+                        {[
+                          { id: 'mobile' as PreviewMode, icon: Smartphone, label: 'Mobile' },
+                          { id: 'tablet' as PreviewMode, icon: Tablet, label: 'Tablet' },
+                          { id: 'desktop' as PreviewMode, icon: Monitor, label: 'Desktop' },
+                        ].map((option) => (
+                          <button
+                            key={option.id}
+                            onClick={() => setPreviewMode(option.id)}
+                            className={cn(
+                              'relative flex items-center justify-center p-3 rounded-xl transition-all duration-300',
+                              previewMode === option.id
+                                ? 'bg-gradient-to-r from-vice-cyan via-vice-purple to-vice-pink text-white shadow-lg'
+                                : 'text-white/60 hover:text-white hover:bg-white/10'
+                            )}
+                            title={option.label}
+                          >
+                            <option.icon className="w-5 h-5" />
+                            {previewMode === option.id && (
+                              <motion.div
+                                layoutId="activeTab"
+                                className="absolute inset-0 bg-gradient-to-r from-vice-cyan via-vice-purple to-vice-pink rounded-xl"
+                                style={{ zIndex: -1 }}
+                                transition={{ type: "spring", duration: 0.5 }}
+                              />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
