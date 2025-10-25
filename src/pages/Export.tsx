@@ -87,10 +87,14 @@ export default function Export() {
         baseQuery = baseQuery.filter('created_at', 'gte', startIso);
       }
 
+      // Smart query limits based on filter to optimize initial load
+      // This Week: likely <50 results, This Month: likely <150, All: use higher limit
+      const queryLimit = timeFilter === 'this_week' ? 75 : timeFilter === 'this_month' ? 150 : 250;
+      
       const { data, error } = await baseQuery
         .order('created_at', { ascending: false })
         .order('created_at', { foreignTable: 'violation_photos', ascending: false })
-        .limit(200)
+        .limit(queryLimit)
         .limit(1, { foreignTable: 'violation_photos' });
 
       if (error) throw error;

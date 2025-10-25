@@ -42,19 +42,26 @@ This document outlines the comprehensive mobile optimizations implemented for iP
 
 ### 5. Component-Specific Mobile Optimizations
 
-#### 3D Carousel — Books & Admin
-- **Canonical Spec**: See `docs/3d-carousel.md` (unified spec and usage)
-- **Container Height**: Typically `h-[200px]` (pages may pass `heightClass`, e.g. `h-[260px] sm:h-[320px]`)
-- **Density & Sizing**:
-  - `targetFaces`: 12 (mobile ≤640px), 16 (desktop)
-  - `cylinderWidth`: 1500 (mobile), 2000 (desktop)
-  - `maxThumb`: 64 (mobile), 120 (desktop)
-  - `faceWidth = min(maxThumb, cylinderWidth / max(targetFaces, 1))`
-  - Per-face padding: `p-0.5` for subtle spacing
-- **Thumbnail Shape & Effects**: `aspect-square`, `rounded-2xl`, neon ring/shadow
-- **Overlay**: Top-aligned Unit/Date glass badges (`bg-black/40`, `backdrop-blur-sm`, `ring-1 ring-vice-cyan/30`)
-- **Interactions**: Per-card pointer overlay for tight scrubbing, small deadzone, snap-to-nearest-face on release, disabled drag momentum, modal preview on tap with tiny-move click-through
-- **Sections UX**: Only one section expanded at a time; click-outside collapses all; active sections can move to top for visibility (Admin reference)
+#### 3D Carousel — Books, Export & Admin
+- **Canonical Spec**: See `docs/3d-carousel.md` (unified authoritative spec and usage guide)
+- **Last Updated**: October 24-25, 2025 (performance optimizations and modern card styling)
+- **Container Height**: Page-specific
+  - Books: `h-[280px] portrait:h-[300px] landscape:h-[240px] sm:h-[280px] md:h-[320px]`
+  - Export: `h-[160px] sm:h-[200px]` (compact for selection focus)
+  - Admin: `h-[320px] sm:h-[400px]` (expanded for management overview)
+- **Density & Sizing**: Optimized for mobile viewing (see `docs/3d-carousel.md` for current values)
+  - Target faces, cylinder width, card sizing dynamically adjusted
+  - Minimum card width: 70px for readability
+  - Gap between cards: 18px (mobile), 24px (desktop) for visual separation
+  - Photo thumbnails: 240x240 @ 55% quality for fast loading
+- **Card Styling**: Modern 21st.dev-inspired patterns
+  - Padding: `px-2` (8px horizontal) for optimal spacing
+  - Corners: `rounded-xl` with responsive shadows
+  - Hover effects: Glow enhancement and image zoom (`scale-105`)
+  - Overlays: Vice City themed badges (`bg-black/40`, `backdrop-blur-md`, cyan/pink accents)
+- **Performance**: URL caching, smart query limits, adjacent image preloading
+- **Touch Controls**: Isolated to cards, optimized sensitivity (0.22 mobile, 0.15 desktop)
+- **Filter Switching**: Instant with `useMemo` hooks and smart data limits
 
 #### Camera Component (`src/components/CameraCapture.tsx`)
 - **Rear Camera Priority**: Automatically attempts to use rear camera (environment) first for accurate violation documentation

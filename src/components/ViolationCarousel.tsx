@@ -35,28 +35,47 @@ export type CarouselItem = {
   fullForm?: FormLike;
 };
 
+// Photo URL cache for performance (reduces repeated getPublicUrl calls)
+const photoUrlCache = new Map<string, string>();
+
 // Helper function to convert storage path to public URL with thumbnail optimization
 function getPhotoUrl(storagePath: string, isThumbnail: boolean = true): string {
+  // Create cache key
+  const cacheKey = `${storagePath}-${isThumbnail}`;
+  
+  // Check cache first
+  if (photoUrlCache.has(cacheKey)) {
+    return photoUrlCache.get(cacheKey)!;
+  }
+  
+  let url: string;
+  
   // Check if already a full URL (starts with http/https or data:)
   if (storagePath.startsWith('http://') || storagePath.startsWith('https://') || storagePath.startsWith('data:')) {
     // For full URLs from storage, add transformation params for thumbnails
     if (isThumbnail && storagePath.includes('supabase.co/storage')) {
       // Add width/height limit and quality reduction for smaller thumbnail payloads
-      return `${storagePath}?width=240&height=240&quality=55`;
+      url = `${storagePath}?width=240&height=240&quality=55`;
+    } else {
+      url = storagePath;
     }
-    return storagePath;
+  } else {
+    // Convert storage path to public URL
+    const { data } = supabase.storage
+      .from('violation-photos')
+      .getPublicUrl(storagePath, {
+        transform: isThumbnail ? {
+          width: 240,
+          height: 240,
+          quality: 55
+        } : undefined
+      });
+    url = data?.publicUrl || storagePath;
   }
-  // Convert storage path to public URL
-  const { data } = supabase.storage
-    .from('violation-photos')
-    .getPublicUrl(storagePath, {
-      transform: isThumbnail ? {
-        width: 240,
-        height: 240,
-        quality: 55
-      } : undefined
-    });
-  return data?.publicUrl || storagePath;
+  
+  // Cache the result
+  photoUrlCache.set(cacheKey, url);
+  return url;
 }
 
 export function mapFormsToCarouselItems(forms: FormLike[]): CarouselItem[] {
@@ -145,8 +164,17 @@ export const ViolationCarousel3D: React.FC<{
 
   // Track current rotation in degrees for hit-testing visible faces
   const [rotDeg, setRotDeg] = useState(0);
+  
+  // Reset rotation when displayItems change (filter switching)
+  useEffect(() => {
+    rotation.set(0);
+    setRotDeg(0);
+  }, [displayItems.length, rotation]);
   const lastUpdateRef = useRef<number>(0);
   useEffect(() => {
+    // Initialize rotDeg immediately on mount
+    setRotDeg(rotation.get());
+    
     const unsub = rotation.on('change', (v) => {
       const now = Date.now();
       // Throttle updates to ~20fps to avoid re-rendering all faces every frame
@@ -224,6 +252,31 @@ export const ViolationCarousel3D: React.FC<{
       }
     };
   }, [isCarouselActive, isPopoverOpen, hoveredCardIndex, rotation]);
+
+  // Image preloading effect - preload adjacent cards for smooth rotation
+  useEffect(() => {
+    if (displayItems.length === 0) return;
+    
+    const degreesPerCard = 360 / faceCount;
+    const currentCardIndex = Math.round(rotDeg / degreesPerCard) % faceCount;
+    
+    // Preload current card and 3 adjacent cards (left and right)
+    const indicesToPreload = [
+      currentCardIndex,
+      (currentCardIndex + 1) % faceCount,
+      (currentCardIndex + 2) % faceCount,
+      (currentCardIndex - 1 + faceCount) % faceCount,
+    ];
+    
+    indicesToPreload.forEach(idx => {
+      const item = displayItems[idx];
+      if (item && item.imageUrl && item.imageUrl !== 'placeholder') {
+        // Create image object to trigger browser preload
+        const img = new Image();
+        img.src = item.imageUrl;
+      }
+    });
+  }, [rotDeg, displayItems, faceCount]);
 
   const formatDate = (form: FormLike) => {
     // Handle both legacy 'date' field and new 'occurred_at' field
@@ -381,7 +434,7 @@ export const ViolationCarousel3D: React.FC<{
                   <motion.div 
                     key={`key-${item.imageUrl}-${i}`}
                     data-card-index={i}
-                    className="absolute flex h-full origin-center items-center justify-center p-3"
+                    className="absolute flex h-full origin-center items-center justify-center px-2"
                     style={{
                       width: `${faceWidth}px`,
                       transform: `rotateY(${i * (360 / faceCount)}deg) translateZ(${radius}px)`,
@@ -396,7 +449,7 @@ export const ViolationCarousel3D: React.FC<{
                   >
                     {item.imageUrl === "placeholder" ? (
                       <motion.div 
-                        className="relative w-full rounded-2xl bg-black ring-1 ring-vice-cyan aspect-square opacity-100"
+                        className="relative w-full rounded-xl bg-black/90 ring-1 ring-vice-cyan/50 aspect-square opacity-100 shadow-lg"
                         drag={isCarouselActive ? "x" : false}
                         dragElastic={0}
                         dragMomentum={true}
@@ -453,7 +506,7 @@ export const ViolationCarousel3D: React.FC<{
                         dragMomentum={true}
                         dragConstraints={{ left: 0, right: 0 }}
                         dragTransition={{ bounceStiffness: 0, bounceDamping: 0 }}
-                        className="relative w-full aspect-square overflow-hidden rounded-2xl ring-2 ring-vice-cyan shadow-[0_0_12px_#00ffff,0_0_24px_#00ffff50]"
+                        className="group relative w-full aspect-square overflow-hidden rounded-xl ring-2 ring-vice-cyan/80 shadow-lg hover:shadow-[0_0_16px_#00ffff,0_0_32px_#00ffff40] transition-shadow duration-300"
                         style={{ 
                           pointerEvents: isVisible ? 'auto' : 'none',
                           touchAction: isVisible ? 'none' : 'auto',
@@ -508,7 +561,7 @@ export const ViolationCarousel3D: React.FC<{
                         <img
                           src={item.imageUrl}
                           alt={`${item.unit} ${item.date}`}
-                          className="absolute inset-0 w-full h-full object-cover touch-none pointer-events-none"
+                          className="absolute inset-0 w-full h-full object-cover touch-none pointer-events-none transition-transform duration-300 group-hover:scale-105"
                           style={{ opacity: 1 }}
                           loading="lazy"
                           decoding="async"
@@ -516,10 +569,10 @@ export const ViolationCarousel3D: React.FC<{
                         />
                         {/* Overlay badge - Combined Date & Unit */}
                         {(item.date || item.unit) && (
-                          <div className="absolute inset-x-0 top-0 flex items-center justify-center p-1.5 sm:p-2 pointer-events-none z-10">
-                            <div className="text-[10px] sm:text-xs font-medium text-vice-pink drop-shadow-[0_0_8px_#ff1493] bg-white/10 backdrop-blur-md ring-1 ring-white/30 px-1.5 sm:px-2 py-0.5 rounded-md whitespace-nowrap shadow-lg">
+                          <div className="absolute inset-x-0 top-0 flex items-center justify-center p-2 pointer-events-none z-10">
+                            <div className="text-[10px] sm:text-xs font-medium text-vice-pink drop-shadow-[0_0_10px_#ff1493] bg-black/40 backdrop-blur-md ring-1 ring-vice-cyan/40 px-2 sm:px-3 py-1 rounded-lg whitespace-nowrap shadow-xl">
                               {item.unit && <span className="font-semibold">{item.unit}</span>}
-                              {item.unit && item.date && <span className="mx-1">•</span>}
+                              {item.unit && item.date && <span className="mx-1.5 opacity-60">•</span>}
                               {item.date && <span>{item.date}</span>}
                             </div>
                           </div>

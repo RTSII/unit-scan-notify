@@ -26,9 +26,6 @@ import { normalizeUnit } from "@/utils/unitFormat";
 
 type ViolationFormRow = Tables<"violation_forms">;
 type ViolationPhotoRow = Tables<"violation_photos">;
-type ProfileRow = Tables<"profiles">;
-type ProfileSummary = Pick<ProfileRow, "email" | "full_name" | "role">;
-type ProfileLookup = Pick<ProfileRow, "user_id" | "email" | "full_name" | "role">;
 
 // Using same interface as Export.tsx for consistency
 interface ViolationForm {
@@ -47,19 +44,7 @@ interface ViolationForm {
     storage_path: string;
     created_at: string;
   }>;
-  // Books-specific: add profile info
-  profiles?: ProfileSummary | null;
 }
-
-const sanitizeProfiles = (rows: unknown): ProfileLookup[] => {
-  if (!Array.isArray(rows)) return [];
-
-  return rows.filter((row): row is ProfileLookup => {
-    if (!row || typeof row !== "object") return false;
-    if ("error" in row) return false;
-    return true;
-  });
-};
 
 const Books = () => {
   const [forms, setForms] = useState<ViolationForm[]>([]);
@@ -109,40 +94,25 @@ const Books = () => {
         baseQuery = baseQuery.filter('created_at', 'gte', startIso);
       }
 
+      // Smart query limits based on filter to optimize initial load
+      // This Week: likely <50 results, This Month: likely <150, All: use higher limit
+      const queryLimit = timeFilter === 'this_week' ? 75 : timeFilter === 'this_month' ? 150 : 250;
+      
       const { data, error } = await baseQuery
         .order('created_at', { ascending: false })
         .order('created_at', { foreignTable: 'violation_photos', ascending: false })
-        .limit(200)
+        .limit(queryLimit)
         .limit(1, { foreignTable: 'violation_photos' });
 
       if (error) throw error;
 
-      // Fetch all profiles for Books-specific user attribution
-      const { data: rawProfiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('user_id, email, full_name, role');
-
-      if (profilesError) throw profilesError;
-
-      const profilesData = sanitizeProfiles(rawProfiles);
-
-      // Map forms using Export.tsx pattern, adding profile join
+      // Map forms with photos (no profile join needed for Books)
       const formsWithPhotos: ViolationForm[] = (data ?? []).map((form) => {
         const photosArray = Array.isArray(form.violation_photos)
           ? form.violation_photos.filter(
               (photo): photo is ViolationPhotoRow => Boolean(photo)
             )
           : [];
-
-        // Find matching profile for Books page
-        const matchedProfile = profilesData.find(profile => profile.user_id === form.user_id) || null;
-        const profileSummary = matchedProfile
-          ? {
-              email: matchedProfile.email,
-              full_name: matchedProfile.full_name,
-              role: matchedProfile.role ?? "user",
-            }
-          : null;
 
         return {
           id: String(form.id),
@@ -162,7 +132,6 @@ const Books = () => {
               created_at: photo.created_at ?? '',
             }))
             .filter((photo) => photo.storage_path.length > 0),
-          profiles: profileSummary, // Books-specific addition
         };
       });
 
@@ -246,11 +215,9 @@ const Books = () => {
         const descMatch = form.description?.toLowerCase().includes(searchTermLower);
         const locationMatch = form.location?.toLowerCase().includes(searchTermLower) ||
           normalizeViolationType(form.location).includes(searchTermLower);
-        const userMatch = form.profiles?.email?.toLowerCase().includes(searchTermLower) ||
-          form.profiles?.full_name?.toLowerCase().includes(searchTermLower);
         const dateMatch = matchesDate(form);
 
-        return Boolean(unitMatch || descMatch || locationMatch || userMatch || dateMatch);
+        return Boolean(unitMatch || descMatch || locationMatch || dateMatch);
       });
     }
 

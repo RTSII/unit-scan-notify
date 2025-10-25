@@ -122,8 +122,8 @@ type ViolationFormRow = Tables<'violation_forms'>;
 type ViolationPhotoRow = Tables<'violation_photos'>;
 type ProfileRow = Tables<'profiles'>;
 type JoinedViolationForm = ViolationFormRow & {
-  violation_photos?: ViolationPhotoRow[] | null;
-  profiles?: Pick<ProfileRow, 'email' | 'full_name' | 'role'> | null;
+  violation_photos?: Pick<ViolationPhotoRow, 'id' | 'storage_path' | 'created_at'>[] | null;
+  profiles?: Pick<ProfileRow, 'user_id' | 'email' | 'full_name' | 'role' | 'created_at' | 'updated_at'> | null;
   date?: string | null;
   time?: string | null;
 };
@@ -221,6 +221,14 @@ export default function Admin() {
         .from('violation_forms')
         .select(`
           *,
+          profiles!violation_forms_user_id_fkey (
+            user_id,
+            email,
+            full_name,
+            role,
+            created_at,
+            updated_at
+          ),
           violation_photos (
             id,
             storage_path,
@@ -233,25 +241,20 @@ export default function Admin() {
         baseQuery = baseQuery.filter('created_at', 'gte', startIso);
       }
 
+      // Smart query limits: Admin needs more data but still optimize by filter
+      const queryLimit = timeFilter === 'this_week' ? 100 : timeFilter === 'this_month' ? 200 : 350;
+
       const { data: formsData, error: formsError } = await baseQuery
         .order('created_at', { ascending: false })
         .order('created_at', { foreignTable: 'violation_photos', ascending: false })
-        .limit(300)
+        .limit(queryLimit)
         .limit(1, { foreignTable: 'violation_photos' });
 
       if (formsError) throw formsError;
 
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('user_id, email, full_name, role, created_at, updated_at')
-        .returns<ProfileRow[]>();
-
-      if (profilesError) throw profilesError;
-
-      const formsWithProfiles = ((formsData as JoinedViolationForm[]) ?? []).map((form) => {
-        const matchedProfile =
-          profilesData?.find((profile) => profile.user_id === form.user_id) ?? null;
-        return normalizeFormRecord(form, matchedProfile);
+      // Map forms with server-side joined profiles (optimized - single query)
+      const formsWithProfiles = (formsData ?? []).map((form) => {
+        return normalizeFormRecord(form as unknown as JoinedViolationForm, form.profiles as any);
       });
 
       setViolationForms(formsWithProfiles);

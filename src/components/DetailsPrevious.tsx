@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { GlowButton } from '../components/ui/shiny-button-1';
 import { Label } from '../components/ui/label';
 import { Checkbox } from '../components/ui/checkbox';
 import { toast } from 'sonner';
@@ -1090,16 +1091,12 @@ export default function DetailsPrevious() {
 
               {/* Book Em Button */}
               <div className="flex justify-center pt-4">
-                <Button
+                <GlowButton
                   onClick={handleSaveForm}
                   disabled={!isFormValid() || isSaving}
-                  className={`flex items-center justify-center gap-2 px-6 py-3 rounded-full transition-all duration-300 ease-in-out min-h-[44px] min-w-[120px] transform-gpu font-medium text-sm ${isFormValid() && !isSaving
-                    ? 'bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink shadow-lg shadow-vice-pink/30 text-white scale-105'
-                    : 'bg-gray-600/40 border border-gray-500/30 text-gray-400 cursor-not-allowed'
-                    }`}
                 >
                   {isSaving ? 'Saving...' : 'Book Em'}
-                </Button>
+                </GlowButton>
               </div>
             </TextureCardContent>
           </TextureCard>

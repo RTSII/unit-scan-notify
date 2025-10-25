@@ -4,6 +4,7 @@ import { useAuth } from "../hooks/useAuth";
 import { Loader2, Power, Plus, Home } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
+import { GlowButton } from "../components/ui/shiny-button-1";
 import { Textarea } from "../components/ui/textarea";
 import { Checkbox } from "../components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
@@ -499,28 +500,24 @@ const DetailsLive = () => {
       {/* Fixed Bottom Button */}
       <div className="flex-shrink-0 bg-black/50 backdrop-blur-sm border-t border-vice-cyan/20 p-4">
         <div className="flex justify-center">
-          <Button
+          <GlowButton
             onClick={saveForm}
             disabled={isSaving}
-            className="bg-vice-pink hover:bg-vice-pink/80 text-white px-8 py-3 rounded-full font-semibold text-base flex items-center justify-center gap-2 min-h-[48px] mx-auto"
           >
             {isSaving ? (
               <>
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin mr-1" />
                 Saving...
               </>
             ) : (
               <>
-                <Plus className="w-5 h-5" />
                 Book Em
                 {photoCount > 0 && (
-                  <span className="bg-white/20 rounded-full px-2 py-1 text-xs ml-1">
-                    {photoCount}
-                  </span>
+                  <span className="ml-1 text-xs opacity-80">({photoCount})</span>
                 )}
               </>
             )}
-          </Button>
+          </GlowButton>
         </div>
       </div>
     </div>
