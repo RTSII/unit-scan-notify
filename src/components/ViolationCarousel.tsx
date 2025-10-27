@@ -413,22 +413,24 @@ export const ViolationCarousel3D: React.FC<{
   }, [isPopoverOpen, activeForm]);
 
   return (
-    <div className={`w-full ${containerClassName ?? ''}`.trim()} id="carousel-container" ref={containerRef}>
-      <div className="relative w-full mb-8 sm:mb-10">
+    <div className={`relative w-full ${containerClassName ?? ''}`.trim()} id="carousel-container" ref={containerRef}>
+      <div className="relative w-full mb-8 sm:mb-10 isolate">
 
         <div 
           className={`relative ${heightClass ?? 'h-[140px] sm:h-[160px]'} w-full overflow-hidden rounded-xl bg-black/20`}
-          style={{ touchAction: 'pan-y' }}
+          style={{ touchAction: 'none', WebkitTouchCallout: 'none', userSelect: 'none' }}
           onTouchStart={(e) => { e.stopPropagation(); }}
           onTouchMove={(e) => { e.stopPropagation(); }}
           onTouchEnd={(e) => { e.stopPropagation(); }}
         >
           <div
-            className="flex h-full items-center justify-center bg-black/10 px-2 sm:px-4"
+            className="flex h-full items-center justify-center bg-black/10 px-2 sm:px-4 overflow-hidden"
             style={{
               perspective: isScreenSizeSm ? "900px" : "800px", 
-              transformStyle: "preserve-3d", 
-              willChange: "transform"
+              transformStyle: "preserve-3d",
+              willChange: "transform",
+              position: "relative",
+              touchAction: "none"
             }}
           >
             <motion.div
@@ -439,8 +441,11 @@ export const ViolationCarousel3D: React.FC<{
                 width: cylinderWidth, 
                 transformStyle: "preserve-3d",
                 willChange: 'transform',
-                touchAction: 'pan-y',
-                pointerEvents: 'none'
+                touchAction: 'none',
+                pointerEvents: 'none',
+                position: 'absolute',
+                left: '50%',
+                translateX: '-50%'
               }}
               animate={controls}
             >
@@ -461,8 +466,8 @@ export const ViolationCarousel3D: React.FC<{
                       WebkitBackfaceVisibility: 'hidden',
                       opacity: isVisible ? 1 : 0.3,
                       willChange: 'transform',
-                      pointerEvents: 'none',
-                      touchAction: 'pan-y',
+                      pointerEvents: isVisible ? 'auto' : 'none',
+                      touchAction: isVisible ? 'none' : 'auto',
                       zIndex: isVisible ? 10 : 1
                     }}
                   >

@@ -1,3 +1,4 @@
+import { getThisWeekRange, getThisMonthRange, isDateInRange } from "@/utils/dateRanges";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
@@ -73,6 +74,7 @@ const Books = () => {
       let startDate: Date | null = null;
       if (timeFilter === 'this_week') {
         startDate = new Date(today);
+        startDate.setHours(0, 0, 0, 0);
         startDate.setDate(today.getDate() - 6);
       } else if (timeFilter === 'this_month') {
         startDate = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -88,25 +90,32 @@ const Books = () => {
             created_at
           )
         `);
+      // If filtering by this week, prefer occurred_at but also restrict created_at
+      if (timeFilter === 'this_week' && startDate) {
+        baseQuery = baseQuery.gte('occurred_at', startDate.toISOString());
+      }
 
       if (startDate) {
         const startIso = startDate.toISOString();
         baseQuery = baseQuery.filter('created_at', 'gte', startIso);
       }
 
-      // Smart query limits based on filter to optimize initial load
-      // This Week: likely <50 results, This Month: likely <150, All: use higher limit
-      const queryLimit = timeFilter === 'this_week' ? 75 : timeFilter === 'this_month' ? 150 : 250;
+      // Fetch a broader set of recent forms and let the client-side logic
+      // handle the precise date filtering (occurred_at vs created_at).
+      // This ensures violations that occurred recently but were created earlier are not missed.
+      const queryLimit = timeFilter === 'all' ? 500 : 250;
       
       const { data, error } = await baseQuery
         .order('created_at', { ascending: false })
-        .order('created_at', { foreignTable: 'violation_photos', ascending: false })
-        .limit(queryLimit)
-        .limit(1, { foreignTable: 'violation_photos' });
+        .limit(queryLimit);
 
-      if (error) throw error;
+  if (error) throw error;
 
-      // Map forms with photos (no profile join needed for Books)
+  // Debug: log counts returned from server
+  // This helps detect whether the server query returned rows before client-side filtering
+  console.debug('fetchSavedForms: server returned rows:', Array.isArray(data) ? data.length : 0, 'timeFilter:', timeFilter);
+
+  // Map forms with photos (no profile join needed for Books)
       const formsWithPhotos: ViolationForm[] = (data ?? []).map((form) => {
         const photosArray = Array.isArray(form.violation_photos)
           ? form.violation_photos.filter(
@@ -134,6 +143,8 @@ const Books = () => {
             .filter((photo) => photo.storage_path.length > 0),
         };
       });
+
+  console.debug('fetchSavedForms: mapped formsWithPhotos:', formsWithPhotos.length, 'timeFilter:', timeFilter);
 
       setForms(formsWithPhotos);
     } catch (error: unknown) {
@@ -233,22 +244,19 @@ const Books = () => {
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     if (timeFilter === 'this_week') {
-      const startOfWeek = new Date(today);
-      startOfWeek.setDate(today.getDate() - 6);
-      return base.filter(form => {
-        const formDate = new Date(form.occurred_at || form.created_at);
-        const formDateOnly = new Date(formDate.getFullYear(), formDate.getMonth(), formDate.getDate());
-        return formDateOnly >= startOfWeek;
-      });
+        const { start: startOfWeek, end: endOfToday } = getThisWeekRange();
+        return base.filter(form => {
+          const timestamp = form.occurred_at || form.created_at;
+          return isDateInRange(timestamp, { start: startOfWeek, end: endOfToday });
+        });
     }
 
     if (timeFilter === 'this_month') {
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      return base.filter(form => {
-        const formDate = new Date(form.occurred_at || form.created_at);
-        const formDateOnly = new Date(formDate.getFullYear(), formDate.getMonth(), formDate.getDate());
-        return formDateOnly >= startOfMonth;
-      });
+        const { start: startOfMonth, end: endOfToday } = getThisMonthRange();
+        return base.filter(form => {
+          const timestamp = form.occurred_at || form.created_at;
+          return isDateInRange(timestamp, { start: startOfMonth, end: endOfToday });
+        });
     }
 
     return base;
