@@ -4,6 +4,7 @@ import { useMediaQuery } from "./ui/3d-carousel";
 import { X, Trash2, Calendar, Clock, MapPin, Image as ImageIcon, User } from "lucide-react";
 import { Checkbox } from "./ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
+import { MorphingPopover, MorphingPopoverTrigger, MorphingPopoverContent } from "./core/morphing-popover";
 
 export interface FormLike {
   id: string;
@@ -114,6 +115,8 @@ export const ViolationCarousel3D: React.FC<{
   const [activeForm, setActiveForm] = useState<FormLike | null>(null);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [selectedForDelete, setSelectedForDelete] = useState(false);
+  const [expandedImageUrl, setExpandedImageUrl] = useState<string | null>(null);
+  const [isImagePopoverOpen, setIsImagePopoverOpen] = useState(false);
   const controls = useAnimation();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const popoverRef = useRef<HTMLDivElement | null>(null);
@@ -677,13 +680,57 @@ export const ViolationCarousel3D: React.FC<{
                       </div>
                       <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                         {activeForm.photos.map((photo, idx) => (
-                          <img
+                          <MorphingPopover 
                             key={idx}
-                            src={getPhotoUrl(photo, false)}
-                            alt={`Photo ${idx + 1}`}
-                            loading="lazy"
-                            className="w-full aspect-square object-cover rounded-lg ring-1 ring-vice-cyan/30 hover:ring-2 hover:ring-vice-pink transition-all cursor-pointer"
-                          />
+                            open={isImagePopoverOpen && expandedImageUrl === photo}
+                            onOpenChange={(open) => {
+                              setIsImagePopoverOpen(open);
+                              if (!open) setExpandedImageUrl(null);
+                            }}
+                          >
+                            <MorphingPopoverTrigger asChild>
+                              <img
+                                src={getPhotoUrl(photo, false)}
+                                alt={`Photo ${idx + 1}`}
+                                loading="lazy"
+                                className="w-full aspect-square object-cover rounded-lg ring-1 ring-vice-cyan/30 hover:ring-2 hover:ring-vice-pink transition-all cursor-pointer"
+                                onClick={() => {
+                                  setExpandedImageUrl(photo);
+                                  setIsImagePopoverOpen(true);
+                                }}
+                              />
+                            </MorphingPopoverTrigger>
+                            <MorphingPopoverContent
+                              className="p-0 bg-black/95 border-vice-cyan/30 backdrop-blur-sm w-[calc(100vw-2rem)] max-w-3xl"
+                              side="top"
+                              align="center"
+                              sideOffset={8}
+                              collisionPadding={16}
+                            >
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="relative"
+                              >
+                                <button
+                                  onClick={() => {
+                                    setIsImagePopoverOpen(false);
+                                    setExpandedImageUrl(null);
+                                  }}
+                                  className="absolute top-2 right-2 z-10 p-2 rounded-lg bg-black/80 hover:bg-black/90 text-white transition-colors"
+                                  aria-label="Close"
+                                >
+                                  <X className="w-5 h-5" />
+                                </button>
+                                <img
+                                  src={getPhotoUrl(photo, false)}
+                                  alt={`Photo ${idx + 1} - Expanded`}
+                                  className="w-full max-h-[80vh] object-contain rounded-lg"
+                                />
+                              </motion.div>
+                            </MorphingPopoverContent>
+                          </MorphingPopover>
                         ))}
                       </div>
                     </div>
