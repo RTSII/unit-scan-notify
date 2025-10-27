@@ -577,17 +577,21 @@ export const ViolationCarousel3D: React.FC<{
                           }
                         }}
                       >
-                        <div
-                          className="absolute inset-0 w-full h-full transition-transform duration-300 group-hover:scale-105"
-                          style={{
-                            backgroundImage: item.imageUrl !== 'placeholder' ? `url(${item.imageUrl})` : 'none',
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center',
-                            backgroundRepeat: 'no-repeat',
-                            opacity: 1
+                        <img
+                          src={item.imageUrl}
+                          alt={`${item.unit} ${item.date}`}
+                          className="absolute inset-0 w-full h-full object-cover touch-none pointer-events-none transition-transform duration-300 group-hover:scale-105"
+                          style={{ opacity: 1 }}
+                          loading="lazy"
+                          decoding="async"
+                          draggable={false}
+                          onError={(e) => {
+                            const url = e.currentTarget.src;
+                            if (url.includes('/render/image/')) {
+                              const fallback = url.replace('/render/image/', '/object/public/').split('?')[0];
+                              e.currentTarget.src = fallback;
+                            }
                           }}
-                          aria-label={`${item.unit} ${item.date}`}
-                          role="img"
                         />
                         {/* Overlay badge - Combined Date & Unit */}
                         {(item.date || item.unit) && (
