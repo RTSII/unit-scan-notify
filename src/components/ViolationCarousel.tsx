@@ -90,8 +90,25 @@ export function mapFormsToCarouselItems(forms: FormLike[]): CarouselItem[] {
       displayDate = `${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}`;
     }
     
-    // Convert storage path to public URL if needed
-    const imageUrl = form.photos?.[0] ? getPhotoUrl(form.photos[0]) : "placeholder";
+    // Prioritize violation_photos (new storage) over legacy photos field
+    let imageUrl = "placeholder";
+    
+    // Debug logging
+    console.log(`Form ${form.id} (${form.unit_number}):`, {
+      violation_photos: form.violation_photos,
+      photos: form.photos
+    });
+    
+    if (form.violation_photos && form.violation_photos.length > 0 && form.violation_photos[0].storage_path) {
+      const storagePath = form.violation_photos[0].storage_path;
+      imageUrl = getPhotoUrl(storagePath);
+      console.log(`Using violation_photos for ${form.id}: ${storagePath} -> ${imageUrl}`);
+    } else if (form.photos && form.photos.length > 0 && form.photos[0]) {
+      imageUrl = getPhotoUrl(form.photos[0]);
+      console.log(`Using legacy photos for ${form.id}: ${form.photos[0]} -> ${imageUrl}`);
+    } else {
+      console.log(`No photos found for form ${form.id}, using placeholder`);
+    }
     
     return {
       id: form.id,
@@ -115,6 +132,7 @@ export const ViolationCarousel3D: React.FC<{
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [selectedForDelete, setSelectedForDelete] = useState(false);
   const [activeTouchCardIndex, setActiveTouchCardIndex] = useState<number | null>(null);
+  const [expandedImageUrl, setExpandedImageUrl] = useState<string | null>(null);
   const controls = useAnimation();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const popoverRef = useRef<HTMLDivElement | null>(null);
@@ -196,6 +214,7 @@ export const ViolationCarousel3D: React.FC<{
     setActiveForm(null);
     setIsPopoverOpen(false);
     setSelectedForDelete(false);
+    setExpandedImageUrl(null);
     setIsCarouselActive(true);
   }, []);
 
@@ -391,22 +410,24 @@ export const ViolationCarousel3D: React.FC<{
   }, [isPopoverOpen, activeForm]);
 
   return (
-    <div className={`w-full ${containerClassName ?? ''}`.trim()} id="carousel-container" ref={containerRef}>
-      <div className="relative w-full mb-8 sm:mb-10">
+    <div className={`relative w-full ${containerClassName ?? ''}`.trim()} id="carousel-container" ref={containerRef}>
+      <div className="relative w-full mb-8 sm:mb-10 isolate">
 
         <div 
           className={`relative ${heightClass ?? 'h-[140px] sm:h-[160px]'} w-full overflow-hidden rounded-xl bg-black/20`}
-          style={{ touchAction: 'pan-y' }}
+          style={{ touchAction: 'none', WebkitTouchCallout: 'none', userSelect: 'none' }}
           onTouchStart={(e) => { e.stopPropagation(); }}
           onTouchMove={(e) => { e.stopPropagation(); }}
           onTouchEnd={(e) => { e.stopPropagation(); }}
         >
           <div
-            className="flex h-full items-center justify-center bg-black/10 px-2 sm:px-4"
+            className="flex h-full items-center justify-center bg-black/10 px-2 sm:px-4 overflow-hidden"
             style={{
               perspective: isScreenSizeSm ? "900px" : "800px", 
-              transformStyle: "preserve-3d", 
-              willChange: "transform"
+              transformStyle: "preserve-3d",
+              willChange: "transform",
+              position: "relative",
+              touchAction: "none"
             }}
           >
             <motion.div
@@ -417,8 +438,11 @@ export const ViolationCarousel3D: React.FC<{
                 width: cylinderWidth, 
                 transformStyle: "preserve-3d",
                 willChange: 'transform',
-                touchAction: 'pan-y',
-                pointerEvents: 'none'
+                touchAction: 'none',
+                pointerEvents: 'none',
+                position: 'absolute',
+                left: '50%',
+                translateX: '-50%'
               }}
               animate={controls}
             >
@@ -439,8 +463,8 @@ export const ViolationCarousel3D: React.FC<{
                       WebkitBackfaceVisibility: 'hidden',
                       opacity: isVisible ? 1 : 0.3,
                       willChange: 'transform',
-                      pointerEvents: 'none',
-                      touchAction: 'pan-y',
+                      pointerEvents: isVisible ? 'auto' : 'none',
+                      touchAction: isVisible ? 'none' : 'auto',
                       zIndex: isVisible ? 10 : 1
                     }}
                   >
@@ -588,6 +612,13 @@ export const ViolationCarousel3D: React.FC<{
                           loading="lazy"
                           decoding="async"
                           draggable={false}
+                          onError={(e) => {
+                            const url = e.currentTarget.src;
+                            if (url.includes('/render/image/')) {
+                              const fallback = url.replace('/render/image/', '/object/public/').split('?')[0];
+                              e.currentTarget.src = fallback;
+                            }
+                          }}
                         />
                         {/* Overlay badge - Combined Date & Unit */}
                         {(item.date || item.unit) && (
@@ -625,9 +656,9 @@ export const ViolationCarousel3D: React.FC<{
                 transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
                 className="w-full max-w-2xl p-0 bg-gradient-to-br from-vice-purple/20 via-black/95 to-vice-blue/20 border border-vice-cyan/30 backdrop-blur-sm rounded-2xl shadow-2xl"
               >
-              <div className="p-4 sm:p-6 space-y-4 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-vice-cyan/20 scrollbar-track-transparent">
+              <div className="flex flex-col max-h-[80vh] sm:max-h-[70vh]">
                 {/* Header with title and close button */}
-                <div className="flex items-center justify-between border-b border-vice-cyan/30 pb-3">
+                <div className="flex items-center justify-between border-b border-vice-cyan/30 p-4 sm:p-6 pb-3 flex-shrink-0">
                   <div>
                     <h3 className="text-xl font-bold text-white">Violation Details</h3>
                     <p className="text-sm text-vice-cyan/70">Unit {activeForm.unit_number}</p>
@@ -641,8 +672,37 @@ export const ViolationCarousel3D: React.FC<{
                   </button>
                 </div>
 
-                {/* Details in specified order */}
-                <div className="space-y-4">
+                {/* Scrollable Content Area */}
+                <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-vice-cyan/20 scrollbar-track-transparent">
+                  {/* Expanded Image View - Centered below header */}
+                  {expandedImageUrl && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      className="relative p-4 sm:p-6 flex items-center justify-center bg-black/60"
+                    >
+                      <div className="relative max-w-full">
+                        <button
+                          onClick={() => setExpandedImageUrl(null)}
+                          className="absolute -top-2 -right-2 z-10 p-2 rounded-full bg-black/90 hover:bg-black text-white transition-colors shadow-lg"
+                          aria-label="Close expanded image"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                        <img
+                          src={getPhotoUrl(expandedImageUrl, false)}
+                          alt="Expanded photo"
+                          className="max-w-full max-h-[50vh] sm:max-h-[60vh] object-contain rounded-lg shadow-2xl"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Details in specified order - Only show when no expanded image */}
+                  {!expandedImageUrl && (
+                    <div className="p-4 sm:p-6 space-y-4">
                   {/* Date */}
                   <div className="space-y-1">
                     <div className="text-vice-cyan text-sm font-medium flex items-center gap-1">
@@ -690,38 +750,41 @@ export const ViolationCarousel3D: React.FC<{
                     </div>
                   )}
 
-                  {/* Photos (if present) */}
-                  {activeForm.photos && activeForm.photos.length > 0 && (
-                    <div className="space-y-2">
-                      <div className="text-vice-cyan text-sm font-medium flex items-center gap-2">
-                        <ImageIcon className="w-4 h-4" />
-                        Photos ({activeForm.photos.length})
+                    {/* Photos (if present) */}
+                    {activeForm.photos && activeForm.photos.length > 0 && (
+                      <div className="space-y-2">
+                        <div className="text-vice-cyan text-sm font-medium flex items-center gap-2">
+                          <ImageIcon className="w-4 h-4" />
+                          Photos ({activeForm.photos.length})
+                        </div>
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                          {activeForm.photos.map((photo, idx) => (
+                            <img
+                              key={idx}
+                              src={getPhotoUrl(photo, false)}
+                              alt={`Photo ${idx + 1}`}
+                              loading="lazy"
+                              className="w-full aspect-square object-cover rounded-lg ring-1 ring-vice-cyan/30 hover:ring-2 hover:ring-vice-pink transition-all cursor-pointer active:scale-95"
+                              onClick={() => setExpandedImageUrl(photo)}
+                            />
+                          ))}
+                        </div>
                       </div>
-                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                        {activeForm.photos.map((photo, idx) => (
-                          <img
-                            key={idx}
-                            src={getPhotoUrl(photo, false)}
-                            alt={`Photo ${idx + 1}`}
-                            loading="lazy"
-                            className="w-full aspect-square object-cover rounded-lg ring-1 ring-vice-cyan/30 hover:ring-2 hover:ring-vice-pink transition-all cursor-pointer"
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Reported By */}
-                  {activeForm.profiles && (
-                    <div className="space-y-1">
-                      <div className="text-vice-cyan text-sm font-medium flex items-center gap-1">
-                        <User className="w-4 h-4" />
-                        Reported By
+                    {/* Reported By */}
+                    {activeForm.profiles && (
+                      <div className="space-y-1">
+                        <div className="text-vice-cyan text-sm font-medium flex items-center gap-1">
+                          <User className="w-4 h-4" />
+                          Reported By
+                        </div>
+                        <div className="text-white text-base">
+                          {activeForm.profiles.full_name || activeForm.profiles.email}
+                        </div>
                       </div>
-                      <div className="text-white text-base">
-                        {activeForm.profiles.full_name || activeForm.profiles.email}
-                      </div>
-                    </div>
+                    )}
+                  </div>
                   )}
                 </div>
               </div>

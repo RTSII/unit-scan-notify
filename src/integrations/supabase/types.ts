@@ -202,14 +202,8 @@ export type Database = {
           invite_token: string
         }[]
       }
-      generate_invite_token: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_current_user_role: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      generate_invite_token: { Args: never; Returns: string }
+      get_current_user_role: { Args: never; Returns: string }
       get_invite_by_token: {
         Args: { token_input: string }
         Returns: {
@@ -219,6 +213,7 @@ export type Database = {
           invited_by: string
         }[]
       }
+      get_my_role: { Args: never; Returns: string }
       get_recent_team_activity: {
         Args: { target_user_id?: string }
         Returns: {
@@ -237,7 +232,7 @@ export type Database = {
         }[]
       }
       get_team_performance_summary: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           completed_violations: number
           draft_violations: number
@@ -251,7 +246,7 @@ export type Database = {
         }[]
       }
       get_team_stats: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           completed_violations: number
           draft_violations: number
@@ -283,10 +278,7 @@ export type Database = {
           violations_this_week: number
         }[]
       }
-      validate_invite_token: {
-        Args: { token_input: string }
-        Returns: boolean
-      }
+      validate_invite_token: { Args: { token_input: string }; Returns: boolean }
       validate_invite_token_secure: {
         Args: { token_input: string }
         Returns: Json
