@@ -90,8 +90,13 @@ export function mapFormsToCarouselItems(forms: FormLike[]): CarouselItem[] {
       displayDate = `${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}`;
     }
     
-    // Convert storage path to public URL if needed
-    const imageUrl = form.photos?.[0] ? getPhotoUrl(form.photos[0]) : "placeholder";
+    // Prioritize violation_photos (new storage) over legacy photos field
+    let imageUrl = "placeholder";
+    if (form.violation_photos && form.violation_photos.length > 0 && form.violation_photos[0].storage_path) {
+      imageUrl = getPhotoUrl(form.violation_photos[0].storage_path);
+    } else if (form.photos && form.photos.length > 0 && form.photos[0]) {
+      imageUrl = getPhotoUrl(form.photos[0]);
+    }
     
     return {
       id: form.id,
