@@ -92,10 +92,22 @@ export function mapFormsToCarouselItems(forms: FormLike[]): CarouselItem[] {
     
     // Prioritize violation_photos (new storage) over legacy photos field
     let imageUrl = "placeholder";
+    
+    // Debug logging
+    console.log(`Form ${form.id} (${form.unit_number}):`, {
+      violation_photos: form.violation_photos,
+      photos: form.photos
+    });
+    
     if (form.violation_photos && form.violation_photos.length > 0 && form.violation_photos[0].storage_path) {
-      imageUrl = getPhotoUrl(form.violation_photos[0].storage_path);
+      const storagePath = form.violation_photos[0].storage_path;
+      imageUrl = getPhotoUrl(storagePath);
+      console.log(`Using violation_photos for ${form.id}: ${storagePath} -> ${imageUrl}`);
     } else if (form.photos && form.photos.length > 0 && form.photos[0]) {
       imageUrl = getPhotoUrl(form.photos[0]);
+      console.log(`Using legacy photos for ${form.id}: ${form.photos[0]} -> ${imageUrl}`);
+    } else {
+      console.log(`No photos found for form ${form.id}, using placeholder`);
     }
     
     return {
