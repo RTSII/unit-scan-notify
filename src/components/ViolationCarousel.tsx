@@ -114,6 +114,7 @@ export const ViolationCarousel3D: React.FC<{
   const [activeForm, setActiveForm] = useState<FormLike | null>(null);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [selectedForDelete, setSelectedForDelete] = useState(false);
+  const [activeTouchCardIndex, setActiveTouchCardIndex] = useState<number | null>(null);
   const controls = useAnimation();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const popoverRef = useRef<HTMLDivElement | null>(null);
@@ -149,14 +150,10 @@ export const ViolationCarousel3D: React.FC<{
   }, [baseItems, targetFaces]);
 
   const faceCount = displayItems.length;
-  // Optimized spacing: consistent gap between cards to prevent overlap
-  const gapArc = isScreenSizeSm ? 18 : 24; // Increased gap for better visual separation
+  // Simplified spacing: use fixed card sizes with proper gaps (inspired by 21st.dev patterns)
+  // Fixed card width based on screen size for consistent layout
+  const faceWidth = isScreenSizeSm ? 90 : 110; // Fixed sizes prevent overlap
   const circumference = cylinderWidth;
-  const availableSpace = circumference / Math.max(faceCount, 1);
-  const faceWidth = Math.min(
-    maxThumb,
-    Math.max(70, availableSpace - gapArc) // Min 70px for readability
-  );
   const radius = cylinderWidth / (2 * Math.PI);
 
   const rotation = useMotionValue(0);
@@ -434,7 +431,7 @@ export const ViolationCarousel3D: React.FC<{
                   <motion.div 
                     key={`key-${item.imageUrl}-${i}`}
                     data-card-index={i}
-                    className="absolute flex h-full origin-center items-center justify-center px-2"
+                    className="absolute flex h-full origin-center items-center justify-center px-1"
                     style={{
                       width: `${faceWidth}px`,
                       transform: `rotateY(${i * (360 / faceCount)}deg) translateZ(${radius}px)`,
@@ -449,7 +446,11 @@ export const ViolationCarousel3D: React.FC<{
                   >
                     {item.imageUrl === "placeholder" ? (
                       <motion.div 
-                        className="relative w-full rounded-xl bg-black/90 ring-1 ring-vice-cyan/50 aspect-square opacity-100 shadow-lg"
+                        className={`relative w-full rounded-xl bg-black/90 aspect-square opacity-100 shadow-lg transition-all duration-200 ${
+                          activeTouchCardIndex === i 
+                            ? 'ring-2 ring-vice-cyan shadow-[0_0_20px_#00ffff,0_0_40px_#00ffff60]' 
+                            : 'ring-1 ring-vice-cyan/50'
+                        }`}
                         drag={isCarouselActive ? "x" : false}
                         dragElastic={0}
                         dragMomentum={true}
@@ -460,8 +461,14 @@ export const ViolationCarousel3D: React.FC<{
                           touchAction: isVisible ? 'none' : 'auto',
                           cursor: isCarouselActive ? 'grab' : 'default'
                         }}
+                        onTouchStart={() => setActiveTouchCardIndex(i)}
+                        onTouchEnd={() => setActiveTouchCardIndex(null)}
+                        onMouseDown={() => setActiveTouchCardIndex(i)}
+                        onMouseUp={() => setActiveTouchCardIndex(null)}
+                        onMouseLeave={() => setActiveTouchCardIndex(null)}
                         onDragStart={() => {
                           isDraggingRef.current = true;
+                          setActiveTouchCardIndex(i);
                           if (dragResetTimeoutRef.current) { clearTimeout(dragResetTimeoutRef.current); dragResetTimeoutRef.current = null; }
                         }}
                         onDrag={(_, info) => {
@@ -473,7 +480,10 @@ export const ViolationCarousel3D: React.FC<{
                         }}
                         onDragEnd={(_, info) => {
                           if (dragResetTimeoutRef.current) { clearTimeout(dragResetTimeoutRef.current); }
-                          dragResetTimeoutRef.current = window.setTimeout(() => { isDraggingRef.current = false; }, 100);
+                          dragResetTimeoutRef.current = window.setTimeout(() => { 
+                            isDraggingRef.current = false;
+                            setActiveTouchCardIndex(null);
+                          }, 100);
                           if (isCarouselActive) {
                             const velocity = info.velocity.x;
                             const velocityThreshold = 500;
@@ -506,7 +516,11 @@ export const ViolationCarousel3D: React.FC<{
                         dragMomentum={true}
                         dragConstraints={{ left: 0, right: 0 }}
                         dragTransition={{ bounceStiffness: 0, bounceDamping: 0 }}
-                        className="group relative w-full aspect-square overflow-hidden rounded-xl ring-2 ring-vice-cyan/80 shadow-lg hover:shadow-[0_0_16px_#00ffff,0_0_32px_#00ffff40] transition-shadow duration-300"
+                        className={`group relative w-full aspect-square overflow-hidden rounded-xl shadow-lg transition-all duration-200 ${
+                          activeTouchCardIndex === i 
+                            ? 'ring-2 ring-vice-cyan shadow-[0_0_20px_#00ffff,0_0_40px_#00ffff60]' 
+                            : 'ring-2 ring-vice-cyan/50'
+                        }`}
                         style={{ 
                           pointerEvents: isVisible ? 'auto' : 'none',
                           touchAction: isVisible ? 'none' : 'auto',
@@ -519,8 +533,13 @@ export const ViolationCarousel3D: React.FC<{
                         }}
                         onMouseEnter={() => handleCardHover(i)}
                         onMouseLeave={() => handleCardHover(null)}
+                        onTouchStart={() => setActiveTouchCardIndex(i)}
+                        onTouchEnd={() => setActiveTouchCardIndex(null)}
+                        onMouseDown={() => setActiveTouchCardIndex(i)}
+                        onMouseUp={() => setActiveTouchCardIndex(null)}
                         onDragStart={() => {
                           isDraggingRef.current = true;
+                          setActiveTouchCardIndex(i);
                           if (dragResetTimeoutRef.current) { clearTimeout(dragResetTimeoutRef.current); dragResetTimeoutRef.current = null; }
                         }}
                         onDrag={(_, info) => {
@@ -532,7 +551,10 @@ export const ViolationCarousel3D: React.FC<{
                         }}
                         onDragEnd={(_, info) => {
                           if (dragResetTimeoutRef.current) { clearTimeout(dragResetTimeoutRef.current); }
-                          dragResetTimeoutRef.current = window.setTimeout(() => { isDraggingRef.current = false; }, 100);
+                          dragResetTimeoutRef.current = window.setTimeout(() => { 
+                            isDraggingRef.current = false;
+                            setActiveTouchCardIndex(null);
+                          }, 100);
                           if (isCarouselActive) {
                             const velocity = info.velocity.x;
                             const velocityThreshold = 500;
