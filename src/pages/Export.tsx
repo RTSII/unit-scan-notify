@@ -19,7 +19,9 @@ import {
   Clock, 
   Mail, 
   Printer,
-  X
+  X,
+  Film,
+  Grid3X3
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { normalizeUnit } from '@/utils/unitFormat';
@@ -55,6 +57,7 @@ export default function Export() {
   const [searchTerm, setSearchTerm] = useState('');
   // Time filter: this_week | this_month | all
   const [timeFilter, setTimeFilter] = useState<'this_week' | 'this_month' | 'all'>('this_week');
+  const [debouncedTimeFilter, setDebouncedTimeFilter] = useState<'this_week' | 'this_month' | 'all'>('this_week');
   const [selectedForms, setSelectedForms] = useState<string[]>([]);
   const [isThisWeekExpanded, setIsThisWeekExpanded] = useState(true);
 
@@ -64,10 +67,10 @@ export default function Export() {
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       let startDate: Date | null = null;
-      if (timeFilter === 'this_week') {
+      if (debouncedTimeFilter === 'this_week') {
         startDate = new Date(today);
         startDate.setDate(today.getDate() - 6);
-      } else if (timeFilter === 'this_month') {
+      } else if (debouncedTimeFilter === 'this_month') {
         startDate = new Date(now.getFullYear(), now.getMonth(), 1);
       }
 
@@ -89,7 +92,7 @@ export default function Export() {
 
       // Smart query limits based on filter to optimize initial load
       // This Week: likely <50 results, This Month: likely <150, All: use higher limit
-      const queryLimit = timeFilter === 'this_week' ? 75 : timeFilter === 'this_month' ? 150 : 250;
+      const queryLimit = debouncedTimeFilter === 'this_week' ? 75 : debouncedTimeFilter === 'this_month' ? 150 : 250;
       
       const { data, error } = await baseQuery
         .order('created_at', { ascending: false })
@@ -137,13 +140,22 @@ export default function Export() {
         variant: "destructive",
       });
     }
-  }, [toast, timeFilter]);
+  }, [toast, debouncedTimeFilter]);
 
   useEffect(() => {
     if (user) {
       fetchForms();
     }
-  }, [fetchForms, user, timeFilter]);
+  }, [fetchForms, user]);
+
+  // Debounce time filter changes to prevent multiple rapid API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedTimeFilter(timeFilter);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [timeFilter]);
 
   const filteredForms = useMemo(() => {
     let filtered = [...forms];
@@ -205,11 +217,11 @@ export default function Export() {
     }
 
     // Time-based filtering
-    if (timeFilter !== 'all') {
+    if (debouncedTimeFilter !== 'all') {
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       let startDate: Date;
-      if (timeFilter === 'this_week') {
+      if (debouncedTimeFilter === 'this_week') {
         // Past 6 days + today = 7 days total
         startDate = new Date(today);
         startDate.setDate(today.getDate() - 6); // 6 days ago at 00:00:00
@@ -226,7 +238,7 @@ export default function Export() {
     }
 
     return filtered;
-  }, [timeFilter, forms, searchTerm]);
+  }, [debouncedTimeFilter, forms, searchTerm]);
 
   const thisWeekCount = useMemo(() => {
     const now = new Date();
@@ -475,9 +487,24 @@ export default function Export() {
                     <SelectValue placeholder="Filter by time range" />
                   </SelectTrigger>
                   <SelectContent className="bg-black/90 border-vice-cyan/50 w-auto">
-                    <SelectItem value="this_week" className="text-white hover:bg-vice-cyan/20">This Week</SelectItem>
-                    <SelectItem value="this_month" className="text-white hover:bg-vice-cyan/20">This Month</SelectItem>
-                    <SelectItem value="all" className="text-white hover:bg-vice-cyan/20">All Forms</SelectItem>
+                    <SelectItem value="this_week" className="text-white hover:bg-vice-cyan/20">
+                      <div className="flex items-center gap-2">
+                        <Film className={`w-4 h-4 ${timeFilter === 'this_week' ? 'text-vice-pink' : 'text-vice-cyan'}`} />
+                        <span>This Week</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="this_month" className="text-white hover:bg-vice-cyan/20">
+                      <div className="flex items-center gap-2">
+                        <Film className={`w-4 h-4 ${timeFilter === 'this_month' ? 'text-vice-pink' : 'text-vice-cyan'}`} />
+                        <span>This Month</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="all" className="text-white hover:bg-vice-cyan/20">
+                      <div className="flex items-center gap-2">
+                        <Grid3X3 className={`w-4 h-4 ${timeFilter === 'all' ? 'text-vice-pink' : 'text-vice-cyan'}`} />
+                        <span>All Forms</span>
+                      </div>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -501,7 +528,12 @@ export default function Export() {
               {/* 3D Carousel (enlarged and centered) */}
               <div className="my-2 sm:my-3 -mx-2 sm:mx-0 flex items-center justify-center">
                 <div className="w-full max-w-5xl">
-                  <ViolationCarousel3D forms={filteredForms} heightClass="h-[160px] sm:h-[200px]" containerClassName="mx-auto" />
+                  <ViolationCarousel3D 
+                    forms={filteredForms} 
+                    heightClass={debouncedTimeFilter === 'all' ? "h-[400px] sm:h-[500px]" : "h-[160px] sm:h-[200px]"} 
+                    containerClassName="mx-auto"
+                    displayMode={debouncedTimeFilter === 'all' ? 'grid' : '3d-carousel'}
+                  />
                 </div>
               </div>
               {/* Selected Notices Display (only when selections exist) */}

@@ -20,7 +20,9 @@ import {
   Filter,
   ChevronDown,
   ChevronUp,
-  X
+  X,
+  Film,
+  Grid3X3
 } from "lucide-react";
 import type { Tables } from "../integrations/supabase/types";
 import { normalizeUnit } from "@/utils/unitFormat";
@@ -53,6 +55,7 @@ const Books = () => {
   const [searchTerm, setSearchTerm] = useState("");
   // Time filter like Export: this_week | this_month | all
   const [timeFilter, setTimeFilter] = useState<'this_week' | 'this_month' | 'all'>("this_week");
+  const [debouncedTimeFilter, setDebouncedTimeFilter] = useState<'this_week' | 'this_month' | 'all'>("this_week");
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -72,11 +75,11 @@ const Books = () => {
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       let startDate: Date | null = null;
-      if (timeFilter === 'this_week') {
+      if (debouncedTimeFilter === 'this_week') {
         startDate = new Date(today);
         startDate.setHours(0, 0, 0, 0);
         startDate.setDate(today.getDate() - 6);
-      } else if (timeFilter === 'this_month') {
+      } else if (debouncedTimeFilter === 'this_month') {
         startDate = new Date(now.getFullYear(), now.getMonth(), 1);
       }
 
@@ -91,7 +94,7 @@ const Books = () => {
           )
         `);
       // If filtering by this week, prefer occurred_at but also restrict created_at
-      if (timeFilter === 'this_week' && startDate) {
+      if (debouncedTimeFilter === 'this_week' && startDate) {
         baseQuery = baseQuery.gte('occurred_at', startDate.toISOString());
       }
 
@@ -100,20 +103,17 @@ const Books = () => {
         baseQuery = baseQuery.filter('created_at', 'gte', startIso);
       }
 
-      // Fetch a broader set of recent forms and let the client-side logic
-      // handle the precise date filtering (occurred_at vs created_at).
-      // This ensures violations that occurred recently but were created earlier are not missed.
-      const queryLimit = timeFilter === 'all' ? 500 : 250;
+      // Smart query limits optimized for carousel buffering during "season" (60+ violations)
+      // Carousel will buffer/paginate on the client side for performance
+      const queryLimit = debouncedTimeFilter === 'all' ? 100 : // Reduced for performance during season
+                         debouncedTimeFilter === 'this_month' ? 75 : // Month view optimized
+                         50; // This week should be manageable
       
       const { data, error } = await baseQuery
         .order('created_at', { ascending: false })
         .limit(queryLimit);
 
   if (error) throw error;
-
-  // Debug: log counts returned from server
-  // This helps detect whether the server query returned rows before client-side filtering
-  console.debug('fetchSavedForms: server returned rows:', Array.isArray(data) ? data.length : 0, 'timeFilter:', timeFilter);
 
   // Map forms with photos (no profile join needed for Books)
       const formsWithPhotos: ViolationForm[] = (data ?? []).map((form) => {
@@ -123,7 +123,7 @@ const Books = () => {
             )
           : [];
 
-        return {
+        const mappedForm = {
           id: String(form.id),
           unit_number: normalizeUnit(form.unit_number ?? ''),
           occurred_at: form.occurred_at ?? undefined,
@@ -142,9 +142,9 @@ const Books = () => {
             }))
             .filter((photo) => photo.storage_path.length > 0),
         };
+        
+        return mappedForm;
       });
-
-  console.debug('fetchSavedForms: mapped formsWithPhotos:', formsWithPhotos.length, 'timeFilter:', timeFilter);
 
       setForms(formsWithPhotos);
     } catch (error: unknown) {
@@ -157,11 +157,20 @@ const Books = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast, user, timeFilter]);
+  }, [toast, user, debouncedTimeFilter]);
 
   useEffect(() => {
     fetchSavedForms();
   }, [fetchSavedForms, user]);
+
+  // Debounce time filter changes to prevent multiple rapid API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedTimeFilter(timeFilter);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [timeFilter]);
 
   // Removed duplicate refetch-on-navigation to prevent double queries
 
@@ -238,12 +247,12 @@ const Books = () => {
   // Time-filtered set for the carousel matching Export.tsx (memoized)
   const filteredForms = useMemo(() => {
     const base = applyFilters(forms);
-    if (timeFilter === 'all') return base;
+    if (debouncedTimeFilter === 'all') return base;
 
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    if (timeFilter === 'this_week') {
+    if (debouncedTimeFilter === 'this_week') {
         const { start: startOfWeek, end: endOfToday } = getThisWeekRange();
         return base.filter(form => {
           const timestamp = form.occurred_at || form.created_at;
@@ -251,7 +260,7 @@ const Books = () => {
         });
     }
 
-    if (timeFilter === 'this_month') {
+    if (debouncedTimeFilter === 'this_month') {
         const { start: startOfMonth, end: endOfToday } = getThisMonthRange();
         return base.filter(form => {
           const timestamp = form.occurred_at || form.created_at;
@@ -260,7 +269,7 @@ const Books = () => {
     }
 
     return base;
-  }, [forms, searchTerm, timeFilter]);
+  }, [forms, searchTerm, debouncedTimeFilter]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -355,9 +364,24 @@ const Books = () => {
                     <SelectValue placeholder="Filter by time range" />
                   </SelectTrigger>
                   <SelectContent className="bg-black/90 border-vice-cyan/50 w-auto">
-                    <SelectItem value="this_week" className="text-white hover:bg-vice-cyan/20">This Week</SelectItem>
-                    <SelectItem value="this_month" className="text-white hover:bg-vice-cyan/20">This Month</SelectItem>
-                    <SelectItem value="all" className="text-white hover:bg-vice-cyan/20">All Forms</SelectItem>
+                    <SelectItem value="this_week" className="text-white hover:bg-vice-cyan/20">
+                      <div className="flex items-center gap-2">
+                        <Film className={`w-4 h-4 ${timeFilter === 'this_week' ? 'text-vice-pink' : 'text-vice-cyan'}`} />
+                        <span>This Week</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="this_month" className="text-white hover:bg-vice-cyan/20">
+                      <div className="flex items-center gap-2">
+                        <Film className={`w-4 h-4 ${timeFilter === 'this_month' ? 'text-vice-pink' : 'text-vice-cyan'}`} />
+                        <span>This Month</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="all" className="text-white hover:bg-vice-cyan/20">
+                      <div className="flex items-center gap-2">
+                        <Grid3X3 className={`w-4 h-4 ${timeFilter === 'all' ? 'text-vice-pink' : 'text-vice-cyan'}`} />
+                        <span>All Forms</span>
+                      </div>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -382,8 +406,9 @@ const Books = () => {
           <CardContent className="pt-2 pb-2 px-2 flex-1 flex items-center justify-center">
             <ViolationCarousel3D 
               forms={filteredForms} 
-              heightClass="h-[280px] portrait:h-[300px] landscape:h-[240px] sm:h-[280px] md:h-[320px]" 
-              containerClassName="w-full" 
+              heightClass={debouncedTimeFilter === 'all' ? "h-[400px] sm:h-[500px]" : "h-[280px] portrait:h-[300px] landscape:h-[240px] sm:h-[280px] md:h-[320px]"} 
+              containerClassName="w-full"
+              displayMode={debouncedTimeFilter === 'all' ? 'grid' : '3d-carousel'}
             />
           </CardContent>
         </Card>

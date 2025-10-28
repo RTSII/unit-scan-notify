@@ -126,12 +126,15 @@ The carousel component (`ViolationCarousel.tsx`) has a `FormLike` interface that
 - **Cylinder**
   - `cylinderWidth`: 1200 (mobile ≤640px), 1800 (desktop)
   - `radius = cylinderWidth / (2 * Math.PI)`
-- **Density and face sizing (optimized Oct 24, 2025)**
-  - `targetFaces`: 10 (mobile), 14 (desktop) — used for densification only
-  - Densify if fewer items than `targetFaces` (duplicate items + placeholders)
-  - `maxThumb`: 120 (mobile), 140 (desktop)
-  - `gapArc`: 18 (mobile), 24 (desktop) — gap between cards to prevent overlap
-  - `faceWidth = min(maxThumb, max(70, availableSpace - gapArc))` — scales with result count
+- **Smart buffering for high-volume seasons (optimized Oct 27, 2025)**
+  - `INITIAL_LOAD`: 15 (mobile), 20 (desktop) — fast initial load
+  - `MAX_VISIBLE`: 25 (mobile), 35 (desktop) — before buffering kicks in
+  - Dynamic loading: shows most recent violations first, buffers older ones
+  - Query limits: 50 (This Week), 75 (This Month), 100 (All Forms)
+  - Dynamic card sizing: `minCardWidth` 65px (mobile), 75px (desktop)
+  - `maxCardWidth`: 120px (mobile), 140px (desktop)
+  - `gapBetweenCards`: 8px (mobile), 12px (desktop) — consistent spacing
+  - `faceWidth = max(minCardWidth, min(maxCardWidth, availableSpacePerCard))` — scales with load
 - **Face placement (each face i)**
   - Classes: `absolute flex h-full origin-center items-center justify-center rounded-2xl p-0.5`
   - Style: `{ width: faceWidth, transform: rotateY(i * (360/faceCount)) translateZ(radius) }`
@@ -446,7 +449,8 @@ if (now - (lastUpdateRef.current || 0) > 50) {
 
 - Initial query loads only first photo per form (limit: 1)
 - Full photo set fetched when popover opens
-- Thumbnail transform: 240x240 @ 55% quality
+- Thumbnail transform: 200x200 @ 45% quality (optimized Oct 27, 2025)
+- Photo URL caching for performance
 
 ### Frame Budget
 

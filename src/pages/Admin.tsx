@@ -25,7 +25,9 @@ import {
   ChevronDown,
   Key,
   Search,
-  Filter
+  Filter,
+  Film,
+  Grid3X3
 } from 'lucide-react';
 import {
   Select,
@@ -197,6 +199,7 @@ export default function Admin() {
   const [violationForms, setViolationForms] = useState<SavedForm[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [timeFilter, setTimeFilter] = useState<'this_week' | 'this_month' | 'all'>('this_week');
+  const [debouncedTimeFilter, setDebouncedTimeFilter] = useState<'this_week' | 'this_month' | 'all'>('this_week');
   const [deletingFormId, setDeletingFormId] = useState<string | null>(null);
 
   // Profile card state
@@ -210,10 +213,10 @@ export default function Admin() {
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       let startDate: Date | null = null;
-      if (timeFilter === 'this_week') {
+      if (debouncedTimeFilter === 'this_week') {
         startDate = new Date(today);
         startDate.setDate(today.getDate() - 6);
-      } else if (timeFilter === 'this_month') {
+      } else if (debouncedTimeFilter === 'this_month') {
         startDate = new Date(now.getFullYear(), now.getMonth(), 1);
       }
 
@@ -221,14 +224,6 @@ export default function Admin() {
         .from('violation_forms')
         .select(`
           *,
-          profiles!violation_forms_user_id_fkey (
-            user_id,
-            email,
-            full_name,
-            role,
-            created_at,
-            updated_at
-          ),
           violation_photos (
             id,
             storage_path,
@@ -242,7 +237,7 @@ export default function Admin() {
       }
 
       // Smart query limits: Admin needs more data but still optimize by filter
-      const queryLimit = timeFilter === 'this_week' ? 100 : timeFilter === 'this_month' ? 200 : 350;
+      const queryLimit = debouncedTimeFilter === 'this_week' ? 100 : debouncedTimeFilter === 'this_month' ? 200 : 350;
 
       const { data: formsData, error: formsError } = await baseQuery
         .order('created_at', { ascending: false })
@@ -252,9 +247,9 @@ export default function Admin() {
 
       if (formsError) throw formsError;
 
-      // Map forms with server-side joined profiles (optimized - single query)
+      // Map forms without profiles (profiles join removed due to missing FK)
       const formsWithProfiles = (formsData ?? []).map((form) => {
-        return normalizeFormRecord(form as unknown as JoinedViolationForm, form.profiles as any);
+        return normalizeFormRecord(form as unknown as JoinedViolationForm, null);
       });
 
       setViolationForms(formsWithProfiles);
@@ -267,7 +262,7 @@ export default function Admin() {
         variant: "destructive",
       });
     }
-  }, [toast, timeFilter]);
+  }, [toast, debouncedTimeFilter]);
 
   const fetchData = useCallback(async () => {
     try {
@@ -340,12 +335,21 @@ export default function Admin() {
     }
   }, [user]);
 
-  // Refetch just violation forms when timeFilter changes
+  // Debounce time filter changes to prevent multiple rapid API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedTimeFilter(timeFilter);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [timeFilter]);
+
+  // Refetch just violation forms when debouncedTimeFilter changes
   useEffect(() => {
     if (user) {
       fetchViolationForms();
     }
-  }, [user, timeFilter, fetchViolationForms]);
+  }, [user, debouncedTimeFilter, fetchViolationForms]);
 
   // Set up real-time presence tracking
   useEffect(() => {
@@ -419,8 +423,8 @@ export default function Admin() {
 
   // Get time filter label
   const getTimeFilterLabel = () => {
-    if (timeFilter === 'this_week') return 'This Week';
-    if (timeFilter === 'this_month') return 'This Month';
+    if (debouncedTimeFilter === 'this_week') return 'This Week';
+    if (debouncedTimeFilter === 'this_month') return 'This Month';
     return 'All Forms';
   };
 
@@ -640,8 +644,8 @@ Welcome to the team!`);
     return <Navigate to="/auth" replace />;
   }
 
-  // Redirect if not admin
-  if (profile && profile.role !== 'admin') {
+  // Redirect if not admin (specifically rob@ursllc.com)
+  if (profile && (profile.role !== 'admin' || user?.email !== 'rob@ursllc.com')) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -657,59 +661,98 @@ Welcome to the team!`);
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue p-4 pb-safe">
-      {/* Header */}
-      <div className="flex items-center justify-center py-4 px-6 border-b border-vice-cyan/20 relative">
-        <img
-          src="/Admin.png"
-          alt="Admin Panel"
-          className="h-20 w-auto object-contain"
-        />
-        <Button
-          onClick={() => navigate('/')}
-          variant="ghost"
-          size="sm"
-          className="text-white hover:bg-white/10 p-2 absolute right-4 top-1/2 -translate-y-1/2"
-        >
-          <Home className="w-5 h-5" />
-        </Button>
+    <div className="min-h-screen bg-gradient-to-br from-vice-purple via-black to-vice-blue relative overflow-hidden">
+      {/* Background effects */}
+      <div className="absolute inset-0 bg-black/20 z-0" />
+      
+      {/* Animated waves */}
+      <div className="absolute bottom-0 left-0 w-full overflow-hidden opacity-30 z-10">
+        <div className="wave-bg h-16 bg-gradient-to-r from-vice-cyan to-vice-pink animate-wave-1"></div>
+        <div className="wave-bg h-12 bg-gradient-to-r from-vice-pink to-vice-purple animate-wave-2 -mt-6"></div>
+        <div className="wave-bg h-8 bg-gradient-to-r from-vice-blue to-vice-cyan animate-wave-3 -mt-4"></div>
       </div>
 
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Profile Card with Active Users - REMOVED */}
-        {/* This profile section has been moved to Dashboard page profile avatar */}
+      {/* Lens flares */}
+      <div className="absolute top-10 left-10 w-20 h-20 bg-vice-cyan rounded-full opacity-20 blur-xl animate-lens-flare-1 z-10"></div>
+      <div className="absolute top-20 right-16 w-16 h-16 bg-vice-pink rounded-full opacity-30 blur-lg animate-lens-flare-2 z-10"></div>
+      <div className="absolute bottom-20 left-16 w-24 h-24 bg-vice-purple rounded-full opacity-15 blur-2xl animate-lens-flare-3 z-10"></div>
+      <div className="absolute bottom-10 right-10 w-12 h-12 bg-vice-orange rounded-full opacity-25 blur-md animate-lens-flare-4 z-10"></div>
 
-        {/* Integrated Search + Filter */}
-        <div className="max-w-xl mx-auto">
-          <div className="flex items-stretch gap-0 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.35)] border border-vice-cyan/30 bg-gradient-to-br from-black/50 via-black/40 to-black/30 backdrop-blur-sm">
-            {/* Search */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-vice-cyan/80" />
-              <Input
-                placeholder="Search Unit #, Date, or Violation type..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-transparent border-0 text-white placeholder:text-vice-cyan/70 min-h-[48px] w-full focus-visible:ring-0 focus-visible:ring-offset-0"
-              />
-            </div>
-            {/* Divider */}
-            <div className="self-stretch w-px bg-vice-cyan/30" />
-            {/* Filter */}
-            <div className="w-auto">
-              <Select value={timeFilter} onValueChange={(value: 'this_week' | 'this_month' | 'all') => setTimeFilter(value)}>
-                <SelectTrigger className="h-[48px] bg-transparent border-0 text-white rounded-none justify-start px-3 w-auto">
-                  <Filter className="w-4 h-4 mr-2 text-vice-cyan/80 flex-shrink-0" />
-                  <SelectValue placeholder="Filter by time range" />
-                </SelectTrigger>
-                <SelectContent className="bg-black/90 border-vice-cyan/50 w-auto">
-                  <SelectItem value="this_week" className="text-white hover:bg-vice-cyan/20">This Week</SelectItem>
-                  <SelectItem value="this_month" className="text-white hover:bg-vice-cyan/20">This Month</SelectItem>
-                  <SelectItem value="all" className="text-white hover:bg-vice-cyan/20">All Forms</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+      {/* Content */}
+      <div className="relative z-30 min-h-screen">
+        {/* Header with centered Admin.png image */}
+        <div className="relative flex items-center p-6 bg-black backdrop-blur-sm border-b border-vice-cyan/20 overflow-hidden">
+          <div className="absolute left-1/2 transform -translate-x-1/2">
+            <img
+              src="/Admin.png"
+              alt="Admin Panel"
+              className="h-32 sm:h-24 w-auto object-contain"
+            />
+          </div>
+          {/* Black gradient masks on all sides to blend logo */}
+          <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-black to-transparent pointer-events-none z-10" />
+          <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-black to-transparent pointer-events-none z-10" />
+          <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-black to-transparent pointer-events-none z-10" />
+          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-black to-transparent pointer-events-none z-10" />
+          <div className="ml-auto">
+            <Button
+              onClick={() => navigate('/')}
+              variant="ghost"
+              size="sm"
+              className="text-white hover:bg-vice-cyan/20 min-h-[44px] min-w-[44px]"
+            >
+              <Home className="w-5 h-5" />
+            </Button>
           </div>
         </div>
+
+        <div className="p-4 space-y-4">
+          {/* Integrated Search + Filter */}
+          <div className="max-w-xl mx-auto">
+            <div className="flex items-stretch gap-0 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.35)] border border-vice-cyan/30 bg-gradient-to-br from-black/50 via-black/40 to-black/30 backdrop-blur-sm">
+              {/* Search */}
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-vice-cyan/80" />
+                <Input
+                  placeholder="Search Unit #, Date, or Violation type..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 bg-transparent border-0 text-white placeholder:text-vice-cyan/70 min-h-[48px] w-full focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
+              </div>
+              {/* Divider */}
+              <div className="self-stretch w-px bg-vice-cyan/30" />
+              {/* Filter */}
+              <div className="w-auto">
+                <Select value={timeFilter} onValueChange={(value: 'this_week' | 'this_month' | 'all') => setTimeFilter(value)}>
+                  <SelectTrigger className="h-[48px] bg-transparent border-0 text-white rounded-none justify-start px-3 w-auto">
+                    <Filter className="w-4 h-4 mr-2 text-vice-cyan/80 flex-shrink-0" />
+                    <SelectValue placeholder="Filter by time range" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-black/90 border-vice-cyan/50 w-auto">
+                    <SelectItem value="this_week" className="text-white hover:bg-vice-cyan/20">
+                      <div className="flex items-center gap-2">
+                        <Film className={`w-4 h-4 ${timeFilter === 'this_week' ? 'text-vice-pink' : 'text-vice-cyan'}`} />
+                        <span>This Week</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="this_month" className="text-white hover:bg-vice-cyan/20">
+                      <div className="flex items-center gap-2">
+                        <Film className={`w-4 h-4 ${timeFilter === 'this_month' ? 'text-vice-pink' : 'text-vice-cyan'}`} />
+                        <span>This Month</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="all" className="text-white hover:bg-vice-cyan/20">
+                      <div className="flex items-center gap-2">
+                        <Grid3X3 className={`w-4 h-4 ${timeFilter === 'all' ? 'text-vice-pink' : 'text-vice-cyan'}`} />
+                        <span>All Forms</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
 
         {/* Unified Violation Forms Section with 3D Carousel */}
         <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm">
@@ -723,8 +766,9 @@ Welcome to the team!`);
             <ViolationCarousel3D 
               forms={getFilteredForms()} 
               onDelete={deleteViolationForm}
-              heightClass="h-[320px] sm:h-[400px]"
+              heightClass={debouncedTimeFilter === 'all' ? "h-[400px] sm:h-[500px]" : "h-[320px] sm:h-[400px]"}
               containerClassName="mx-auto"
+              displayMode={debouncedTimeFilter === 'all' ? 'grid' : '3d-carousel'}
             />
           </CardContent>
         </Card>
@@ -998,6 +1042,7 @@ Welcome to the team!`);
             )}
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );

@@ -298,16 +298,24 @@ The AI will have access to these tables:
 ### Key Relationships
 
 - `violation_photos.violation_id` → `violation_forms.id` (ON DELETE CASCADE)
-- `violation_forms.user_id` → `auth.users.id`
-- `profiles.user_id` → `auth.users.id`
+- `violation_forms.user_id` → `auth.users.id` (Direct reference, no named FK constraint)
+- `profiles.user_id` → `auth.users.id` (Primary key relationship)
 
 ### RLS Policies
 
 The AI can help analyze and suggest improvements to:
 - Team-wide read access on `violation_forms`
 - User-specific write access
-- Admin-only delete permissions
+- Admin-only delete permissions (restricted to rob@ursllc.com)
 - Photo upload restrictions
+
+### Admin Security Model
+
+**Critical**: Admin access is restricted to `rob@ursllc.com` email only:
+- Dashboard gear icon only shows for this email
+- Admin route `/admin` redirects others to dashboard
+- Delete controls in UI only appear for this specific user
+- Multiple security layers ensure no admin leakage
 
 ## Benefits for This Project
 

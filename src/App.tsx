@@ -20,7 +20,7 @@ import NotFound from '@/pages/NotFound';
 
 function ToolbarWrapper() {
   const location = useLocation();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   
   // Toolbar toggle persisted to localStorage
   const [toolbarEnabled, setToolbarEnabled] = useState<boolean>(() => {
@@ -45,15 +45,15 @@ function ToolbarWrapper() {
     }
   }, [toolbarEnabled]);
 
-  // Check if we're on the Admin page and user is an admin
+  // Check if we're on the Admin page and user is the specific admin (rob@ursllc.com)
   const isAdminPage = location.pathname === '/admin';
-  const isAdminUser = profile?.role === 'admin';
+  const isSpecificAdmin = profile?.role === 'admin' && user?.email === 'rob@ursllc.com';
   
-  // Enable toolbar in dev mode OR on Admin page for admin users (in any build)
-  const shouldEnableToolbar = toolbarEnabled && (import.meta.env.DEV || (isAdminPage && isAdminUser));
+  // Enable toolbar in dev mode OR on Admin page for specific admin (in any build)
+  const shouldEnableToolbar = toolbarEnabled && (import.meta.env.DEV || (isAdminPage && isSpecificAdmin));
   
-  // Show toggle button in dev mode OR on Admin page for admin users
-  const shouldShowToggle = import.meta.env.DEV || (isAdminPage && isAdminUser);
+  // Show toggle button in dev mode OR on Admin page for specific admin
+  const shouldShowToggle = import.meta.env.DEV || (isAdminPage && isSpecificAdmin);
 
   return (
     <>

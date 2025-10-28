@@ -140,9 +140,9 @@ export default function Dashboard() {
     }
   ];
 
-  // Show Admin icon in the arc for admins; fallback-show for Rob while profile is loading
-  const isAdmin = profile?.role === 'admin';
-  const shouldShowAdmin = isAdmin || (profile === null && user?.email === 'rob@ursllc.com');
+  // Show Admin icon only for rob@ursllc.com (the specific admin)
+  const isSpecificAdmin = profile?.role === 'admin' && user?.email === 'rob@ursllc.com';
+  const shouldShowAdmin = isSpecificAdmin || (profile === null && user?.email === 'rob@ursllc.com');
 
   // Order with Admin taking Export's previous spot and Export shifting left
   const menuItems = shouldShowAdmin

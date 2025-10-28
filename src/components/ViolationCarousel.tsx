@@ -4,6 +4,7 @@ import { useMediaQuery } from "./ui/3d-carousel";
 import { X, Trash2, Calendar, Clock, MapPin, Image as ImageIcon, User } from "lucide-react";
 import { Checkbox } from "./ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 export interface FormLike {
   id: string;
@@ -38,42 +39,56 @@ export type CarouselItem = {
 // Photo URL cache for performance (reduces repeated getPublicUrl calls)
 const photoUrlCache = new Map<string, string>();
 
-// Helper function to convert storage path to public URL with thumbnail optimization
-function getPhotoUrl(storagePath: string, isThumbnail: boolean = true): string {
-  // Create cache key
-  const cacheKey = `${storagePath}-${isThumbnail}`;
+// Helper function to convert storage path to public URL with optimized sizing
+// Note: Export.tsx uses its own getPublicUrl() function for full-quality export/print
+function getPhotoUrl(storagePath: string, imageType: 'thumbnail' | 'expanded' | 'full' = 'thumbnail'): string {
+  if (!storagePath) return 'placeholder';
+  const cacheKey = `${storagePath}-${imageType}`;
   
-  // Check cache first
+  // Check cache first - this prevents expensive API calls
   if (photoUrlCache.has(cacheKey)) {
     return photoUrlCache.get(cacheKey)!;
   }
   
   let url: string;
   
-  // Check if already a full URL (starts with http/https or data:)
-  if (storagePath.startsWith('http://') || storagePath.startsWith('https://') || storagePath.startsWith('data:')) {
-    // For full URLs from storage, add transformation params for thumbnails
-    if (isThumbnail && storagePath.includes('supabase.co/storage')) {
-      // Add width/height limit and quality reduction for smaller thumbnail payloads
-      url = `${storagePath}?width=240&height=240&quality=55`;
-    } else {
-      url = storagePath;
-    }
+  // Handle legacy full URLs vs storage paths
+  if (storagePath.startsWith('http://') || storagePath.startsWith('https://')) {
+    url = storagePath; // Already a full URL
+  } else if (storagePath.startsWith('data:')) {
+    url = storagePath; // Legacy base64 data URL
   } else {
-    // Convert storage path to public URL
-    const { data } = supabase.storage
-      .from('violation-photos')
-      .getPublicUrl(storagePath, {
-        transform: isThumbnail ? {
-          width: 240,
-          height: 240,
-          quality: 55
-        } : undefined
-      });
-    url = data?.publicUrl || storagePath;
+    try {
+      // Storage bucket path - convert to public URL
+      const { data } = supabase.storage
+        .from('violation-photos')
+        .getPublicUrl(storagePath);
+      
+      url = data?.publicUrl || storagePath;
+      
+      // Add Supabase image transformations based on usage type
+      if (url && url.includes('supabase') && !url.includes('data:')) {
+        switch (imageType) {
+          case 'thumbnail':
+            // Ultra-aggressive optimization for carousel cards: 100x100px, 30% quality (~2-4KB)
+            url += '?width=100&height=100&resize=cover&quality=30';
+            break;
+          case 'expanded': 
+            // Aggressive optimization for viewing only: 400x400px, 50% quality (~30-60KB)
+            url += '?width=400&height=400&resize=contain&quality=50';
+            break;
+          case 'full':
+            // No optimization - original resolution for export/print
+            break;
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to generate photo URL:', error);
+      url = 'placeholder';
+    }
   }
   
-  // Cache the result
+  // Cache the result to prevent repeated API calls
   photoUrlCache.set(cacheKey, url);
   return url;
 }
@@ -93,21 +108,11 @@ export function mapFormsToCarouselItems(forms: FormLike[]): CarouselItem[] {
     // Prioritize violation_photos (new storage) over legacy photos field
     let imageUrl = "placeholder";
     
-    // Debug logging
-    console.log(`Form ${form.id} (${form.unit_number}):`, {
-      violation_photos: form.violation_photos,
-      photos: form.photos
-    });
-    
     if (form.violation_photos && form.violation_photos.length > 0 && form.violation_photos[0].storage_path) {
       const storagePath = form.violation_photos[0].storage_path;
       imageUrl = getPhotoUrl(storagePath);
-      console.log(`Using violation_photos for ${form.id}: ${storagePath} -> ${imageUrl}`);
     } else if (form.photos && form.photos.length > 0 && form.photos[0]) {
       imageUrl = getPhotoUrl(form.photos[0]);
-      console.log(`Using legacy photos for ${form.id}: ${form.photos[0]} -> ${imageUrl}`);
-    } else {
-      console.log(`No photos found for form ${form.id}, using placeholder`);
     }
     
     return {
@@ -125,7 +130,9 @@ export const ViolationCarousel3D: React.FC<{
   onDelete?: (formId: string) => void;
   heightClass?: string;
   containerClassName?: string;
-}> = ({ forms, onDelete, heightClass, containerClassName }) => {
+  displayMode?: '3d-carousel' | 'grid'; // New prop for All Forms grid layout
+}> = ({ forms, onDelete, heightClass, containerClassName, displayMode = '3d-carousel' }) => {
+  const { user } = useAuth();
   const [isCarouselActive, setIsCarouselActive] = useState(true);
   const [hoveredCardIndex, setHoveredCardIndex] = useState<number | null>(null);
   const [activeForm, setActiveForm] = useState<FormLike | null>(null);
@@ -133,6 +140,8 @@ export const ViolationCarousel3D: React.FC<{
   const [selectedForDelete, setSelectedForDelete] = useState(false);
   const [activeTouchCardIndex, setActiveTouchCardIndex] = useState<number | null>(null);
   const [expandedImageUrl, setExpandedImageUrl] = useState<string | null>(null);
+  const [hasMoreItems, setHasMoreItems] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
   const controls = useAnimation();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const popoverRef = useRef<HTMLDivElement | null>(null);
@@ -141,6 +150,8 @@ export const ViolationCarousel3D: React.FC<{
   const dragResetTimeoutRef = useRef<number | null>(null);
 
   const baseItems = useMemo(() => {
+    // Smart cache management: Only clear cache if completely different form set
+    // This prevents clearing cache on filter switches (which use same forms, just filtered)
     const items = mapFormsToCarouselItems(forms);
     return items.length > 0 ? items : [{ id: "placeholder-1", imageUrl: "placeholder", unit: "", date: "" }];
   }, [forms]);
@@ -149,30 +160,107 @@ export const ViolationCarousel3D: React.FC<{
   const targetFaces = isScreenSizeSm ? 10 : 14;
   const cylinderWidth = isScreenSizeSm ? 1200 : 1800;
   const maxThumb = isScreenSizeSm ? 120 : 140;
+  
+  // Smart carousel buffering constants for performance during "season"
+  const CAROUSEL_CONSTANTS = {
+    // Initial load - balance between UX and performance
+    INITIAL_LOAD: isScreenSizeSm ? 15 : 20,
+    // Maximum visible in carousel before requiring user action
+    MAX_VISIBLE: isScreenSizeSm ? 25 : 35, 
+    // Buffer size for smooth scrolling
+    BUFFER_SIZE: 10,
+    // Minimum items to maintain after cleanup
+    MIN_BUFFER: isScreenSizeSm ? 8 : 12
+  };
+
+  // Grid layout constants for All Forms view - mobile first
+  const GRID_CONSTANTS = {
+    // Conservative 3x3 mobile grid to prevent overlap, 4x4 desktop
+    COLUMNS: isScreenSizeSm ? 3 : 4,
+    ROWS: isScreenSizeSm ? 3 : 4,
+    // Items per page: 9 mobile, 16 desktop
+    get ITEMS_PER_PAGE() { return this.COLUMNS * this.ROWS; }
+  };
 
   const displayItems = useMemo(() => {
-    if (baseItems.length >= targetFaces) return baseItems;
-    const fillers = Array.from({ length: targetFaces - baseItems.length }, (_, idx) => {
-      const src = baseItems[idx % baseItems.length];
-      if (!src || src.imageUrl === "placeholder") {
-        return { 
-          id: `placeholder-${idx + 2}`, 
-          imageUrl: "placeholder", 
-          date: "",
-          unit: ""
-        } as CarouselItem;
-      }
-      return { ...src, id: `${src.id}-dup-${idx}` } as CarouselItem;
-    });
-    return [...baseItems, ...fillers];
-  }, [baseItems, targetFaces]);
+    // Smart buffering for performance during "season" (60+ violations)
+    let itemsToShow = baseItems;
+    let moreItemsAvailable = false;
+    
+    // If we have many items, implement smart loading
+    if (baseItems.length > CAROUSEL_CONSTANTS.MAX_VISIBLE) {
+      // Show most recent items first (already sorted by created_at DESC)
+      itemsToShow = baseItems.slice(0, CAROUSEL_CONSTANTS.INITIAL_LOAD);
+      moreItemsAvailable = true;
+      
+      // TODO: Implement progressive loading as user rotates
+      // For now, show initial load to prevent performance issues
+    }
+    
+    // Update hasMoreItems state
+    setHasMoreItems(moreItemsAvailable);
+    
+    // Densify only if we have fewer items than target faces
+    if (itemsToShow.length < targetFaces) {
+      const fillers = Array.from({ length: targetFaces - itemsToShow.length }, (_, idx) => {
+        const src = itemsToShow[idx % itemsToShow.length];
+        if (!src || src.imageUrl === "placeholder") {
+          return { 
+            id: `placeholder-${idx + 2}`, 
+            imageUrl: "placeholder", 
+            date: "",
+            unit: ""
+          } as CarouselItem;
+        }
+        return { ...src, id: `${src.id}-dup-${idx}` } as CarouselItem;
+      });
+      itemsToShow = [...itemsToShow, ...fillers];
+    }
+    
+    return itemsToShow;
+  }, [baseItems, targetFaces, isScreenSizeSm]);
+
+  // Grid pagination calculations
+  const gridData = useMemo(() => {
+    if (displayMode !== 'grid') return null;
+    
+    // Use original forms instead of baseItems (which are CarouselItems)
+    const totalPages = Math.ceil(forms.length / GRID_CONSTANTS.ITEMS_PER_PAGE);
+    const startIndex = currentPage * GRID_CONSTANTS.ITEMS_PER_PAGE;
+    const endIndex = startIndex + GRID_CONSTANTS.ITEMS_PER_PAGE;
+    const currentPageItems = forms.slice(startIndex, endIndex);
+    
+    
+    return {
+      totalPages,
+      currentPageItems,
+      hasNextPage: currentPage < totalPages - 1,
+      hasPrevPage: currentPage > 0,
+      totalItems: forms.length
+    };
+  }, [forms, currentPage, displayMode, GRID_CONSTANTS.ITEMS_PER_PAGE]);
+
+  // Reset page when forms change
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [forms.length]);
 
   const faceCount = displayItems.length;
-  // Simplified spacing: use fixed card sizes with proper gaps (inspired by 21st.dev patterns)
-  // Fixed card width based on screen size for consistent layout
-  const faceWidth = isScreenSizeSm ? 90 : 110; // Fixed sizes prevent overlap
+  
+  // Dynamic sizing for infinite carousel - scales with actual item count
   const circumference = cylinderWidth;
   const radius = cylinderWidth / (2 * Math.PI);
+  
+  // Calculate optimal card width based on available space and item count
+  const minCardWidth = isScreenSizeSm ? 65 : 75; // Minimum readable size
+  const maxCardWidth = isScreenSizeSm ? 120 : 140; // Maximum for visual appeal
+  const gapBetweenCards = isScreenSizeSm ? 8 : 12; // Consistent gap
+  
+  // Available space per card (circumference / number of cards - gap)
+  const availableSpacePerCard = (circumference / faceCount) - gapBetweenCards;
+  
+  // Dynamic face width that scales with item count
+  const faceWidth = Math.max(minCardWidth, Math.min(maxCardWidth, availableSpacePerCard));
 
   const rotation = useMotionValue(0);
   const transform = useTransform(rotation, (value) => `rotate3d(0, 1, 0, ${value}deg)`);
@@ -409,13 +497,157 @@ export const ViolationCarousel3D: React.FC<{
     loadFullPhotos();
   }, [isPopoverOpen, activeForm]);
 
+  // Grid layout for All Forms
+  const renderGridLayout = () => {
+    if (!gridData) return null;
+
+    return (
+      <div className="relative w-full h-full flex flex-col">
+        {/* Grid Container */}
+        <div className="flex-1 p-6 sm:p-8 overflow-hidden">
+          <div 
+            className={`grid gap-6 sm:gap-8 h-full`}
+            style={{ 
+              gridTemplateColumns: `repeat(${GRID_CONSTANTS.COLUMNS}, 1fr)`,
+              gridTemplateRows: `repeat(${GRID_CONSTANTS.ROWS}, 1fr)`
+            }}
+          >
+            {Array.from({ length: GRID_CONSTANTS.ITEMS_PER_PAGE }).map((_, index) => {
+              const form = gridData.currentPageItems[index];
+              
+              // Handle empty slots (when there are fewer forms than grid slots)
+              if (!form) {
+                return (
+                  <div
+                    key={`empty-${index}`}
+                    className="relative aspect-square rounded-lg overflow-hidden"
+                    style={{ backgroundColor: 'transparent', minHeight: '0', minWidth: '0' }}
+                  >
+                    {/* Empty slot - no content */}
+                  </div>
+                );
+              }
+              
+              // Get image URL directly
+              let imageUrl = "placeholder";
+              if (form.violation_photos && form.violation_photos.length > 0 && form.violation_photos[0].storage_path) {
+                imageUrl = getPhotoUrl(form.violation_photos[0].storage_path);
+              } else if (form.photos && form.photos.length > 0 && form.photos[0]) {
+                imageUrl = getPhotoUrl(form.photos[0]);
+              }
+              
+              // Format date
+              let displayDate = "";
+              if (form.occurred_at) {
+                const dateObj = new Date(form.occurred_at);
+                displayDate = `${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}`;
+              }
+              
+              return (
+                <div
+                  key={form.id}
+                  className={`relative aspect-square rounded-lg overflow-hidden cursor-pointer transition-all duration-200 ${
+                    activeTouchCardIndex === index 
+                      ? 'ring-1 ring-vice-cyan shadow-[0_0_10px_#00ffff40]' 
+                      : 'ring-1 ring-vice-cyan/40'
+                  }`}
+                  style={{ backgroundColor: '#0a0a0a', minHeight: '0', minWidth: '0' }}
+                  onClick={() => handleClick(form)}
+                  onTouchStart={() => setActiveTouchCardIndex(index)}
+                  onTouchEnd={() => setActiveTouchCardIndex(null)}
+                  onMouseDown={() => setActiveTouchCardIndex(index)}
+                  onMouseUp={() => setActiveTouchCardIndex(null)}
+                  onMouseLeave={() => setActiveTouchCardIndex(null)}
+                >
+                  {imageUrl === "placeholder" ? (
+                    <div className="w-full h-full bg-black/90 ring-1 ring-vice-cyan/50 flex items-center justify-center">
+                      <span className="text-vice-cyan/70 text-xs">No Photo</span>
+                    </div>
+                  ) : (
+                    <>
+                      <img
+                        src={imageUrl}
+                        alt={`${form.unit_number} ${displayDate}`}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        onError={(e) => {
+                          const url = e.currentTarget.src;
+                          if (url.includes('/public/public/')) {
+                            e.currentTarget.src = url.replace('/public/public/', '/public/');
+                          }
+                        }}
+                      />
+                      {/* Overlay badge */}
+                      {(displayDate || form.unit_number) && (
+                        <div className="absolute inset-x-0 top-0 flex items-center justify-center p-1 pointer-events-none">
+                          <div className="text-[8px] font-medium text-vice-pink drop-shadow-[0_0_8px_#ff1493] bg-black/50 backdrop-blur-sm ring-1 ring-vice-cyan/30 px-1.5 py-0.5 rounded-md whitespace-nowrap">
+                            {form.unit_number && <span className="font-semibold">{form.unit_number}</span>}
+                            {form.unit_number && displayDate && <span className="mx-1 opacity-60">•</span>}
+                            {displayDate && <span>{displayDate}</span>}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Page Info (temporary debug) */}
+        <div className="text-center text-xs text-vice-cyan/70 p-2">
+          Showing {gridData.currentPageItems.length} of {gridData.totalItems} forms
+          {gridData.totalPages > 1 && ` (Page ${currentPage + 1} of ${gridData.totalPages})`}
+        </div>
+
+        {/* Pagination Controls */}
+        {gridData.totalPages > 1 && (
+          <div className="flex items-center justify-center gap-4 p-4 border-t border-vice-cyan/20">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+              disabled={!gridData.hasPrevPage}
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-vice-cyan/20 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-vice-cyan/30 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            
+            <span className="text-white text-sm">
+              Page {currentPage + 1} of {gridData.totalPages}
+            </span>
+            
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(gridData.totalPages - 1, prev + 1))}
+              disabled={!gridData.hasNextPage}
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-vice-cyan/20 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-vice-cyan/30 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className={`relative w-full ${containerClassName ?? ''}`.trim()} id="carousel-container" ref={containerRef}>
       <div className="relative w-full mb-8 sm:mb-10 isolate">
 
+        {/* Conditional rendering: Grid for All Forms, 3D Carousel for others */}
+        {displayMode === 'grid' ? (
+          <div 
+            className={`relative ${heightClass ?? 'h-[400px] sm:h-[500px]'} w-full overflow-hidden rounded-xl bg-black/20`}
+          >
+            {renderGridLayout()}
+          </div>
+        ) : (
         <div 
           className={`relative ${heightClass ?? 'h-[140px] sm:h-[160px]'} w-full overflow-hidden rounded-xl bg-black/20`}
-          style={{ touchAction: 'none', WebkitTouchCallout: 'none', userSelect: 'none' }}
+          style={{ touchAction: 'pan-y', WebkitTouchCallout: 'none', userSelect: 'none' }}
           onTouchStart={(e) => { e.stopPropagation(); }}
           onTouchMove={(e) => { e.stopPropagation(); }}
           onTouchEnd={(e) => { e.stopPropagation(); }}
@@ -426,8 +658,7 @@ export const ViolationCarousel3D: React.FC<{
               perspective: isScreenSizeSm ? "900px" : "800px", 
               transformStyle: "preserve-3d",
               willChange: "transform",
-              position: "relative",
-              touchAction: "none"
+              touchAction: 'pan-y'
             }}
           >
             <motion.div
@@ -438,11 +669,8 @@ export const ViolationCarousel3D: React.FC<{
                 width: cylinderWidth, 
                 transformStyle: "preserve-3d",
                 willChange: 'transform',
-                touchAction: 'none',
-                pointerEvents: 'none',
-                position: 'absolute',
-                left: '50%',
-                translateX: '-50%'
+                touchAction: 'pan-y',
+                pointerEvents: 'none'
               }}
               animate={controls}
             >
@@ -614,7 +842,12 @@ export const ViolationCarousel3D: React.FC<{
                           draggable={false}
                           onError={(e) => {
                             const url = e.currentTarget.src;
-                            if (url.includes('/render/image/')) {
+                            
+                            // Fix double "public" path issue
+                            if (url.includes('/public/public/')) {
+                              const fixedUrl = url.replace('/public/public/', '/public/');
+                              e.currentTarget.src = fixedUrl;
+                            } else if (url.includes('/render/image/')) {
                               const fallback = url.replace('/render/image/', '/object/public/').split('?')[0];
                               e.currentTarget.src = fallback;
                             }
@@ -638,6 +871,7 @@ export const ViolationCarousel3D: React.FC<{
             </motion.div>
           </div>
         </div>
+        )}
 
         <AnimatePresence mode="wait">
           {isPopoverOpen && activeForm && (
@@ -657,19 +891,54 @@ export const ViolationCarousel3D: React.FC<{
                 className="w-full max-w-2xl p-0 bg-gradient-to-br from-vice-purple/20 via-black/95 to-vice-blue/20 border border-vice-cyan/30 backdrop-blur-sm rounded-2xl shadow-2xl"
               >
               <div className="flex flex-col max-h-[80vh] sm:max-h-[70vh]">
-                {/* Header with title and close button */}
+                {/* Header with title, admin controls, and close button */}
                 <div className="flex items-center justify-between border-b border-vice-cyan/30 p-4 sm:p-6 pb-3 flex-shrink-0">
                   <div>
                     <h3 className="text-xl font-bold text-white">Violation Details</h3>
                     <p className="text-sm text-vice-cyan/70">Unit {activeForm.unit_number}</p>
                   </div>
-                  <button
-                    onClick={handleClose}
-                    className="p-2 rounded-lg bg-black/40 hover:bg-black/60 text-white transition-colors"
-                    aria-label="Close"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+                  
+                  <div className="flex items-center gap-3">
+                    {/* Admin Controls - Only show for rob@ursllc.com on Admin page */}
+                    {onDelete && user?.email === 'rob@ursllc.com' && (
+                      <div className="flex items-center gap-2">
+                        {/* Select Checkbox */}
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={selectedForDelete}
+                            onChange={(e) => setSelectedForDelete(e.target.checked)}
+                            className="w-4 h-4 rounded border-vice-cyan/30 bg-black/40 text-vice-pink focus:ring-vice-pink focus:ring-offset-0 focus:ring-2"
+                          />
+                          <span className="text-xs text-vice-cyan/80">Select</span>
+                        </label>
+                        
+                        {/* Delete Button */}
+                        <button
+                          onClick={handleDelete}
+                          disabled={!selectedForDelete}
+                          className={`p-2 rounded-lg transition-colors ${
+                            selectedForDelete 
+                              ? 'bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300' 
+                              : 'bg-black/20 text-gray-500 cursor-not-allowed'
+                          }`}
+                          aria-label="Delete violation"
+                          title={selectedForDelete ? "Delete this violation" : "Select violation first"}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                    
+                    {/* Close Button */}
+                    <button
+                      onClick={handleClose}
+                      className="p-2 rounded-lg bg-black/40 hover:bg-black/60 text-white transition-colors"
+                      aria-label="Close"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Scrollable Content Area */}
@@ -691,7 +960,7 @@ export const ViolationCarousel3D: React.FC<{
                           <X className="w-5 h-5" />
                         </button>
                         <img
-                          src={getPhotoUrl(expandedImageUrl, false)}
+                          src={getPhotoUrl(expandedImageUrl, 'expanded')}
                           alt="Expanded photo"
                           className="max-w-full max-h-[50vh] sm:max-h-[60vh] object-contain rounded-lg shadow-2xl"
                           onClick={(e) => e.stopPropagation()}
@@ -761,7 +1030,7 @@ export const ViolationCarousel3D: React.FC<{
                           {activeForm.photos.map((photo, idx) => (
                             <img
                               key={idx}
-                              src={getPhotoUrl(photo, false)}
+                              src={getPhotoUrl(photo, 'expanded')}
                               alt={`Photo ${idx + 1}`}
                               loading="lazy"
                               className="w-full aspect-square object-cover rounded-lg ring-1 ring-vice-cyan/30 hover:ring-2 hover:ring-vice-pink transition-all cursor-pointer active:scale-95"

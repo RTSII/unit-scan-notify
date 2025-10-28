@@ -5,6 +5,93 @@ All notable changes to the SPR Vice City project will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.6.0] - 2025-10-27
+
+### 🚀 **MAJOR RELEASE - Enhanced ViolationCarousel UI with Grid Layout**
+
+Complete redesign of the ViolationCarousel UI component with dual display modes, filter icons, and performance optimizations across all pages.
+
+### ✨ **Added**
+
+**Enhanced Filter Dropdown with Visual Icons**:
+- **Film Strip Icons** (🎬) for This Week/This Month filters (indicates 3D carousel mode)
+- **Grid Icon** (📊) for All Forms filter (indicates grid layout mode)
+- **Dynamic Color States**: Neon cyan (unselected) → Neon pink (selected)
+- **Visual Mode Indicators**: Users instantly see which UI mode each filter activates
+
+**Grid Layout Mode for Large Datasets**:
+- **Static Grid Display**: 3x3 (mobile) / 4x4 (desktop) for All Forms filter
+- **Pagination Controls**: Navigate through large datasets (60+ violations)
+- **Performance Optimized**: Instant rendering, no 3D calculations required
+- **Enhanced Spacing**: 24px (mobile) / 32px (desktop) gaps between cards
+- **Container Padding**: 24px (mobile) / 32px (desktop) for improved visual hierarchy
+
+**Performance Debouncing System**:
+- **300ms Debouncing**: Prevents rapid API calls during filter switching
+- **Eliminates Supabase Warnings**: No more multiple client instance conflicts
+- **Smooth UX**: UI updates immediately, data follows after delay
+- **Consistent Pattern**: Applied across Books.tsx, Export.tsx, Admin.tsx
+
+**Comprehensive Documentation**:
+- **violationformui.md**: Single authoritative guide for ViolationCarousel implementation
+- **Cross-Page Patterns**: Unified implementation examples and best practices
+- **Performance Metrics**: Optimization guidelines and query limits
+- **Testing Checklists**: Comprehensive validation steps
+
+### 🎨 **Changed**
+
+**Display Mode Logic**:
+- **This Week/This Month**: 3D carousel mode with interactive rotation
+- **All Forms**: Grid layout mode with pagination
+- **Dynamic Heights**: Grid gets more space (400-500px), 3D optimized (280-400px)
+- **Smart Query Limits**: 50/75/100 optimized for expected result sizes
+
+**Visual Consistency**:
+- **Film Strip Icons**: Clearly indicate interactive 3D carousel experience
+- **Grid Icons**: Show static layout for comprehensive data viewing
+- **Neon Color Feedback**: Vice City aesthetic with meaningful color states
+- **Enhanced Card Spacing**: Prevents overlap and improves readability
+
+### 🔧 **Fixed**
+
+**Filter Switching Performance**:
+- **Root Cause**: Multiple rapid Supabase API calls creating client conflicts
+- **Solution**: Debounced filter state with separate UI and API state management
+- **Impact**: Eliminates ~10 second delays and console warnings
+
+**Admin Functionality Preservation**:
+- **Delete Capabilities**: Maintained via `onDelete` prop in all display modes
+- **Permission System**: Only admin users can delete violations
+- **User Attribution**: Server-side profile joins maintained
+- **Checkbox Selection**: Works in both 3D and grid modes
+
+**Cross-Page Consistency**:
+- **Identical UI**: Books, Export, Admin now have matching filter dropdowns
+- **Same Performance**: Consistent debouncing and optimization patterns
+- **Unified Data Flow**: All pages use identical query and mapping patterns
+
+### 📚 **Documentation Updates**
+
+- **violationformui.md**: Created comprehensive implementation guide
+- **WORKFLOW_REVIEW.md**: Updated with October 27 enhancements
+- **Component API**: Detailed prop specifications and usage examples
+- **Performance Guidelines**: Query optimization and debouncing patterns
+
+### 🎯 **Impact**
+
+**User Experience**:
+- **Visual Clarity**: Icons immediately show which UI mode each filter provides
+- **Performance**: Smooth filter switching with no delays or warnings
+- **Large Datasets**: Grid mode handles 60+ violations efficiently
+- **Mobile First**: Optimized for iPhone 13+ with proper touch targets
+
+**Developer Experience**:
+- **Unified Patterns**: Single implementation guide prevents inconsistencies
+- **Performance Optimized**: Built-in debouncing and query optimization
+- **Future Proof**: Scalable architecture for additional display modes
+
+---
+
 ## [3.5.0] - 2025-10-25
 
 ### 🚨 **New Feature - Cop Car Lights "Book Em" Button**

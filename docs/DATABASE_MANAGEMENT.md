@@ -1,6 +1,6 @@
-# Database Management - SPR Vice City
+# Database Management - SPR Vice City (Single Admin: rob@ursllc.com)
 
-This document explains how to manage database migrations and schema changes for the SPR Vice City project.
+This document explains how to manage database migrations and schema changes for the SPR Vice City project. The system is optimized for a single administrator (rob@ursllc.com) architecture.
 
 ## 🚀 Quick Start
 
@@ -116,13 +116,19 @@ supabase/
 - **`team_performance_summary`** - Overall team metrics
 - **`get_team_stats()`** - Function for team statistics
 
-### Row Level Security (RLS)
+### Row Level Security (RLS) - Single Admin Architecture
 - ✅ All tables have RLS enabled
 - ✅ Users can only edit their own data
-- ✅ Admins can view/edit all data
+- ✅ **Single Admin (rob@ursllc.com)** can view/edit/delete all data
 - ✅ All users can view all violations (team transparency)
-- ✅ Photos: team-wide read; admin-only delete; inserts constrained to uploader
-- ✅ Storage: public read (thumbnails), authenticated uploads path-scoped to `user_id`, admin-only delete
+- ✅ Photos: team-wide read; **rob@ursllc.com only** delete; inserts constrained to uploader
+- ✅ Storage: public read (thumbnails), authenticated uploads path-scoped to `user_id`, **rob@ursllc.com only** delete
+
+### Critical Schema Notes (Oct 27, 2025)
+- **Foreign Key Issue Fixed**: `violation_forms_user_id_fkey` does not exist - direct reference only
+- **Admin Security**: All admin features hardcoded to rob@ursllc.com email
+- **Performance Fix**: Photo URL cache clearing removed (caused 10-second delays)
+- **Image Optimization**: Three-tier loading system (thumbnail/expanded/full)
 
 ### Storage Strategy (Photos)
 - **Bucket**: `violation-photos`
