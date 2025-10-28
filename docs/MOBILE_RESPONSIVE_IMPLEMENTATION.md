@@ -60,7 +60,9 @@ This document outlines the comprehensive mobile optimizations implemented for iP
   - Hover effects: Glow enhancement and image zoom (`scale-105`)
   - Overlays: Vice City themed badges (`bg-black/40`, `backdrop-blur-md`, cyan/pink accents)
 - **Performance**: URL caching, smart query limits, adjacent image preloading
-- **Touch Controls**: Isolated to cards, optimized sensitivity (0.22 mobile, 0.15 desktop)
+- **Touch Controls**: Isolated to cards, reduced sensitivity (0.12 mobile, 0.08 desktop) for finer control
+- **Momentum Control**: Reduced velocity multipliers (0.03 mobile, 0.025 desktop) to prevent UI layout breaks
+- **Cache Management**: Size-limited photo cache (200 entries) with automatic cleanup during scrolling
 - **Filter Switching**: Instant with `useMemo` hooks and smart data limits
 
 #### Camera Component (`src/components/CameraCapture.tsx`)

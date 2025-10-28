@@ -549,8 +549,9 @@ All major functionality is now working correctly with the normalized `violation_
 
 ---
 
-**Last Updated:** October 27, 2025 - 11:20 PM  
+**Last Updated:** October 27, 2025 - 11:40 PM  
 **Recent Updates:**
+- ✅ Carousel Scrolling Optimization (rob@ursllc.com mobile-first) (Oct 27 - 11:40 PM)
 - ✅ Admin Security Hardened (rob@ursllc.com only) (Oct 27 - 11:20 PM)
 - ✅ Admin Delete Controls Added to Violation Cards (Oct 27)
 - ✅ Admin Data Display Fixed (Foreign Key Issue) (Oct 27)

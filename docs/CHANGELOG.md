@@ -5,6 +5,34 @@ All notable changes to the SPR Vice City project will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.6.1] - 2025-10-27
+
+### 🎯 **ViolationCarousel Scrolling Optimization - Single Admin Mobile-First**
+
+Comprehensive optimization of carousel scrolling behavior to prevent UI layout breaks during left/right navigation, specifically tailored for single-administrator mobile-first workflow.
+
+### 🔧 **Fixed**
+
+**Carousel Layout Stability**:
+- **Reduced Drag Sensitivity**: 45% reduction (0.12 mobile, 0.08 desktop) for finer control
+- **Controlled Momentum**: 50% reduction in velocity multipliers (0.03 mobile, 0.025 desktop) to prevent overshooting
+- **Auto-Rotation Optimization**: Slower speed (0.008) to eliminate animation conflicts during user scrolling
+- **Smart Cache Management**: Size-limited photo cache (200 entries) with FIFO cleanup to prevent memory bloat
+
+**Performance Improvements**:
+- **Eliminated UI Layout Breaks**: No more visual disruption during rapid scrolling
+- **Memory Efficiency**: Automatic cache cleanup prevents performance degradation during extensive use
+- **Mobile-Optimized**: Touch sensitivity specifically tuned for iPhone thumb control
+- **Single-Admin Workflow**: Optimized for rob@ursllc.com mobile-first usage patterns
+
+### 📱 **Enhanced**
+
+**Mobile User Experience**:
+- **Precise Thumbnail Navigation**: Much finer scroll control for accurate card selection
+- **Stable Visual Layout**: Cards maintain proper positioning during rapid back/forth scrolling  
+- **Consistent Performance**: Smooth operation even during extended scrolling sessions
+- **Gesture-Friendly**: Natural mobile swipe patterns with controlled momentum
+
 ## [3.6.0] - 2025-10-27
 
 ### 🚀 **MAJOR RELEASE - Enhanced ViolationCarousel UI with Grid Layout**

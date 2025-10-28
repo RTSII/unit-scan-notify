@@ -37,7 +37,9 @@ export type CarouselItem = {
 };
 
 // Photo URL cache for performance (reduces repeated getPublicUrl calls)
+// Enhanced cache with size management to prevent memory issues during scrolling
 const photoUrlCache = new Map<string, string>();
+const MAX_CACHE_SIZE = 200; // Limit cache size to prevent memory bloat
 
 // Helper function to convert storage path to public URL with optimized sizing
 // Note: Export.tsx uses its own getPublicUrl() function for full-quality export/print
@@ -89,6 +91,11 @@ function getPhotoUrl(storagePath: string, imageType: 'thumbnail' | 'expanded' | 
   }
   
   // Cache the result to prevent repeated API calls
+  // Clean up old entries if cache gets too large during heavy scrolling
+  if (photoUrlCache.size >= MAX_CACHE_SIZE) {
+    const firstKey = photoUrlCache.keys().next().value;
+    photoUrlCache.delete(firstKey);
+  }
   photoUrlCache.set(cacheKey, url);
   return url;
 }
@@ -339,7 +346,7 @@ export const ViolationCarousel3D: React.FC<{
   // Stops when popover is open or card is hovered
   React.useEffect(() => {
     let animationFrameId: number;
-    const autoRotateSpeed = 0.015;
+    const autoRotateSpeed = 0.008;
     
     const autoRotate = () => {
         if (isCarouselActive && !isPopoverOpen && hoveredCardIndex === null && !isDraggingRef.current) {
@@ -725,8 +732,8 @@ export const ViolationCarousel3D: React.FC<{
                         }}
                         onDrag={(_, info) => {
                           if (isCarouselActive) {
-                            // Optimized sensitivity for smooth, fine control
-                            const sensitivity = isScreenSizeSm ? 0.22 : 0.15;
+                            // Reduced sensitivity for finer control and UI stability (first occurrence)
+                            const sensitivity = isScreenSizeSm ? 0.12 : 0.08;
                             rotation.set(rotation.get() + info.offset.x * sensitivity);
                           }
                         }}
@@ -741,7 +748,7 @@ export const ViolationCarousel3D: React.FC<{
                             const velocityThreshold = 500;
                             
                             if (Math.abs(velocity) > velocityThreshold) {
-                              const velocityMultiplier = isScreenSizeSm ? 0.06 : 0.05;
+                              const velocityMultiplier = isScreenSizeSm ? 0.03 : 0.025;
                               const momentumRotation = velocity * velocityMultiplier;
                               
                               controls.start({
@@ -796,8 +803,8 @@ export const ViolationCarousel3D: React.FC<{
                         }}
                         onDrag={(_, info) => {
                           if (isCarouselActive) {
-                            // Optimized sensitivity for smooth, fine control
-                            const sensitivity = isScreenSizeSm ? 0.22 : 0.15;
+                            // Reduced sensitivity for finer control and UI stability (second occurrence)
+                            const sensitivity = isScreenSizeSm ? 0.12 : 0.08;
                             rotation.set(rotation.get() + info.offset.x * sensitivity);
                           }
                         }}
@@ -812,7 +819,7 @@ export const ViolationCarousel3D: React.FC<{
                             const velocityThreshold = 500;
                             
                             if (Math.abs(velocity) > velocityThreshold) {
-                              const velocityMultiplier = isScreenSizeSm ? 0.06 : 0.05;
+                              const velocityMultiplier = isScreenSizeSm ? 0.03 : 0.025;
                               const momentumRotation = velocity * velocityMultiplier;
                               
                               controls.start({
