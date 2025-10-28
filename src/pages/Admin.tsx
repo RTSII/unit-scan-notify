@@ -750,7 +750,6 @@ Welcome to the team!`);
               <div className="w-auto">
                 <Select value={timeFilter} onValueChange={(value: 'this_week' | 'this_month' | 'all') => setTimeFilter(value)}>
                   <SelectTrigger className="h-[48px] bg-transparent border-0 text-white rounded-none justify-start px-3 w-auto">
-                    <Filter className="w-4 h-4 mr-2 text-vice-cyan/80 flex-shrink-0" />
                     <SelectValue placeholder="Filter by time range" />
                   </SelectTrigger>
                   <SelectContent className="bg-black/90 border-vice-cyan/50 w-auto">
