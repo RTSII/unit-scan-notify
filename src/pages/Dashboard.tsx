@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
-import { Loader2, Camera, BookOpen, FileText, Download, Settings, User, LogOut, ChevronDown, Monitor, Smartphone, Tablet } from 'lucide-react';
+import { Loader2, Camera, BookOpen, FileText, Download, Settings, User, LogOut, ChevronDown } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,8 +23,6 @@ type PresencePayload = {
 
 type PresenceState = Record<string, PresencePayload[]>;
 
-type PreviewMode = 'mobile' | 'tablet' | 'desktop';
-
 export default function Dashboard() {
   const { user, loading, profile, signOut } = useAuth();
   const navigate = useNavigate();
@@ -33,8 +31,6 @@ export default function Dashboard() {
   const [profileExpanded, setProfileExpanded] = useState(false);
   const [activeUsers, setActiveUsers] = useState<PresenceState>({});
   const userMenuRef = useRef<HTMLDivElement>(null);
-  const [previewMode, setPreviewMode] = useState<PreviewMode>('mobile');
-  const [previewEnabled, setPreviewEnabled] = useState(false);
 
   // Subscribe to presence for active users
   useEffect(() => {
@@ -189,43 +185,6 @@ export default function Dashboard() {
     return { x, y };
   };
 
-  // Preview mode constraints for responsive simulation
-  const previewConstraints = {
-    mobile: {
-      maxWidth: '390px',
-      minHeight: '100vh',
-      label: 'iPhone 13 (390px)',
-      borderClass: 'border-vice-pink/40',
-      shadowClass: 'shadow-[0_0_40px_rgba(255,20,147,0.35)]',
-      bgColor: 'bg-gradient-to-br from-black/60 via-vice-purple/20 to-black/60',
-    },
-    tablet: {
-      maxWidth: '834px',
-      minHeight: '100vh',
-      label: 'iPad Pro (834px)',
-      borderClass: 'border-vice-cyan/40',
-      shadowClass: 'shadow-[0_0_40px_rgba(0,255,255,0.35)]',
-      bgColor: 'bg-gradient-to-br from-black/60 via-vice-cyan/10 to-black/60',
-    },
-    desktop: {
-      maxWidth: '1200px',
-      minHeight: '100vh',
-      label: 'Desktop (1200px)',
-      borderClass: 'border-white/30',
-      shadowClass: 'shadow-[0_0_40px_rgba(255,255,255,0.15)]',
-      bgColor: 'bg-gradient-to-br from-black/60 via-white/5 to-black/60',
-    },
-  } as const;
-
-  const currentPreview = previewEnabled ? previewConstraints[previewMode] : {
-    maxWidth: '100%',
-    minHeight: '100vh',
-    label: 'Full Width',
-    borderClass: 'border-transparent',
-    shadowClass: '',
-    bgColor: 'bg-transparent',
-  };
-
   return (
     <div className="min-h-screen bg-black overflow-hidden">
       {/* Global Background */}
@@ -241,39 +200,8 @@ export default function Dashboard() {
       <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-vice-purple/30 to-black/70" />
 
       <div className="relative min-h-screen flex flex-col items-center">
-        <div className={cn(
-          "w-full flex justify-center transition-all duration-500 ease-out",
-          previewEnabled ? "px-4 py-12 sm:px-6 lg:px-8" : ""
-        )}>
-          <div
-            className={cn(
-              'relative w-full overflow-hidden transition-all duration-500 ease-out',
-              previewEnabled && 'border backdrop-blur-3xl',
-              previewEnabled && currentPreview.borderClass,
-              previewEnabled && currentPreview.shadowClass,
-              previewEnabled && currentPreview.bgColor
-            )}
-            style={{
-              maxWidth: currentPreview.maxWidth,
-              minHeight: currentPreview.minHeight,
-              borderRadius: previewEnabled ? (previewMode === 'desktop' ? '28px' : '36px') : '0'
-            }}
-          >
-            {/* Preview Background - Only show when preview is enabled */}
-            {previewEnabled && (
-              <>
-                <div
-                  className="absolute inset-0 bg-cover bg-center"
-                  style={{
-                    backgroundImage: `url(${backgroundImage})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat'
-                  }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-vice-purple/30 to-black/70" />
-              </>
-            )}
+        <div className="w-full flex justify-center">
+          <div className="relative w-full overflow-hidden min-h-screen">
 
             {/* Dashboard Content */}
             <div className="relative flex flex-col min-h-full px-4 sm:px-6 lg:px-10 pb-24 pt-10">
@@ -304,25 +232,6 @@ export default function Dashboard() {
                               Admin
                             </div>
                           </div>
-                          
-                          {/* Preview ON/OFF Toggle */}
-                          <Button
-                            variant="ghost"
-                            onClick={() => setPreviewEnabled(!previewEnabled)}
-                            className={cn(
-                              "relative h-8 w-8 rounded-lg transition-all duration-300 p-0",
-                              previewEnabled
-                                ? "bg-gradient-to-r from-vice-cyan via-vice-purple to-vice-pink shadow-md"
-                                : "bg-black/40 hover:bg-vice-cyan/20 border border-white/10"
-                            )}
-                            title={previewEnabled ? 'Disable Preview Mode' : 'Enable Preview Mode'}
-                          >
-                            <Smartphone className={cn(
-                              "h-4 w-4 transition-colors",
-                              previewEnabled ? "text-white" : "text-white/60"
-                            )} />
-                          </Button>
-                          
                           <button
                             onClick={() => setProfileExpanded(!profileExpanded)}
                             className="p-1 hover:bg-vice-cyan/20 rounded transition-colors"
@@ -416,7 +325,7 @@ export default function Dashboard() {
               {/* Centered Navigation */}
               <div className="flex flex-1 items-center justify-center">
                 <div className="relative" style={{
-                  marginTop: 'clamp(30px, 6vh, 60px)',
+                  marginTop: 'clamp(80px, 12vh, 120px)',
                   marginLeft: 'clamp(-15px, -2vw, -8px)'
                 }}>
                   {/* Arc Menu Buttons */}
@@ -478,61 +387,6 @@ export default function Dashboard() {
                       onClick={() => setIsMenuOpen(!isMenuOpen)}
                     />
                   </div>
-
-                  {/* Device Selection - Bottom of UI (only when preview enabled) */}
-                  <AnimatePresence>
-                    {previewEnabled && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 20 }}
-                        transition={{ type: "spring", duration: 0.3 }}
-                        className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50"
-                      >
-                      <div className="relative flex flex-col items-center gap-3">
-                        {/* Preview Mode Label */}
-                        <div className="text-xs text-vice-cyan whitespace-nowrap font-medium">
-                          {currentPreview.label}
-                        </div>
-                        
-                        {/* Device Selection */}
-                        <div className="relative">
-                          {/* Glow Effect */}
-                          <div className="absolute inset-0 bg-gradient-to-r from-vice-cyan/20 via-vice-purple/20 to-vice-pink/20 rounded-2xl blur-xl" />
-                          <div className="relative flex items-center gap-1 bg-black/40 backdrop-blur-2xl rounded-2xl border border-white/10 p-1 shadow-2xl">
-                            {[
-                              { id: 'mobile' as PreviewMode, icon: Smartphone, label: 'Mobile' },
-                              { id: 'tablet' as PreviewMode, icon: Tablet, label: 'Tablet' },
-                              { id: 'desktop' as PreviewMode, icon: Monitor, label: 'Desktop' },
-                            ].map((option) => (
-                              <button
-                                key={option.id}
-                                onClick={() => setPreviewMode(option.id)}
-                                className={cn(
-                                  'relative flex items-center justify-center p-3 rounded-xl transition-all duration-300',
-                                  previewMode === option.id
-                                    ? 'bg-gradient-to-r from-vice-cyan via-vice-purple to-vice-pink text-white shadow-lg'
-                                    : 'text-white/60 hover:text-white hover:bg-white/10'
-                                )}
-                                title={option.label}
-                              >
-                                <option.icon className="w-5 h-5" />
-                                {previewMode === option.id && (
-                                  <motion.div
-                                    layoutId="activeTab"
-                                    className="absolute inset-0 bg-gradient-to-r from-vice-cyan via-vice-purple to-vice-pink rounded-xl"
-                                    style={{ zIndex: -1 }}
-                                    transition={{ type: "spring", duration: 0.5 }}
-                                  />
-                                )}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                    )}
-                  </AnimatePresence>
                 </div>
               </div>
             </div>

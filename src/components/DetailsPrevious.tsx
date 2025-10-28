@@ -905,7 +905,7 @@ export default function DetailsPrevious() {
           <img 
             src="/nv.png" 
             alt="New Violation header" 
-            className="h-40 w-auto object-contain"
+            className="h-24 w-auto object-contain"
             loading="eager"
           />
         </div>
@@ -913,10 +913,10 @@ export default function DetailsPrevious() {
           <Button
             variant="ghost"
             size="sm"
-            className="text-white hover:bg-vice-cyan/20 min-h-[88px] min-w-[88px] p-1"
+            className="text-white hover:bg-vice-cyan/20 min-h-[44px] min-w-[44px]"
             onClick={() => navigate('/')}
           >
-            <Home className="w-24 h-24" />
+            <Home className="w-5 h-5" />
           </Button>
         </div>
       </div>
