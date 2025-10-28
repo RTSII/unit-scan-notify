@@ -959,8 +959,11 @@ export const ViolationCarousel3D: React.FC<{
                 <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-vice-cyan/20 scrollbar-track-transparent">
                   {/* Loading Spinner - Shown during deletion */}
                   {isDeleting && (
-                    <div className="flex items-center justify-center p-12">
+                    <div className="flex flex-col items-center justify-center py-16 px-8">
                       <LoadingSpinner />
+                      <p className="text-vice-cyan/80 text-sm mt-6 font-medium">
+                        Deleting violation...
+                      </p>
                     </div>
                   )}
 

@@ -542,12 +542,35 @@ Welcome to the team!`);
       if (Number.isNaN(numericId)) {
         throw new Error('Invalid violation form id');
       }
+
+      // Delete violation photos from storage first
+      const { data: photoRecords } = await supabase
+        .from('violation_photos')
+        .select('storage_path')
+        .eq('violation_id', numericId);
+
+      if (photoRecords && photoRecords.length > 0) {
+        const photoPaths = photoRecords
+          .map(p => p.storage_path)
+          .filter((path): path is string => typeof path === 'string' && path.length > 0);
+        
+        if (photoPaths.length > 0) {
+          await supabase.storage
+            .from('violation-photos')
+            .remove(photoPaths);
+        }
+      }
+
+      // Delete the violation form (photos will cascade delete due to FK)
       const { error } = await supabase
         .from('violation_forms')
         .delete()
         .eq('id', numericId);
 
       if (error) throw error;
+
+      // Minimum spinner display time for better UX
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
       // Refresh the data after deletion
       await fetchData();
