@@ -708,7 +708,7 @@ Welcome to the team!`);
       <div className="absolute bottom-10 right-10 w-12 h-12 bg-vice-orange rounded-full opacity-25 blur-md animate-lens-flare-4 z-10"></div>
 
       {/* Content */}
-      <div className="relative z-30 min-h-screen">
+      <div className="relative z-30 min-h-screen flex flex-col">
         {/* Header with centered Admin.png image */}
         <div className="relative flex items-center p-6 bg-black backdrop-blur-sm border-b border-vice-cyan/20 overflow-hidden">
           <div className="absolute left-1/2 transform -translate-x-1/2">
@@ -735,7 +735,7 @@ Welcome to the team!`);
           </div>
         </div>
 
-        <div className="p-4 space-y-4">
+        <div className="flex-1 p-4 space-y-4">
           {/* Integrated Search + Filter */}
           <div className="max-w-xl mx-auto">
             <div className="flex items-stretch gap-0 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.35)] border border-vice-cyan/30 bg-gradient-to-br from-black/50 via-black/40 to-black/30 backdrop-blur-sm">
@@ -1065,15 +1065,15 @@ Welcome to the team!`);
       </div>
 
       {/* Footer with RetroGrid */}
-      <footer className="relative mt-auto border-t border-vice-cyan/20 bg-black/40 backdrop-blur-sm overflow-hidden">
-        <RetroGrid className="opacity-30" angle={65} />
-        <div className="relative z-10 container mx-auto px-4 py-8">
+      <footer className="relative mt-auto border-t border-vice-cyan/20 bg-black/40 backdrop-blur-sm overflow-hidden min-h-[200px]">
+        <RetroGrid className="opacity-40" angle={65} />
+        <div className="relative z-10 container mx-auto px-4 py-12">
           <div className="flex flex-col items-center justify-center gap-4 text-center">
             <div className="flex items-center gap-2">
-              <span className="text-vice-cyan font-bold text-xl">SPR</span>
-              <span className="text-vice-pink font-bold text-xl">Vice City</span>
+              <span className="text-vice-cyan font-bold text-3xl">SPR</span>
+              <span className="text-vice-pink font-bold text-3xl">Vice City</span>
             </div>
-            <p className="text-gray-400 text-sm">Admin Dashboard</p>
+            <p className="text-gray-400 text-base">Admin Dashboard</p>
           </div>
         </div>
       </footer>
