@@ -5,6 +5,7 @@ import { X, Trash2, Calendar, Clock, MapPin, Image as ImageIcon, User } from "lu
 import { Checkbox } from "./ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import LoadingSpinner from "./ui/snow-ball-loading-spinner";
 
 export interface FormLike {
   id: string;
@@ -149,6 +150,7 @@ export const ViolationCarousel3D: React.FC<{
   const [expandedImageUrl, setExpandedImageUrl] = useState<string | null>(null);
   const [hasMoreItems, setHasMoreItems] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
   const controls = useAnimation();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const popoverRef = useRef<HTMLDivElement | null>(null);
@@ -335,10 +337,20 @@ export const ViolationCarousel3D: React.FC<{
     setHoveredCardIndex(index);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (activeForm && selectedForDelete && onDelete) {
-      onDelete(activeForm.id);
-      handleClose();
+      setIsDeleting(true);
+      try {
+        await onDelete(activeForm.id);
+        // Wait a brief moment to show completion before closing
+        await new Promise(resolve => setTimeout(resolve, 300));
+        setIsDeleting(false);
+        handleClose();
+      } catch (error) {
+        // If delete fails, reset state but keep popover open to show error
+        setIsDeleting(false);
+        console.error('Delete failed:', error);
+      }
     }
   };
 
@@ -882,22 +894,36 @@ export const ViolationCarousel3D: React.FC<{
 
         <AnimatePresence mode="wait">
           {isPopoverOpen && activeForm && (
-            <div 
-              className="w-full flex justify-center px-2 sm:px-0 mt-4"
-              style={{ touchAction: 'auto' }}
-              onTouchStart={(e) => e.stopPropagation()}
-              onTouchMove={(e) => e.stopPropagation()}
-              onTouchEnd={(e) => e.stopPropagation()}
-            >
+            <>
+              {/* Backdrop - Click outside to close */}
               <motion.div
-                ref={popoverRef}
-                initial={{ opacity: 0, scale: 0.95, y: -20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -20 }}
-                transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-                className="w-full max-w-2xl p-0 bg-gradient-to-br from-vice-purple/20 via-black/95 to-vice-blue/20 border border-vice-cyan/30 backdrop-blur-sm rounded-2xl shadow-2xl"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+                onClick={handleClose}
+                style={{ touchAction: 'auto' }}
+              />
+              
+              {/* Centered Overlay Card */}
+              <div 
+                className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none"
+                style={{ touchAction: 'auto' }}
+                onTouchStart={(e) => e.stopPropagation()}
+                onTouchMove={(e) => e.stopPropagation()}
+                onTouchEnd={(e) => e.stopPropagation()}
               >
-              <div className="flex flex-col max-h-[80vh] sm:max-h-[70vh]">
+                <motion.div
+                  ref={popoverRef}
+                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                  transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+                  className="w-full max-w-2xl max-h-[90vh] p-0 bg-gradient-to-br from-vice-purple/20 via-black/95 to-vice-blue/20 border border-vice-cyan/30 backdrop-blur-sm rounded-2xl shadow-2xl pointer-events-auto"
+                  onClick={(e) => e.stopPropagation()}
+                >
+              <div className="flex flex-col h-full">
                 {/* Header with title, admin controls, and close button */}
                 <div className="flex items-center justify-between border-b border-vice-cyan/30 p-4 sm:p-6 pb-3 flex-shrink-0">
                   <div>
@@ -950,8 +976,18 @@ export const ViolationCarousel3D: React.FC<{
 
                 {/* Scrollable Content Area */}
                 <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-vice-cyan/20 scrollbar-track-transparent">
+                  {/* Loading Spinner - Shown during deletion */}
+                  {isDeleting && (
+                    <div className="flex flex-col items-center justify-center py-20 px-8 min-h-[350px] overflow-hidden">
+                      <LoadingSpinner />
+                      <p className="text-vice-cyan/80 text-sm mt-8 font-medium">
+                        Deleting violation...
+                      </p>
+                    </div>
+                  )}
+
                   {/* Expanded Image View - Centered below header */}
-                  {expandedImageUrl && (
+                  {!isDeleting && expandedImageUrl && (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
@@ -977,7 +1013,7 @@ export const ViolationCarousel3D: React.FC<{
                   )}
 
                   {/* Details in specified order - Only show when no expanded image */}
-                  {!expandedImageUrl && (
+                  {!isDeleting && !expandedImageUrl && (
                     <div className="p-4 sm:p-6 space-y-4">
                   {/* Date */}
                   <div className="space-y-1">
@@ -1064,8 +1100,9 @@ export const ViolationCarousel3D: React.FC<{
                   )}
                 </div>
               </div>
-            </motion.div>
-          </div>
+              </motion.div>
+            </div>
+            </>
           )}
         </AnimatePresence>
       </div>

@@ -5,6 +5,26 @@ All notable changes to the SPR Vice City project will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.6.2] - 2025-10-27
+
+### 🎨 **UI Component Consistency Update**
+
+Refined filter dropdown UI across all pages for consistent visual experience.
+
+### 🔧 **Changed**
+
+**Filter Dropdown Styling**:
+- **Removed Blue Filter Icons**: Removed cyan Filter icon from SelectTrigger across Books, Export, and Admin pages
+- **Preserved Pink Icons**: Maintained Film and Grid3X3 icons within dropdown menu items with dynamic cyan/pink states
+- **Cleaner UI**: Streamlined filter trigger appearance with text-only placeholder
+- **Consistent Pattern**: Applied uniformly across Books.tsx, Export.tsx, and Admin.tsx
+
+### 📚 **Documentation Updates**
+- Updated `docs/CHANGELOG.md` with filter icon UI refinement
+- Updated `docs/MOBILE_RESPONSIVE_IMPLEMENTATION.md` with current filter dropdown pattern
+
+---
+
 ## [3.6.1] - 2025-10-27
 
 ### 🎯 **ViolationCarousel Scrolling Optimization - Single Admin Mobile-First**

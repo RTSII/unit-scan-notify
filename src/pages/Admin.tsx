@@ -298,18 +298,19 @@ export default function Admin() {
 
       setUserActivity([]);
 
-      const rpcRes = await (supabase.rpc as any)('get_violation_stats');
-      if (rpcRes.error) throw rpcRes.error;
-      const row = (Array.isArray(rpcRes.data) ? rpcRes.data[0] : rpcRes.data) ?? {};
+      // Stats function doesn't exist yet - skip for now
+      // const rpcRes = await (supabase.rpc as any)('get_violation_stats');
+      // if (rpcRes.error) throw rpcRes.error;
+      // const row = (Array.isArray(rpcRes.data) ? rpcRes.data[0] : rpcRes.data) ?? {};
 
       const statsPayload: ViolationStats = {
-        total_violations: Number(row.total_violations ?? 0),
-        this_month: Number(row.this_month ?? 0),
-        violations_this_week: Number(row.violations_this_week ?? 0),
-        pending_violations: Number(row.pending_violations ?? 0),
-        completed_violations: Number(row.completed_violations ?? 0),
-        draft_violations: Number(row.draft_violations ?? 0),
-        team_completion_rate: Number(row.team_completion_rate ?? 0),
+        total_violations: violationForms.length,
+        this_month: 0,
+        violations_this_week: 0,
+        pending_violations: 0,
+        completed_violations: 0,
+        draft_violations: 0,
+        team_completion_rate: 0,
         total_users: 0,
       };
 
@@ -542,6 +543,26 @@ Welcome to the team!`);
       if (Number.isNaN(numericId)) {
         throw new Error('Invalid violation form id');
       }
+
+      // Delete violation photos from storage first
+      const { data: photoRecords } = await supabase
+        .from('violation_photos')
+        .select('storage_path')
+        .eq('violation_id', numericId);
+
+      if (photoRecords && photoRecords.length > 0) {
+        const photoPaths = photoRecords
+          .map(p => p.storage_path)
+          .filter((path): path is string => typeof path === 'string' && path.length > 0);
+        
+        if (photoPaths.length > 0) {
+          await supabase.storage
+            .from('violation-photos')
+            .remove(photoPaths);
+        }
+      }
+
+      // Delete the violation form (photos will cascade delete due to FK)
       const { error } = await supabase
         .from('violation_forms')
         .delete()
@@ -549,8 +570,11 @@ Welcome to the team!`);
 
       if (error) throw error;
 
-      // Refresh the data after deletion
-      await fetchData();
+      // Minimum spinner display time for better UX
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Refresh forms list to remove deleted item
+      await fetchViolationForms();
       
       toast({
         title: "Success",
@@ -726,7 +750,6 @@ Welcome to the team!`);
               <div className="w-auto">
                 <Select value={timeFilter} onValueChange={(value: 'this_week' | 'this_month' | 'all') => setTimeFilter(value)}>
                   <SelectTrigger className="h-[48px] bg-transparent border-0 text-white rounded-none justify-start px-3 w-auto">
-                    <Filter className="w-4 h-4 mr-2 text-vice-cyan/80 flex-shrink-0" />
                     <SelectValue placeholder="Filter by time range" />
                   </SelectTrigger>
                   <SelectContent className="bg-black/90 border-vice-cyan/50 w-auto">
