@@ -229,6 +229,12 @@ export default function Admin() {
           )
         `);
 
+      // Apply occurred_at filter for both this_week and this_month
+      if ((debouncedTimeFilter === 'this_week' || debouncedTimeFilter === 'this_month') && startDate) {
+        baseQuery = baseQuery.gte('occurred_at', startDate.toISOString());
+      }
+
+      // Also apply created_at filter as a fallback
       if (startDate) {
         const startIso = startDate.toISOString();
         baseQuery = baseQuery.filter('created_at', 'gte', startIso);
@@ -245,7 +251,7 @@ export default function Admin() {
 
       if (formsError) throw formsError;
 
-      // Map forms without profiles (profiles join removed due to missing FK)
+      // Map forms without profiles (FK doesn't exist)
       const formsWithProfiles = (formsData ?? []).map((form) => {
         return normalizeFormRecord(form as unknown as JoinedViolationForm, null);
       });
@@ -748,7 +754,6 @@ Welcome to the team!`);
               <div className="w-auto">
                 <Select value={timeFilter} onValueChange={(value: 'this_week' | 'this_month' | 'all') => setTimeFilter(value)}>
                   <SelectTrigger className="h-[48px] bg-transparent border-0 text-white rounded-none justify-start px-3 w-auto">
-                    <Filter className="w-4 h-4 mr-2 text-vice-cyan/80 flex-shrink-0" />
                     <SelectValue placeholder="Filter by time range" />
                   </SelectTrigger>
                   <SelectContent className="bg-black/90 border-vice-cyan/50 w-auto">

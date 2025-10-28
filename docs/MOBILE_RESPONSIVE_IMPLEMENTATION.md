@@ -42,6 +42,15 @@ This document outlines the comprehensive mobile optimizations implemented for iP
 
 ### 5. Component-Specific Mobile Optimizations
 
+#### Filter Dropdown (Books, Export, Admin)
+- **Current Pattern (October 27, 2025)**: Simplified dropdown trigger without blue Filter icon
+- **SelectTrigger**: Text-only placeholder ("Filter by time range") with transparent background
+- **Dropdown Menu Items**: 
+  - Film icon (🎬) for This Week/This Month filters (indicates 3D carousel mode)
+  - Grid3X3 icon (📊) for All Forms filter (indicates grid layout mode)
+  - Dynamic color states: Neon cyan (unselected) → Neon pink (selected)
+- **Visual Consistency**: Unified across Books.tsx, Export.tsx, and Admin.tsx
+
 #### 3D Carousel — Books, Export & Admin
 - **Canonical Spec**: See `docs/3d-carousel.md` (unified authoritative spec and usage guide)
 - **Last Updated**: October 24-25, 2025 (performance optimizations and modern card styling)

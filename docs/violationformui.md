@@ -1,10 +1,21 @@
-# ViolationCarousel UI Component – Complete Implementation Guide
+# ⚠️ DEPRECATED - See 3D-CAROUSEL-STANDARD.md
 
-**Last Updated:** October 27, 2025  
-**Status:** ✅ Production Ready with Grid Layout Support  
-**Component:** `ViolationCarousel3D` in `src/components/ViolationCarousel.tsx`
+**This document is deprecated as of October 28, 2025.**
 
-This document is the **complete authoritative guide** for the ViolationCarousel UI component used across SPR Vice City app pages. It includes both 3D carousel and grid layout modes with performance optimizations.
+**Please refer to the new consolidated documentation:**
+📄 **`3D-CAROUSEL-STANDARD.md`** - The single source of truth for all carousel documentation
+
+**Why deprecated:**
+- This file was last updated Oct 27, missing critical Oct 28 fixes
+- Query patterns shown here include broken profiles FK join (now fixed)
+- Consolidated into 3D-CAROUSEL-STANDARD.md for single source of truth
+- New standard doc includes all grid layout, performance, and troubleshooting content
+
+---
+
+*Original content below is outdated - refer to 3D-CAROUSEL-STANDARD.md for current information*
+
+---
 
 ---
 

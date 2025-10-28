@@ -319,10 +319,10 @@ const DetailsLive = () => {
         <Button
           variant="ghost"
           size="sm"
-          className="text-white hover:bg-white/10 p-2 absolute right-3 sm:right-4"
+          className="text-white hover:bg-white/10 min-h-[44px] min-w-[44px] absolute right-3 sm:right-4"
           onClick={() => navigate('/')}
         >
-          <Home className="w-4 h-4" />
+          <Home className="w-5 h-5" />
         </Button>
       </div>
 
@@ -338,8 +338,11 @@ const DetailsLive = () => {
                   <Input
                     value={formData.date}
                     onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                    placeholder=""
-                    className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-sm h-9 sm:h-10"
+                    placeholder="MM/DD"
+                    inputMode="numeric"
+                    pattern="[0-9/]*"
+                    maxLength={5}
+                    className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-sm h-9 sm:h-10 text-center"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -347,8 +350,11 @@ const DetailsLive = () => {
                   <Input
                     value={formData.time}
                     onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
-                    placeholder=""
-                    className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-sm h-9 sm:h-10"
+                    placeholder="HH:MM"
+                    inputMode="numeric"
+                    pattern="[0-9:]*"
+                    maxLength={5}
+                    className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-sm h-9 sm:h-10 text-center"
                   />
                 </div>
                 <div className="space-y-1.5">

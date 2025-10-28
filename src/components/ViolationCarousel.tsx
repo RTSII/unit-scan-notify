@@ -5,7 +5,7 @@ import { X, Trash2, Calendar, Clock, MapPin, Image as ImageIcon, User } from "lu
 import { Checkbox } from "./ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import LoadingSpinner from "./ui/snow-ball-loading-spinner";
+import DeleteSphereSpinner from "./ui/delete-sphere-spinner";
 
 export interface FormLike {
   id: string;
@@ -976,14 +976,20 @@ export const ViolationCarousel3D: React.FC<{
 
                 {/* Scrollable Content Area */}
                 <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-vice-cyan/20 scrollbar-track-transparent">
-                  {/* Loading Spinner - Shown during deletion */}
+                  {/* Delete Sphere Spinner - Shown during deletion */}
                   {isDeleting && (
-                    <div className="flex flex-col items-center justify-center py-20 px-8 min-h-[350px] overflow-hidden">
-                      <LoadingSpinner />
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      transition={{ duration: 0.3 }}
+                      className="flex flex-col items-center justify-center py-20 px-8 min-h-[350px] overflow-hidden"
+                    >
+                      <DeleteSphereSpinner />
                       <p className="text-vice-cyan/80 text-sm mt-8 font-medium">
                         Deleting violation...
                       </p>
-                    </div>
+                    </motion.div>
                   )}
 
                   {/* Expanded Image View - Centered below header */}
