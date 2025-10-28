@@ -16,6 +16,7 @@ import DetailsPrevious from '@/pages/DetailsPrevious';
 import Books from '@/pages/Books';
 import Export from '@/pages/Export';
 import Admin from '@/pages/Admin';
+import Tutorial from '@/pages/Tutorial';
 import NotFound from '@/pages/NotFound';
 
 function ToolbarWrapper() {
@@ -96,6 +97,7 @@ function App() {
             <Route path="/books" element={<Books />} />
             <Route path="/export" element={<Export />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/tutorial" element={<Tutorial />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>

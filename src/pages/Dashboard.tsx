@@ -2,13 +2,14 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
-import { Loader2, Camera, BookOpen, FileText, Download, Settings, User, LogOut, ChevronDown } from 'lucide-react';
+import { Loader2, Camera, BookOpen, FileText, Download, Settings, User, LogOut, ChevronDown, HelpCircle } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 
 import { SiriOrb } from '../components/ui/siri-orb';
 import { cn } from '@/lib/utils';
+import TutorialSlideshow from '../components/TutorialSlideshow';
 
 // Import the background image properly
 import backgroundImage from '/2.png';
@@ -30,6 +31,7 @@ export default function Dashboard() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [profileExpanded, setProfileExpanded] = useState(false);
   const [activeUsers, setActiveUsers] = useState<PresenceState>({});
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   // Subscribe to presence for active users
@@ -309,6 +311,17 @@ export default function Dashboard() {
 
                       <button
                         onClick={() => {
+                          setIsTutorialOpen(true);
+                          setIsUserMenuOpen(false);
+                        }}
+                        className="w-full px-3 py-2 text-vice-cyan hover:bg-vice-cyan/10 transition-colors duration-200 flex items-center justify-center text-center border-b border-vice-cyan/20"
+                      >
+                        <HelpCircle className="mr-2 h-4 w-4" />
+                        Tutorial
+                      </button>
+
+                      <button
+                        onClick={() => {
                           handleSignOut();
                           setIsUserMenuOpen(false);
                         }}
@@ -321,6 +334,8 @@ export default function Dashboard() {
                   )}
                 </div>
               </div>
+
+              <TutorialSlideshow isOpen={isTutorialOpen} onClose={() => setIsTutorialOpen(false)} />
 
               {/* Centered Navigation */}
               <div className="flex flex-1 items-center justify-center">
