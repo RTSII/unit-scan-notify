@@ -1,12 +1,23 @@
-# 3D Carousel – Unified Spec and App-Wide Implementation
+# ⚠️ DEPRECATED - See 3D-CAROUSEL-STANDARD.md
 
-**Last Updated:** October 24, 2025  
-**Status:** ✅ Optimized for production
+**This document is deprecated as of October 28, 2025.**
 
-This document is the authoritative spec and usage guide for the 3D carousel used app-wide, including performance optimizations and touch control enhancements.
+**Please refer to the new consolidated documentation:**
+📄 **`3D-CAROUSEL-STANDARD.md`** - The single source of truth for all 3D carousel documentation
 
-- **Component**: `ViolationCarousel3D` in `src/components/ViolationCarousel.tsx`
-- **Pages**: `src/pages/Books.tsx`, `src/pages/Export.tsx`, `src/pages/Admin.tsx`
+---
+
+## What's New in the Standard Doc
+
+- ✅ Updated with October 28, 2025 fixes (removed profiles FK join)
+- ✅ Complete troubleshooting guide
+- ✅ Current performance metrics
+- ✅ All optimization details from Oct 24-27, 2025
+- ✅ Consolidated from 3 separate carousel documents
+
+---
+
+*Original content below is outdated - refer to 3D-CAROUSEL-STANDARD.md for current information*
 
 ---
 

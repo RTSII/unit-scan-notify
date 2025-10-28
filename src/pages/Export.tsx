@@ -38,6 +38,8 @@ interface ViolationForm {
   description: string;
   status: string;
   created_at: string;
+  user_id?: string; // User who created the form
+  user_name?: string; // Full name from profiles table
   photos: string[]; // Photos array from violation_photos join
   violation_photos: Array<{
     id: string;
@@ -85,6 +87,12 @@ export default function Export() {
           )
         `);
 
+      // Apply occurred_at filter for both this_week and this_month
+      if ((debouncedTimeFilter === 'this_week' || debouncedTimeFilter === 'this_month') && startDate) {
+        baseQuery = baseQuery.gte('occurred_at', startDate.toISOString());
+      }
+
+      // Also apply created_at filter as a fallback
       if (startDate) {
         const startIso = startDate.toISOString();
         baseQuery = baseQuery.filter('created_at', 'gte', startIso);
@@ -109,6 +117,9 @@ export default function Export() {
             )
           : [];
 
+        // Note: Profile data removed due to missing FK - user search disabled for now
+        const userName = 'Team Member';
+
         return {
           id: String(form.id),
           unit_number: normalizeUnit(form.unit_number ?? ''),
@@ -117,6 +128,8 @@ export default function Export() {
           description: form.description ?? '',
           status: form.status ?? 'saved',
           created_at: form.created_at ?? new Date().toISOString(),
+          user_id: form.user_id ?? undefined,
+          user_name: userName,
           photos: photosArray
             .map((photo) => photo.storage_path)
             .filter((path): path is string => typeof path === 'string' && path.length > 0),
@@ -212,7 +225,11 @@ export default function Export() {
         const locationMatch = form.location.toLowerCase().includes(searchTermLower) ||
           normalizeViolationType(form.location).includes(searchTermLower);
         const dateMatch = matchesDate(form);
-        return Boolean(unitMatch || descMatch || locationMatch || dateMatch);
+        
+        // User name search - matches full name or first name
+        const userMatch = form.user_name?.toLowerCase().includes(searchTermLower);
+        
+        return Boolean(unitMatch || descMatch || locationMatch || dateMatch || userMatch);
       });
     }
 

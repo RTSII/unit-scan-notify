@@ -1,4 +1,21 @@
-# 3D Carousel Implementation Summary - October 25, 2025
+# ⚠️ DEPRECATED - See 3D-CAROUSEL-STANDARD.md
+
+**This document is deprecated as of October 28, 2025.**
+
+**Please refer to the new consolidated documentation:**
+📄 **`3D-CAROUSEL-STANDARD.md`** - The single source of truth for all 3D carousel documentation
+
+This implementation summary has been merged into the new standard document with updated information including:
+- October 28, 2025 fixes (removed profiles FK join)
+- Complete troubleshooting guide
+- Current performance metrics
+- All optimization details consolidated
+
+---
+
+*Original content below is outdated - refer to 3D-CAROUSEL-STANDARD.md for current information*
+
+---
 
 ## ✅ COMPLETE: All Requirements Met
 

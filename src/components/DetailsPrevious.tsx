@@ -784,15 +784,11 @@ export default function DetailsPrevious() {
             throw uploadError;
           }
 
-          const { data: publicUrlData } = supabase.storage
-            .from('violation-photos')
-            .getPublicUrl(path);
-          const publicUrl = publicUrlData.publicUrl;
-
+          // Store ONLY the path, NOT the public URL (generate URL on display)
           photoRows.push({
             violation_id: savedFormId,
             uploaded_by: user.id,
-            storage_path: publicUrl,
+            storage_path: path,  // Store path: {user_id}/{formId}/{filename}.jpg
             created_at: nowIso,
           });
         }

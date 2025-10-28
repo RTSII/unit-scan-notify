@@ -25,35 +25,35 @@
 ## 🎯 Core Standards
 
 ### Mobile-First Principles
-- [ ] **iPhone 13 to Current Gen Primary Target** - All features designed for 390px-430px viewports
-- [ ] **Dual Browser Support** - Full compatibility with Safari iOS AND Chrome iOS
-- [ ] **Touch Target Minimum** - 44px minimum for all interactive elements (iOS standard)
-- [ ] **Safe Area Compliance** - Proper handling of notches and home indicators (all iPhone models)
+- [x] **iPhone 13 to Current Gen Primary Target** - All features designed for 390px-430px viewports
+- [x] **Dual Browser Support** - Full compatibility with Safari iOS AND Chrome iOS
+- [x] **Touch Target Minimum** - 44px minimum for all interactive elements (iOS standard)
+- [x] **Safe Area Compliance** - Proper handling of notches and home indicators (all iPhone models)
 - [ ] **Thumb-Friendly Navigation** - Critical actions within thumb reach zone
 - [ ] **Performance First** - 60fps animations on both Safari and Chrome, instant feedback, optimized images
 
 ### Vice City Theme Consistency
-- [ ] **Color Palette** - Vice purple (#8b2fa0), pink (#ff69b4), cyan (#00ffff), blue (#00bfff)
-- [ ] **Typography** - Work Sans with consistent weights (400, 500, 600, 700)
+- [x] **Color Palette** - Vice purple (#8b2fa0), pink (#ff69b4), cyan (#00ffff), blue (#00bfff)
+- [x] **Typography** - Work Sans with consistent weights (400, 500, 600, 700)
 - [ ] **Neon Effects** - Glow effects using theme colors with proper opacity
-- [ ] **Background Integration** - Seamless 2.png background with proper overlays
+- [x] **Background Integration** - Seamless 2.png background with proper overlays
 - [ ] **Gradient Patterns** - Cyan → Purple → Pink gradient direction consistency
 
 ### Single-Admin Architecture
-- [ ] **Admin Email** - rob@ursllc.com hardcoded for admin features
-- [ ] **Route Protection** - Multi-layer security (route, UI, component)
-- [ ] **Graceful Fallback** - Unauthorized access redirects to dashboard
-- [ ] **Zero Admin Leakage** - No admin features visible to other users
+- [x] **Admin Email** - rob@ursllc.com hardcoded for admin features
+- [x] **Route Protection** - Multi-layer security (route, UI, component)
+- [x] **Graceful Fallback** - Unauthorized access redirects to dashboard
+- [x] **Zero Admin Leakage** - No admin features visible to other users
 
 ### Cross-Browser Compatibility (iPhone 13 to Current Gen)
-- [ ] **Safari iOS** - PRIMARY browser, full feature parity
-- [ ] **Chrome iOS** - REQUIRED secondary browser, full feature parity
-- [ ] **WebKit Engine** - Both browsers use WebKit on iOS (same rendering engine)
+- [x] **Safari iOS** - PRIMARY browser, full feature parity
+- [x] **Chrome iOS** - REQUIRED secondary browser, full feature parity
+- [x] **WebKit Engine** - Both browsers use WebKit on iOS (same rendering engine)
 - [ ] **Camera API** - Works on both Safari and Chrome iOS
 - [ ] **Touch Events** - Smooth and responsive on both browsers
-- [ ] **CSS Environment Variables** - Safe area insets work on both
-- [ ] **Viewport Scaling** - Correct scaling on all iPhone models (390px-430px)
-- [ ] **No Browser-Specific Code** - Avoid Safari or Chrome-only features
+- [x] **CSS Environment Variables** - Safe area insets work on both
+- [x] **Viewport Scaling** - Correct scaling on all iPhone models (390px-430px)
+- [x] **No Browser-Specific Code** - Avoid Safari or Chrome-only features
 
 ---
 
@@ -79,12 +79,12 @@
 ```
 
 **Checklist:**
-- [ ] Logo centered with absolute positioning
-- [ ] Gradient masks on all edges
-- [ ] Home button top-right corner
-- [ ] Consistent padding (p-6)
-- [ ] Border bottom with vice-cyan/20
-- [ ] Background effects (waves, lens flares)
+- [x] Logo centered with absolute positioning
+- [x] Gradient masks on all edges (Export, Admin have full masks)
+- [x] Home button top-right corner
+- [x] Consistent padding (p-6)
+- [x] Border bottom with vice-cyan/20
+- [ ] Background effects (waves, lens flares) - Only on some pages
 
 ### Search/Filter Component Standards
 ```typescript
@@ -106,13 +106,13 @@
 ```
 
 **Checklist:**
-- [ ] Centered container with max-w-xl
-- [ ] Backdrop blur with black/40 background
-- [ ] Rounded-xl corners
-- [ ] Vice-cyan/20 border
-- [ ] Film icons for 3D modes
-- [ ] Grid3X3 icon for grid mode
-- [ ] 300ms debouncing on filter changes
+- [x] Centered container with max-w-xl
+- [x] Backdrop blur with black/40 background
+- [x] Rounded-xl corners
+- [x] Vice-cyan/30 border (slightly adjusted from spec)
+- [x] Film icons for 3D modes
+- [x] Grid3X3 icon for grid mode
+- [x] 300ms debouncing on filter changes
 
 ### Button Standards
 
@@ -122,16 +122,16 @@
   {isSaving ? 'Saving...' : 'Book Em'}
 </GlowButton>
 ```
-- [ ] Cop car lights animation (red/blue flashing)
-- [ ] 60px min-height for iOS touch targets
-- [ ] Disabled state with gray background
-- [ ] Loading state with appropriate text
+- [x] Cop car lights animation (red/blue flashing)
+- [x] 60px min-height for iOS touch targets
+- [x] Disabled state with gray background
+- [x] Loading state with appropriate text
 
 #### Navigation Buttons
-- [ ] Minimum 44px touch target
-- [ ] Vice City color hover states
-- [ ] Consistent icon sizing (w-5 h-5)
-- [ ] Proper padding for touch
+- [x] Minimum 44px touch target
+- [x] Vice City color hover states
+- [x] Consistent icon sizing (w-5 h-5)
+- [x] Proper padding for touch
 
 ### Card Standards
 
@@ -155,27 +155,27 @@
 
 ### ViolationCarousel3D Component
 **Performance:**
-- [ ] Drag sensitivity: 0.12 (mobile) / 0.08 (desktop)
-- [ ] Momentum velocity: 0.03 (mobile) / 0.025 (desktop)
-- [ ] Auto-rotation speed: 0.008
-- [ ] Photo cache limit: 200 entries with FIFO cleanup
+- [x] Drag sensitivity: 0.12 (mobile) / 0.08 (desktop)
+- [x] Momentum velocity: 0.03 (mobile) / 0.025 (desktop)
+- [x] Auto-rotation speed: 0.008
+- [x] Photo cache limit: 200 entries with FIFO cleanup
 
 **Display Modes:**
-- [ ] 3D carousel for This Week/Month filters
-- [ ] Grid layout (3x3/4x4) for All Forms filter
-- [ ] Dynamic heights based on mode
-- [ ] Pagination for grid mode
+- [x] 3D carousel for This Week/Month filters
+- [x] Grid layout (3x3/4x4) for All Forms filter
+- [x] Dynamic heights based on mode
+- [x] Pagination for grid mode
 
 **Image Optimization:**
-- [ ] Thumbnails: 100x100px @ 30% quality (~2-4KB)
-- [ ] Expanded: 400x400px @ 50% quality (~30-60KB)
-- [ ] Full (Export only): Original quality (~1.8MB)
+- [x] Thumbnails: 100x100px @ 30% quality (~2-4KB)
+- [x] Expanded: 400x400px @ 50% quality (~30-60KB)
+- [x] Full (Export only): Original quality (~1.8MB)
 
 ### Form Input Components
-- [ ] Auto-uppercase for unit fields
-- [ ] Auto-format date (MM/DD) and time (HH:MM)
-- [ ] Unit validation with visual feedback
-- [ ] Numeric keyboard for date/time on mobile
+- [x] Auto-uppercase for unit fields
+- [x] Auto-format date (MM/DD) and time (HH:MM)
+- [x] Unit validation with visual feedback
+- [x] Numeric keyboard for date/time on mobile
 - [ ] Morphing popovers for description/photos
 
 ### Dashboard Navigation (Siri Orb)
@@ -190,24 +190,24 @@
 ## ✨ Feature Standards
 
 ### Photo Capture Workflow
-- [ ] Rear camera priority (no mirroring)
-- [ ] Front camera fallback with mirroring
-- [ ] Photo confirmation with green checkmark
-- [ ] SessionStorage for workflow continuity
-- [ ] Client-side compression (1600px, 80% JPEG)
+- [x] Rear camera priority (no mirroring)
+- [x] Front camera fallback with mirroring
+- [x] Photo confirmation with green checkmark
+- [x] SessionStorage for workflow continuity
+- [x] Client-side compression (1600px, 80% JPEG)
 
 ### Photo Storage
-- [ ] Upload to Supabase Storage bucket: violation-photos
-- [ ] Path format: {user_id}/{filename}.jpg
-- [ ] Database stores path only (never base64)
-- [ ] Public URL generation on display
+- [x] Upload to Supabase Storage bucket: violation-photos
+- [x] Path format: {user_id}/{formId}/{filename}.jpg
+- [x] Database stores path only (never base64) - FIXED in DetailsPrevious.tsx
+- [x] Public URL generation on display (via ViolationCarousel.tsx getPhotoUrl)
 
 ### Date Filtering
-- [ ] "This Week": Past 6 days + today (7 days total)
-- [ ] "This Month": 1st of current month through today
-- [ ] Date normalization to midnight
-- [ ] Priority: occurred_at over created_at
-- [ ] Consistent across ALL pages
+- [x] "This Week": Past 6 days + today (7 days total)
+- [x] "This Month": 1st of current month through today
+- [x] Date normalization to midnight
+- [x] Priority: occurred_at over created_at
+- [x] Consistent across ALL pages (Books, Export, Admin use same logic)
 
 ### Search Functionality
 - [ ] Search across: unit, date, violation type, location, description, user

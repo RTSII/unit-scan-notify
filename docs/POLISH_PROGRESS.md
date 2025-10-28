@@ -15,6 +15,57 @@
 - [x] **Export.tsx** - Already standardized with gradient masks
 - [x] **Admin.tsx** - Already standardized (h-32 mobile, sm:h-24 desktop)
 
+### Search/Filter Component Consistency
+- [x] **Books.tsx** - Verified: max-w-xl, backdrop blur, rounded-xl, Film/Grid3X3 icons
+- [x] **Export.tsx** - Verified: Identical to Books.tsx
+- [x] **Admin.tsx** - Verified: Identical to Books.tsx and Export.tsx
+- [x] **300ms debouncing** - Implemented across all three pages
+
+### ViolationCarousel3D Performance
+- [x] **Drag sensitivity** - 0.12 mobile / 0.08 desktop (verified)
+- [x] **Momentum velocity** - 0.03 mobile / 0.025 desktop (verified)
+- [x] **Auto-rotation** - 0.008 speed (verified)
+- [x] **Photo cache** - 200 entry limit with FIFO cleanup (verified)
+- [x] **Display modes** - 3D carousel and grid layout with dynamic heights
+- [x] **Image optimization** - Thumbnails, expanded, and full quality tiers
+
+### GlowButton (Book Em) Implementation
+- [x] **Cop car lights animation** - Red/blue flashing verified
+- [x] **60px min-height** - iOS touch target compliance
+- [x] **Disabled state** - Gray background
+- [x] **Loading state** - Text changes appropriately
+
+### Form Input Enhancements
+- [x] **Auto-uppercase** - Unit fields use normalizeUnit() function
+- [x] **Numeric keyboard** - inputMode="numeric" on date/time (fixed DetailsLive.tsx)
+- [x] **Input patterns** - Date (MM/DD), Time (HH:MM) with pattern validation
+- [x] **Placeholders** - Added to DetailsLive.tsx for consistency
+- [x] **Unit validation** - Visual feedback with normalizeAndValidateUnit()
+
+### Admin Delete Animation
+- [x] **DeleteSphereSpinner component** - Vice City themed spinning sphere animation
+- [x] **Clockwise rotation** - Multiple rotating rings (outer, middle, inner) spinning clockwise
+- [x] **Centered in card** - Animation properly contained within Violation Details card
+- [x] **Smooth transitions** - Fade-in animation when delete starts, fade-out when complete
+- [x] **Visual feedback** - Pulsing glow effects with cyan → pink → cyan color cycle
+- [x] **Proper timing** - 1800ms animation display (1500ms delete + 300ms completion)
+
+### User Name Search Filtering (DISABLED - Oct 28, 2025)
+- [x] **Attempt made** - Added user_name field and profiles join for user search
+- [x] **Issue identified** - Foreign key `violation_forms_user_id_fkey` doesn't exist in database
+- [x] **Temporary fix** - Removed profiles join to fix broken queries
+- [x] **User search disabled** - Feature requires FK migration to enable
+- [x] **Placeholder reverted** - All three pages now say "Search Unit #, Date, or Violation type..."
+- [x] **Photos working** - Carousel now displays thumbnails correctly after removing broken FK
+
+### This Month Filter Fix (Oct 28, 2025)
+- [x] **Root cause identified** - Server-side query only filtered by created_at, but client-side used occurred_at
+- [x] **Books.tsx fixed** - Now filters by occurred_at for both this_week and this_month
+- [x] **Export.tsx fixed** - Same fix applied for consistency
+- [x] **Admin.tsx fixed** - Same fix applied for consistency
+- [x] **Fallback maintained** - Still filters by created_at as backup for old records
+- [x] **Accurate counts** - Carousel now displays correct number of forms for This Month filter
+
 ### Core Standards - Mobile-First Principles
 - [x] **Viewport Meta Tags** - Properly configured with viewport-fit=cover, user-scalable=no
 - [x] **Tailwind Config** - iPhone breakpoints configured (375px, 390px, 393px, 428px)

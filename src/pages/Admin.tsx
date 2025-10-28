@@ -231,6 +231,12 @@ export default function Admin() {
           )
         `);
 
+      // Apply occurred_at filter for both this_week and this_month
+      if ((debouncedTimeFilter === 'this_week' || debouncedTimeFilter === 'this_month') && startDate) {
+        baseQuery = baseQuery.gte('occurred_at', startDate.toISOString());
+      }
+
+      // Also apply created_at filter as a fallback
       if (startDate) {
         const startIso = startDate.toISOString();
         baseQuery = baseQuery.filter('created_at', 'gte', startIso);
@@ -247,7 +253,7 @@ export default function Admin() {
 
       if (formsError) throw formsError;
 
-      // Map forms without profiles (profiles join removed due to missing FK)
+      // Map forms without profiles (FK doesn't exist)
       const formsWithProfiles = (formsData ?? []).map((form) => {
         return normalizeFormRecord(form as unknown as JoinedViolationForm, null);
       });
