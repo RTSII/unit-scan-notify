@@ -221,13 +221,13 @@
 /* Snow Ball Loading Spinner - Custom neon pink/blue theme */
 @keyframes ball {
   from {
-    transform: rotate(0) translateY(-6.5em);
+    transform: rotate(0) translateY(-4.8em);
   }
   50% {
-    transform: rotate(180deg) translateY(-6em);
+    transform: rotate(180deg) translateY(-4.5em);
   }
   to {
-    transform: rotate(360deg) translateY(-6.5em);
+    transform: rotate(360deg) translateY(-4.8em);
   }
 }
 
@@ -269,10 +269,12 @@
 
 .pl {
   display: block;
-  width: 8em;
-  height: 8em;
+  width: 6em;
+  height: 6em;
+  max-width: 100%;
   margin: 0 auto;
   position: relative;
+  overflow: visible; /* Allow glow effects but contained by parent */
 }
 
 .pl__ball,
@@ -350,8 +352,8 @@
     inset 0 0 0.8em rgba(255, 20, 147, 0.8);
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) rotate(0) translateY(-6.5em);
-  transform-origin: 50% 6.5em;
+  transform: translate(-50%, -50%) rotate(0) translateY(-4.8em);
+  transform-origin: 50% 4.8em;
   width: 2.5em;
   height: 2.5em;
   z-index: 3;

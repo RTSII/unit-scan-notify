@@ -342,9 +342,14 @@ export const ViolationCarousel3D: React.FC<{
       setIsDeleting(true);
       try {
         await onDelete(activeForm.id);
-        handleClose();
-      } finally {
+        // Wait a brief moment to show completion before closing
+        await new Promise(resolve => setTimeout(resolve, 300));
         setIsDeleting(false);
+        handleClose();
+      } catch (error) {
+        // If delete fails, reset state but keep popover open to show error
+        setIsDeleting(false);
+        console.error('Delete failed:', error);
       }
     }
   };
@@ -973,9 +978,9 @@ export const ViolationCarousel3D: React.FC<{
                 <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-vice-cyan/20 scrollbar-track-transparent">
                   {/* Loading Spinner - Shown during deletion */}
                   {isDeleting && (
-                    <div className="flex flex-col items-center justify-center py-16 px-8">
+                    <div className="flex flex-col items-center justify-center py-20 px-8 min-h-[350px] overflow-hidden">
                       <LoadingSpinner />
-                      <p className="text-vice-cyan/80 text-sm mt-6 font-medium">
+                      <p className="text-vice-cyan/80 text-sm mt-8 font-medium">
                         Deleting violation...
                       </p>
                     </div>
