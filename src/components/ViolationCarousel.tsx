@@ -5,6 +5,7 @@ import { X, Trash2, Calendar, Clock, MapPin, Image as ImageIcon, User } from "lu
 import { Checkbox } from "./ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import LoadingSpinner from "./ui/snow-ball-loading-spinner";
 
 export interface FormLike {
   id: string;
@@ -149,6 +150,7 @@ export const ViolationCarousel3D: React.FC<{
   const [expandedImageUrl, setExpandedImageUrl] = useState<string | null>(null);
   const [hasMoreItems, setHasMoreItems] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
   const controls = useAnimation();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const popoverRef = useRef<HTMLDivElement | null>(null);
@@ -335,10 +337,15 @@ export const ViolationCarousel3D: React.FC<{
     setHoveredCardIndex(index);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (activeForm && selectedForDelete && onDelete) {
-      onDelete(activeForm.id);
-      handleClose();
+      setIsDeleting(true);
+      try {
+        await onDelete(activeForm.id);
+        handleClose();
+      } finally {
+        setIsDeleting(false);
+      }
     }
   };
 
@@ -950,8 +957,15 @@ export const ViolationCarousel3D: React.FC<{
 
                 {/* Scrollable Content Area */}
                 <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-vice-cyan/20 scrollbar-track-transparent">
+                  {/* Loading Spinner - Shown during deletion */}
+                  {isDeleting && (
+                    <div className="flex items-center justify-center p-12">
+                      <LoadingSpinner />
+                    </div>
+                  )}
+
                   {/* Expanded Image View - Centered below header */}
-                  {expandedImageUrl && (
+                  {!isDeleting && expandedImageUrl && (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
@@ -977,7 +991,7 @@ export const ViolationCarousel3D: React.FC<{
                   )}
 
                   {/* Details in specified order - Only show when no expanded image */}
-                  {!expandedImageUrl && (
+                  {!isDeleting && !expandedImageUrl && (
                     <div className="p-4 sm:p-6 space-y-4">
                   {/* Date */}
                   <div className="space-y-1">
