@@ -40,6 +40,7 @@ import {
 } from "framer-motion";
 import { ViolationCarousel3D } from '../components/ViolationCarousel';
 import type { Tables } from '../integrations/supabase/types';
+import { RetroGrid } from '../components/ui/retro-grid';
 
 interface Invite {
   id: string;
@@ -1062,6 +1063,20 @@ Welcome to the team!`);
         </Card>
         </div>
       </div>
+
+      {/* Footer with RetroGrid */}
+      <footer className="relative mt-auto border-t border-vice-cyan/20 bg-black/40 backdrop-blur-sm overflow-hidden">
+        <RetroGrid className="opacity-30" angle={65} />
+        <div className="relative z-10 container mx-auto px-4 py-8">
+          <div className="flex flex-col items-center justify-center gap-4 text-center">
+            <div className="flex items-center gap-2">
+              <span className="text-vice-cyan font-bold text-xl">SPR</span>
+              <span className="text-vice-pink font-bold text-xl">Vice City</span>
+            </div>
+            <p className="text-gray-400 text-sm">Admin Dashboard</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
