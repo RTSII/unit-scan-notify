@@ -22,12 +22,17 @@
 - [x] **300ms debouncing** - Implemented across all three pages
 
 ### ViolationCarousel3D Performance
-- [x] **Drag sensitivity** - 0.12 mobile / 0.08 desktop (verified)
-- [x] **Momentum velocity** - 0.03 mobile / 0.025 desktop (verified)
+- [x] **Drag sensitivity** - 0.10 mobile / 0.06 desktop (Oct 28 evening - further optimized)
+- [x] **Momentum velocity** - 0.02 mobile / 0.015 desktop (Oct 28 evening - further reduced)
+- [x] **Velocity threshold** - 600 (increased for tighter control)
+- [x] **Rotation normalization** - Applied on every drag update (prevents layout breaking)
+- [x] **Rotation locking** - Exact position lock after snap completes
+- [x] **Shortest-path rotation** - Prevents full 360° spins during snap
 - [x] **Auto-rotation** - 0.008 speed (verified)
 - [x] **Photo cache** - 200 entry limit with FIFO cleanup (verified)
 - [x] **Display modes** - 3D carousel and grid layout with dynamic heights
 - [x] **Image optimization** - Thumbnails, expanded, and full quality tiers
+- [x] **Layout stability** - Cards stay locked in UI during rapid scrolling (FIXED Oct 28)
 
 ### GlowButton (Book Em) Implementation
 - [x] **Cop car lights animation** - Red/blue flashing verified
@@ -169,5 +174,27 @@
 
 ---
 
-**Last Updated:** October 28, 2025 12:20 AM  
+## 🔧 Recent Fixes (Oct 28, 2025 Evening)
+
+### Carousel Layout Stability Fix
+**Issue:** Thumbnail cards breaking out of UI carousel layout after scrolling back and forth left and right.
+
+**Root Cause:**
+- Rotation values accumulating errors during rapid drag operations
+- Momentum physics causing overshooting
+- No normalization leading to cards escaping cylindrical layout
+
+**Solution Implemented:**
+1. ✅ Added rotation normalization on every drag update: `((rotation % 360) + 360) % 360`
+2. ✅ Reduced drag sensitivity: 0.10/0.06 (mobile/desktop) - 17% further reduction
+3. ✅ Reduced momentum multiplier: 0.02/0.015 - 33% further reduction
+4. ✅ Increased velocity threshold to 600 for tighter control
+5. ✅ Implemented rotation locking after snap completes
+6. ✅ Added shortest-path rotation calculation (prevents full 360° spins)
+
+**Result:** Fine/precise/accurate navigation with cards locked in UI carousel layout properly.
+
+---
+
+**Last Updated:** October 28, 2025 3:45 PM  
 **Updated By:** Cascade AI

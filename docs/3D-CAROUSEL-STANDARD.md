@@ -197,12 +197,13 @@ const formsWithPhotos: ViolationForm[] = (data ?? []).map((form) => {
 ```
 
 **Drag Parameters:**
-- **Sensitivity:** `0.12` (mobile), `0.08` (desktop) - Fine control
-- **Momentum Velocity:** `0.03` (mobile), `0.025` (desktop) - Controlled flick
+- **Sensitivity:** `0.10` (mobile), `0.06` (desktop) - Fine control with rotation normalization
+- **Momentum Velocity:** `0.02` (mobile), `0.015` (desktop) - Controlled flick, reduced overshoot
+- **Velocity Threshold:** `600` - Higher threshold for tighter control
 - **Auto-rotation Speed:** `0.008` - Slow, non-intrusive
 - **Spring Physics:**
-  - Momentum: `{ stiffness: 200, damping: 28, mass: 0.5 }`
-  - Snap: `{ stiffness: 250, damping: 32, mass: 0.4 }`
+  - Momentum: `{ stiffness: 250, damping: 32, mass: 0.4 }`
+  - Snap: `{ stiffness: 300, damping: 35, mass: 0.3 }` - Tighter snap behavior
 
 ### Click Detection
 
@@ -427,12 +428,17 @@ if (startDate) {
 **Root Cause:**
 - Drag sensitivity too high causing overshooting
 - Momentum physics too aggressive
+- Rotation accumulation errors during rapid back-and-forth scrolling
+- No normalization causing cards to escape cylindrical layout
 
 **Solution:**
-- Oct 27, 2025 optimization reduced sensitivity by 45%
-- Reduced momentum by 50%
-- Slowed auto-rotation by 47%
-- Current values are optimal - do not increase
+- Oct 28, 2025 fix: Added rotation normalization on every drag update
+- Reduced sensitivity: 0.10/0.06 (mobile/desktop) - 17% further reduction
+- Reduced momentum: 0.02/0.015 - 33% further reduction
+- Increased velocity threshold to 600 for tighter control
+- Added rotation locking after snap completes
+- Implemented shortest-path rotation to prevent full 360° spins
+- Current values provide precise, locked navigation - do not increase
 
 ### Issue: User Search Not Working
 
@@ -469,7 +475,17 @@ Then restore profiles join in queries.
 
 ## Change Log
 
-### October 28, 2025
+### October 28, 2025 (Evening)
+- **CRITICAL FIX:** Carousel layout stability - cards stay locked in UI
+- Added rotation normalization on every drag update (prevents accumulation errors)
+- Reduced drag sensitivity: 0.10/0.06 (17% further reduction from Oct 27)
+- Reduced momentum: 0.02/0.015 (33% further reduction from Oct 27)
+- Increased velocity threshold to 600 for tighter control
+- Implemented rotation locking after snap completes
+- Added shortest-path rotation calculation (prevents full 360° spins)
+- Fine/precise/accurate navigation achieved
+
+### October 28, 2025 (Morning)
 - **CRITICAL FIX:** Removed broken profiles FK join from all three pages
 - Photos now display correctly in carousel
 - User search temporarily disabled until FK is created
