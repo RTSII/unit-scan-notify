@@ -298,18 +298,19 @@ export default function Admin() {
 
       setUserActivity([]);
 
-      const rpcRes = await (supabase.rpc as any)('get_violation_stats');
-      if (rpcRes.error) throw rpcRes.error;
-      const row = (Array.isArray(rpcRes.data) ? rpcRes.data[0] : rpcRes.data) ?? {};
+      // Stats function doesn't exist yet - skip for now
+      // const rpcRes = await (supabase.rpc as any)('get_violation_stats');
+      // if (rpcRes.error) throw rpcRes.error;
+      // const row = (Array.isArray(rpcRes.data) ? rpcRes.data[0] : rpcRes.data) ?? {};
 
       const statsPayload: ViolationStats = {
-        total_violations: Number(row.total_violations ?? 0),
-        this_month: Number(row.this_month ?? 0),
-        violations_this_week: Number(row.violations_this_week ?? 0),
-        pending_violations: Number(row.pending_violations ?? 0),
-        completed_violations: Number(row.completed_violations ?? 0),
-        draft_violations: Number(row.draft_violations ?? 0),
-        team_completion_rate: Number(row.team_completion_rate ?? 0),
+        total_violations: violationForms.length,
+        this_month: 0,
+        violations_this_week: 0,
+        pending_violations: 0,
+        completed_violations: 0,
+        draft_violations: 0,
+        team_completion_rate: 0,
         total_users: 0,
       };
 
@@ -572,8 +573,8 @@ Welcome to the team!`);
       // Minimum spinner display time for better UX
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      // Refresh the data after deletion
-      await fetchData();
+      // Refresh forms list to remove deleted item
+      await fetchViolationForms();
       
       toast({
         title: "Success",

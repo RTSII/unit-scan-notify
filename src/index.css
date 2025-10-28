@@ -268,9 +268,7 @@
 }
 
 .pl {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
   width: 8em;
   height: 8em;
   margin: 0 auto;
