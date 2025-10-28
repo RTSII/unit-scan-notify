@@ -34,23 +34,18 @@ const tutorialSteps: TutorialStep[] = [
   },
   {
     title: "Capture - New Violations",
-    description: "Use the Capture feature to document new violations. Take photos directly from your device camera, add location details, and categorize the violation type. All data is instantly saved to the cloud.",
+    description: "Use the Capture feature to document new violations in the field. Take photos directly from your device camera, add location details, and categorize the violation type. All data is instantly saved to the cloud.",
     image: "/nv.png"
   },
   {
-    title: "Details - Review History",
-    description: "The Details section provides comprehensive violation history. View all submitted violations with timestamps, photos, and location data. Track resolution status and add follow-up notes.",
+    title: "Details - Add Previous Violations",
+    description: "Use the Details section to add violations that occurred previously. Upload photos you took earlier, add the date when the violation occurred, and enter location and violation details. Perfect for catching up on documentation.",
     image: "/image.png"
   },
   {
     title: "Export - Generate Reports",
     description: "Export your data in multiple formats (PDF, Excel, CSV). Generate custom reports for board meetings, audits, or record-keeping. Filter by date range and violation type.",
     image: "/Export.png"
-  },
-  {
-    title: "Admin Panel (Admin Users)",
-    description: "Admin users have access to additional features including user management, invite system, activity tracking, and violation statistics. Manage the entire system from one centralized location.",
-    image: "/Admin.png"
   },
   {
     title: "User Profile & Active Users",
