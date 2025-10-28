@@ -18,8 +18,8 @@ interface TutorialSlideshowProps {
 
 const tutorialSteps: TutorialStep[] = [
   {
-    title: "Welcome to SPR Vice City",
-    description: "Your complete mobile solution for HOA violation tracking and management. This tutorial will guide you through the main features of the app.",
+    title: "411 on SPR Vice City",
+    description: "",
     image: "/vicecity.png"
   },
   {
@@ -82,7 +82,7 @@ export default function TutorialSlideshow({ isOpen, onClose }: TutorialSlideshow
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl w-[95vw] sm:w-full h-[85vh] sm:h-[90vh] p-0 bg-gradient-to-br from-black via-vice-purple/20 to-black border-2 border-vice-cyan/30 overflow-hidden safe-top safe-bottom">
+      <DialogContent className="max-w-4xl w-[95vw] sm:w-full h-[90vh] p-0 bg-gradient-to-br from-black via-vice-purple/20 to-black border-2 border-vice-cyan/30 overflow-y-auto safe-top safe-bottom">
         <div className="relative h-full flex flex-col">
           <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-50 flex gap-2">
             <Button
@@ -107,7 +107,7 @@ export default function TutorialSlideshow({ isOpen, onClose }: TutorialSlideshow
             </Button>
           </div>
 
-          <div className="flex-1 relative overflow-hidden">
+          <div className="flex-1 relative">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentStep}
@@ -115,29 +115,31 @@ export default function TutorialSlideshow({ isOpen, onClose }: TutorialSlideshow
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -100 }}
                 transition={{ duration: 0.3 }}
-                className="h-full flex flex-col items-center justify-center p-4 sm:p-6 md:p-8"
+                className="min-h-full flex flex-col items-center justify-center p-3 sm:p-4 md:p-6 py-16 sm:py-20"
               >
-                <div className="text-center mb-6">
-                  <div className="inline-block px-4 py-1 bg-vice-cyan/20 rounded-full border border-vice-cyan/30 mb-4">
+                <div className="text-center mb-3 sm:mb-4">
+                  <div className="inline-block px-3 py-1 bg-vice-cyan/20 rounded-full border border-vice-cyan/30 mb-2 sm:mb-3">
                     <span className="text-vice-cyan text-sm font-medium">
                       Step {currentStep + 1} of {tutorialSteps.length}
                     </span>
                   </div>
-                  <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3 sm:mb-4 text-shadow-lg">
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-2 text-shadow-lg">
                     {tutorialSteps[currentStep].title}
                   </h2>
-                  <p className="text-sm sm:text-base md:text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed px-2">
-                    {tutorialSteps[currentStep].description}
-                  </p>
+                  {tutorialSteps[currentStep].description && (
+                    <p className="text-xs sm:text-sm md:text-base text-gray-300 max-w-xl mx-auto leading-snug px-2">
+                      {tutorialSteps[currentStep].description}
+                    </p>
+                  )}
                 </div>
 
                 {tutorialSteps[currentStep].image && (
-                  <div className="relative w-full max-w-[280px] sm:max-w-md md:max-w-2xl lg:max-w-3xl mx-auto mt-4">
-                    <div className="aspect-video rounded-lg overflow-hidden border-2 border-vice-cyan/30 shadow-2xl">
+                  <div className="relative w-full max-w-[320px] sm:max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto mt-3 sm:mt-4">
+                    <div className="aspect-video rounded-lg overflow-hidden border-2 border-vice-cyan/30 shadow-2xl bg-black">
                       <img
                         src={tutorialSteps[currentStep].image}
                         alt={tutorialSteps[currentStep].title}
-                        className="w-full h-full object-contain bg-black/50"
+                        className="w-full h-full object-cover"
                       />
                     </div>
                   </div>
@@ -146,7 +148,7 @@ export default function TutorialSlideshow({ isOpen, onClose }: TutorialSlideshow
             </AnimatePresence>
           </div>
 
-          <div className="flex items-center justify-between px-3 sm:px-6 md:px-8 py-4 sm:py-5 md:py-6 bg-black/50 backdrop-blur-sm border-t border-vice-cyan/30">
+          <div className="flex items-center justify-between px-2 sm:px-4 md:px-6 py-3 sm:py-4 bg-black/50 backdrop-blur-sm border-t border-vice-cyan/30 shrink-0">
             <Button
               onClick={prevStep}
               variant="ghost"
