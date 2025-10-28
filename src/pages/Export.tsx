@@ -19,9 +19,7 @@ import {
   Clock, 
   Mail, 
   Printer,
-  X,
-  Film,
-  Grid3X3
+  X
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { normalizeUnit } from '@/utils/unitFormat';
@@ -488,22 +486,13 @@ export default function Export() {
                   </SelectTrigger>
                   <SelectContent className="bg-black/90 border-vice-cyan/50 w-auto">
                     <SelectItem value="this_week" className="text-white hover:bg-vice-cyan/20">
-                      <div className="flex items-center gap-2">
-                        <Film className={`w-4 h-4 ${timeFilter === 'this_week' ? 'text-vice-pink' : 'text-vice-cyan'}`} />
-                        <span>This Week</span>
-                      </div>
+                      This Week
                     </SelectItem>
                     <SelectItem value="this_month" className="text-white hover:bg-vice-cyan/20">
-                      <div className="flex items-center gap-2">
-                        <Film className={`w-4 h-4 ${timeFilter === 'this_month' ? 'text-vice-pink' : 'text-vice-cyan'}`} />
-                        <span>This Month</span>
-                      </div>
+                      This Month
                     </SelectItem>
                     <SelectItem value="all" className="text-white hover:bg-vice-cyan/20">
-                      <div className="flex items-center gap-2">
-                        <Grid3X3 className={`w-4 h-4 ${timeFilter === 'all' ? 'text-vice-pink' : 'text-vice-cyan'}`} />
-                        <span>All Forms</span>
-                      </div>
+                      All Forms
                     </SelectItem>
                   </SelectContent>
                 </Select>
