@@ -25,7 +25,8 @@ import {
   ChevronDown,
   Key,
   Search,
-  Filter
+  Filter,
+  MessageSquare
 } from 'lucide-react';
 import {
   Select,
@@ -41,6 +42,8 @@ import {
 import { ViolationCarousel3D } from '../components/ViolationCarousel';
 import type { Tables } from '../integrations/supabase/types';
 import { RetroGrid } from '../components/ui/retro-grid';
+import { PinManagementDialog } from '../components/PinManagementDialog';
+import { ConversationsDialog } from '../components/ConversationsDialog';
 
 interface Invite {
   id: string;
@@ -205,6 +208,10 @@ export default function Admin() {
   const [profileExpanded, setProfileExpanded] = useState(false);
   const [activeUsers, setActiveUsers] = useState<PresenceState>({});
   const hasFetchedDataRef = useRef(false);
+  
+  // Dialog states
+  const [pinDialogOpen, setPinDialogOpen] = useState(false);
+  const [conversationsDialogOpen, setConversationsDialogOpen] = useState(false);
 
   const fetchViolationForms = useCallback(async () => {
     try {
@@ -862,6 +869,37 @@ Welcome to the team!`);
           </Card>
         )}
 
+        {/* Admin Tools */}
+        <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <Key className="w-5 h-5 text-vice-cyan" />
+              Admin Tools
+            </CardTitle>
+            <CardDescription className="text-gray-300">
+              Manage user settings and view conversations
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                onClick={() => setPinDialogOpen(true)}
+                className="bg-vice-purple/20 hover:bg-vice-purple/30 text-white border border-vice-purple/50"
+              >
+                <Key className="w-4 h-4 mr-2" />
+                Update PINs
+              </Button>
+              <Button
+                onClick={() => setConversationsDialogOpen(true)}
+                className="bg-vice-cyan/20 hover:bg-vice-cyan/30 text-white border border-vice-cyan/50"
+              >
+                <MessageSquare className="w-4 h-4 mr-2" />
+                View Conversations
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Create Invite */}
         <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm">
           <CardHeader>
@@ -1077,6 +1115,10 @@ Welcome to the team!`);
           </div>
         </div>
       </footer>
+      
+      {/* Dialogs */}
+      <PinManagementDialog open={pinDialogOpen} onOpenChange={setPinDialogOpen} />
+      <ConversationsDialog open={conversationsDialogOpen} onOpenChange={setConversationsDialogOpen} />
     </div>
   );
 }
