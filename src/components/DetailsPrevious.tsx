@@ -946,9 +946,9 @@ export default function DetailsPrevious() {
                     className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-sm h-11 text-center w-[75px] mx-auto px-1.5"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 flex flex-col items-center">
                   <Label className="text-vice-cyan font-medium text-sm text-center block">Time</Label>
-                  <div className="flex gap-1.5 justify-center items-center">
+                  <div className="flex gap-2.5 items-center">
                     <Input
                       value={formData.time}
                       onChange={handleTimeChange}
@@ -961,7 +961,8 @@ export default function DetailsPrevious() {
                     <select
                       value={formData.ampm}
                       onChange={(e) => setFormData(prev => ({ ...prev, ampm: e.target.value }))}
-                      className="bg-black/40 border border-vice-cyan/30 text-white text-xs h-11 px-1 rounded-md w-[44px] text-center"
+                      className="bg-black/40 border border-vice-cyan/30 text-white text-xs h-11 pl-1.5 pr-5 rounded-md w-[48px] appearance-none text-center bg-[length:12px] bg-[position:right_4px_center] bg-no-repeat"
+                      style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='white' d='M6 9L1 4h10z'/%3E%3C/svg%3E\")" }}
                     >
                       <option value="AM">AM</option>
                       <option value="PM">PM</option>
