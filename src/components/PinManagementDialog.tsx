@@ -181,8 +181,8 @@ export function PinManagementDialog({ open, onOpenChange }: PinManagementDialogP
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-black/95 border-vice-cyan/30">
-        <DialogHeader>
-          <DialogTitle className="text-white text-2xl flex items-center gap-2">
+        <DialogHeader className="text-center">
+          <DialogTitle className="text-white text-2xl flex items-center justify-center gap-2">
             <Key className="w-6 h-6 text-vice-cyan" />
             Update Monthly PINs
           </DialogTitle>
@@ -196,41 +196,42 @@ export function PinManagementDialog({ open, onOpenChange }: PinManagementDialogP
             <Loader2 className="w-8 h-8 animate-spin text-vice-cyan" />
           </div>
         ) : (
-          <div className="space-y-6 py-4">
-            {pinInputs.map((input, index) => (
-              <div key={input.buildingId} className="p-6 bg-black/40 border border-vice-cyan/30 rounded-lg space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-bold text-vice-pink">{input.buildingName}</h3>
-                  <span className="text-vice-cyan font-mono text-sm">Code: {input.buildingCode}</span>
-                </div>
+          <div className="py-4">
+            <div className="grid grid-cols-2 gap-3">
+              {pinInputs.map((input, index) => (
+                <div key={input.buildingId} className="p-4 bg-black/40 border border-vice-cyan/30 rounded-lg space-y-3">
+                  <div className="text-center space-y-1">
+                    <h3 className="text-lg font-bold text-vice-pink">{input.buildingName}</h3>
+                    <span className="text-vice-cyan font-mono text-xs">Code: {input.buildingCode}</span>
+                  </div>
 
-                <div className="flex items-center justify-center">
-                  <div className="w-full max-w-xs">
-                    <Label className="text-white">4-Digit PIN</Label>
+                  <div>
+                    <Label className="text-white text-xs">4-Digit PIN</Label>
                     <Input
                       value={input.pin}
                       onChange={(e) => updatePin(index, 'pin', e.target.value.replace(/\D/g, ''))}
                       placeholder="0000"
                       maxLength={4}
-                      className="bg-black/20 border-vice-cyan/30 text-white text-2xl text-center font-mono tracking-widest"
+                      className="bg-black/20 border-vice-cyan/30 text-white text-xl text-center font-mono tracking-widest"
                     />
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
 
-            <div className="flex justify-end gap-3 pt-4">
+
+            <div className="flex flex-col sm:flex-row justify-center gap-3 pt-4">
               <Button
                 onClick={() => onOpenChange(false)}
                 variant="outline"
-                className="border-vice-cyan/30 text-white hover:bg-white/10"
+                className="border-vice-cyan/30 text-white hover:bg-white/10 w-full sm:w-auto"
               >
                 Cancel
               </Button>
               <Button
                 onClick={savePins}
                 disabled={saving}
-                className="bg-vice-cyan hover:bg-vice-cyan/80 text-black"
+                className="bg-vice-cyan hover:bg-vice-cyan/80 text-black w-full sm:w-auto"
               >
                 {saving ? (
                   <>
