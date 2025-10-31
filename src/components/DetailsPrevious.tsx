@@ -933,7 +933,7 @@ export default function DetailsPrevious() {
           <TextureCard className="bg-black border border-vice-cyan/20 [&>*>*>*>*]:!bg-black">
             <TextureCardContent className="space-y-6">
               {/* Date, Time, Unit Fields */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label className="text-vice-cyan font-medium text-sm text-center block">Date</Label>
                   <Input
@@ -943,12 +943,12 @@ export default function DetailsPrevious() {
                     maxLength={5}
                     inputMode="numeric"
                     pattern="[0-9/]*"
-                    className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11 text-center w-[70px] mx-auto px-2"
+                    className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11 text-center w-[82px] mx-auto px-2"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-vice-cyan font-medium text-sm text-center block">Time</Label>
-                  <div className="flex gap-1.5 justify-center items-center">
+                  <div className="flex gap-2 justify-center items-center">
                     <Input
                       value={formData.time}
                       onChange={handleTimeChange}
@@ -956,12 +956,12 @@ export default function DetailsPrevious() {
                       maxLength={5}
                       inputMode="numeric"
                       pattern="[0-9:]*"
-                      className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11 text-center w-[70px] px-2"
+                      className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-base h-11 text-center w-[82px] px-2"
                     />
                     <select
                       value={formData.ampm}
                       onChange={(e) => setFormData(prev => ({ ...prev, ampm: e.target.value }))}
-                      className="bg-black/40 border border-vice-cyan/30 text-white text-xs h-11 px-1.5 rounded-md w-[46px] text-center"
+                      className="bg-black/40 border border-vice-cyan/30 text-white text-xs h-11 px-2 rounded-md w-[52px] text-center"
                     >
                       <option value="AM">AM</option>
                       <option value="PM">PM</option>
