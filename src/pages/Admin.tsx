@@ -871,30 +871,29 @@ Welcome to the team!`);
 
         {/* Admin Tools */}
         <Card className="bg-black/30 border-vice-cyan/30 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Key className="w-5 h-5 text-vice-cyan" />
+          <CardHeader className="pb-3">
+            <CardTitle className="text-white flex items-center justify-center gap-2 text-lg">
+              <Key className="w-4 h-4 text-vice-cyan" />
               Update PINs
             </CardTitle>
-            <CardDescription className="text-gray-300">
-              Manage user settings and view conversations
-            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-3">
+          <CardContent className="pt-0">
+            <div className="flex gap-2 justify-center">
               <Button
                 onClick={() => setPinDialogOpen(true)}
-                className="bg-vice-purple/20 hover:bg-vice-purple/30 text-white border border-vice-purple/50"
+                size="sm"
+                className="bg-vice-purple/20 hover:bg-vice-purple/30 text-white border border-vice-purple/50 text-xs px-3"
               >
-                <Key className="w-4 h-4 mr-2" />
+                <Key className="w-3 h-3 mr-1" />
                 Update PINs
               </Button>
               <Button
                 onClick={() => setConversationsDialogOpen(true)}
-                className="bg-vice-cyan/20 hover:bg-vice-cyan/30 text-white border border-vice-cyan/50"
+                size="sm"
+                className="bg-vice-cyan/20 hover:bg-vice-cyan/30 text-white border border-vice-cyan/50 text-xs px-3"
               >
-                <MessageSquare className="w-4 h-4 mr-2" />
-                View Conversations
+                <MessageSquare className="w-3 h-3 mr-1" />
+                Conversations
               </Button>
             </div>
           </CardContent>
