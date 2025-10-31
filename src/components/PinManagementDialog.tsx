@@ -180,7 +180,7 @@ export function PinManagementDialog({ open, onOpenChange }: PinManagementDialogP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-black/95 border-vice-cyan/30 p-4 sm:p-6">
+      <DialogContent className="max-w-4xl max-h-[82svh] sm:max-h-[90vh] overflow-y-auto bg-black/95 border-vice-cyan/30 p-4 sm:p-6">
         <DialogHeader className="text-center space-y-1 sm:space-y-2">
           <DialogTitle className="text-white text-lg sm:text-2xl flex items-center justify-center gap-2">
             <Key className="w-5 h-5 sm:w-6 sm:h-6 text-vice-cyan" />
