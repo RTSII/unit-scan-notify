@@ -122,10 +122,25 @@ export class ConversationHandler {
     const unitNumber = unitMatch[0].toUpperCase();
     const roofEnd = roofEndMatch[0].toLowerCase() as 'north' | 'south';
 
+    // First, validate unit exists in valid_units table
+    const { data: validUnit } = await (supabase as any)
+      .from('valid_units')
+      .select('*')
+      .eq('unit_number', unitNumber)
+      .maybeSingle();
+
+    if (!validUnit) {
+      const response = `Sorry, "${unitNumber}" is not a valid unit number in our system. Please double-check the unit number and try again.\n\nValid units follow the format: Building (A-D) + Floor (1-5) + Unit Letter (A-V)\nExample: "B2G" or "A3C"`;
+      await this.logMessage(supabase, context.conversation.id, 'incoming', context.messageContent);
+      await this.logMessage(supabase, context.conversation.id, 'outgoing', response);
+      return response;
+    }
+
+    // Then check if unit is on the correct roof end
     const building = this.findBuildingByUnit(context.buildings, unitNumber, roofEnd);
 
     if (!building) {
-      const response = `I couldn't find unit ${unitNumber} on the ${roofEnd} end. Please check the unit number and try again.`;
+      const response = `Unit ${unitNumber} exists, but it's not on the ${roofEnd} end. Please verify which roof end you need access to (north or south).`;
       await this.logMessage(supabase, context.conversation.id, 'incoming', context.messageContent);
       await this.logMessage(supabase, context.conversation.id, 'outgoing', response);
       return response;

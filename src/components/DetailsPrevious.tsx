@@ -199,14 +199,24 @@ export default function DetailsPrevious() {
     setFormData(prev => ({ ...prev, time: value }));
   };
 
-  // Unit validation and formatting
-  const handleUnitChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Unit validation and formatting with database check and auto-capitalization
+  const handleUnitChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { unit, isValid } = normalizeAndValidateUnit(e.target.value);
 
+    // Update form data with auto-capitalized unit (uppercase letters)
     setFormData((prev) => ({ ...prev, unit_number: unit }));
 
     if (unit.length === 0) {
       setIsUnitValid(null);
+    } else if (unit.length === 3 && isValid) {
+      // Once unit format is valid (3 chars), check against database
+      const { data: validUnit } = await supabase
+        .from('valid_units')
+        .select('unit_number')
+        .eq('unit_number', unit)
+        .maybeSingle();
+      
+      setIsUnitValid(!!validUnit);
     } else {
       setIsUnitValid(isValid);
     }

@@ -16,6 +16,7 @@ import {
 } from "../components/ui/texture-card";
 import {
   normalizeUnit,
+  normalizeAndValidateUnit,
   isValidUnit,
   UNIT_FORMAT_DESCRIPTION,
   UNIT_FORMAT_HINT,
@@ -31,6 +32,7 @@ const DetailsLive = () => {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isUnitValid, setIsUnitValid] = useState<boolean | null>(null);
   const [formData, setFormData] = useState({
     date: '',
     unit: '',
@@ -45,13 +47,30 @@ const DetailsLive = () => {
     description: ''
   });
 
-  const handleUnitChange = (value: string) => {
-    const normalized = normalizeUnit(value);
+  // Unit validation with database check and auto-capitalization
+  const handleUnitChange = async (value: string) => {
+    const { unit, isValid } = normalizeAndValidateUnit(value);
 
+    // Update form data with auto-capitalized unit (uppercase letters)
     setFormData(prev => ({
       ...prev,
-      unit: normalized,
+      unit,
     }));
+
+    if (unit.length === 0) {
+      setIsUnitValid(null);
+    } else if (unit.length === 3 && isValid) {
+      // Once unit format is valid (3 chars), check against database
+      const { data: validUnit } = await supabase
+        .from('valid_units')
+        .select('unit_number')
+        .eq('unit_number', unit)
+        .maybeSingle();
+      
+      setIsUnitValid(!!validUnit);
+    } else {
+      setIsUnitValid(isValid);
+    }
   };
 
   const saveForm = async () => {
@@ -70,6 +89,18 @@ const DetailsLive = () => {
 
     if (!isValidUnit(unitValue)) {
       toast.error(`Unit number must follow the format ${UNIT_FORMAT_DESCRIPTION}.`);
+      return;
+    }
+
+    // Validate unit exists in database
+    const { data: validUnit } = await supabase
+      .from('valid_units')
+      .select('unit_number')
+      .eq('unit_number', unitValue)
+      .maybeSingle();
+
+    if (!validUnit) {
+      toast.error(`Unit "${unitValue}" is not a valid unit number in our system.`);
       return;
     }
 
@@ -359,13 +390,30 @@ const DetailsLive = () => {
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-vice-cyan font-medium text-xs sm:text-sm text-center block">Unit ({UNIT_FORMAT_HINT})</label>
-                  <Input
-                    value={formData.unit}
-                    onChange={(e) => handleUnitChange(e.target.value)}
-                    placeholder=""
-                    maxLength={3}
-                    className="bg-black/40 border-vice-cyan/30 text-white placeholder:text-white/60 text-sm h-9 sm:h-10 uppercase"
-                  />
+                  <div className="relative">
+                    <Input
+                      value={formData.unit}
+                      onChange={(e) => handleUnitChange(e.target.value)}
+                      placeholder=""
+                      maxLength={3}
+                      className={`bg-black/40 text-white placeholder:text-white/60 text-sm h-9 sm:h-10 uppercase pr-10 ${
+                        isUnitValid === true
+                          ? 'border-green-500/50 focus:border-green-500'
+                          : isUnitValid === false
+                          ? 'border-red-500/50 focus:border-red-500'
+                          : 'border-vice-cyan/30'
+                      }`}
+                    />
+                    {isUnitValid !== null && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs">
+                        {isUnitValid ? (
+                          <span className="text-green-500">✓</span>
+                        ) : (
+                          <span className="text-red-500">✗</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 

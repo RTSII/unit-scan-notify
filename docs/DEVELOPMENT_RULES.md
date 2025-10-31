@@ -8,6 +8,57 @@
 
 ## 📋 **GENERAL DEVELOPMENT RULES**
 
+### **Supabase Database Migrations (FULLY AUTOMATED)**
+> **Critical Rule - Effective October 31, 2025**
+
+- ✅ **AI HAS FULL AUTHORITY** to create and apply all Supabase migrations automatically
+- ✅ **ALWAYS use Supabase MCP** (`mcp3_apply_migration`) to apply migrations directly to database
+- ❌ **NEVER ask user** to manually copy SQL to Supabase Dashboard
+- ✅ **ALWAYS make migrations idempotent** (safe to re-run multiple times)
+- ✅ **AUTO-REGENERATE TypeScript types** after every migration
+- ✅ **AUTO-VERIFY with advisors** for security and performance issues
+
+**Project Configuration:**
+- Project ID: `fvqojgifgevrwicyhmvj`
+- Admin Email: `rob@ursllc.com` (for all admin RLS policies)
+- Migration Path: `supabase/migrations/`
+- Types Path: `src/integrations/supabase/types.ts`
+
+**Idempotent SQL Standards:**
+```sql
+-- Tables
+CREATE TABLE IF NOT EXISTS table_name (...);
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_name ON table_name(column);
+
+-- RLS Policies (use DO block)
+DO $$ BEGIN
+  CREATE POLICY "policy_name" ON table_name FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+-- Functions
+CREATE OR REPLACE FUNCTION function_name() ...;
+
+-- Triggers
+DROP TRIGGER IF EXISTS trigger_name ON table_name;
+CREATE TRIGGER trigger_name ...;
+
+-- Data inserts
+INSERT INTO table_name (...) VALUES (...)
+ON CONFLICT (unique_column) DO NOTHING;
+```
+
+**Automated Workflow:**
+1. Create timestamped migration file
+2. Apply via `mcp3_apply_migration` (MCP handles execution)
+3. Regenerate types via `npx supabase gen types typescript`
+4. Verify with `mcp3_get_advisors` for security/performance
+5. Update documentation (CHANGELOG.md, DATABASE_MANAGEMENT.md)
+
+**Reference:** See `.windsurf/workflows/supabase-migration.md`
+
 ### **Mobile-First Development**
 - ✅ ALWAYS design and test for iPhone 13+ FIRST, then enhance for desktop
 - ✅ Use iPhone-specific breakpoints from `tailwind.config.ts`
