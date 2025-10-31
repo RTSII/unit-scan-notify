@@ -29,8 +29,6 @@ interface PinInput {
   buildingName: string;
   buildingCode: string;
   pin: string;
-  validFrom: string;
-  validUntil: string;
 }
 
 interface PinManagementDialogProps {
@@ -71,17 +69,12 @@ export function PinManagementDialog({ open, onOpenChange }: PinManagementDialogP
 
       const inputs: PinInput[] = ((buildingsData || []) as Building[]).map((building) => {
         const existingPin = (pinsData as any[] | null)?.find((pin: any) => pin.building_id === building.id);
-        const today = new Date();
-        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-        const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
         return {
           buildingId: building.id,
           buildingName: building.building_name,
           buildingCode: building.building_code,
           pin: existingPin?.pin_code || '',
-          validFrom: existingPin?.valid_from || firstDayOfMonth.toISOString().split('T')[0],
-          validUntil: existingPin?.valid_until || lastDayOfMonth.toISOString().split('T')[0],
         };
       });
 
@@ -119,24 +112,6 @@ export function PinManagementDialog({ open, onOpenChange }: PinManagementDialogP
         });
         return false;
       }
-      
-      if (!input.validFrom || !input.validUntil) {
-        toast({
-          title: "Validation Error",
-          description: `${input.buildingName} must have valid dates`,
-          variant: "destructive",
-        });
-        return false;
-      }
-      
-      if (new Date(input.validFrom) > new Date(input.validUntil)) {
-        toast({
-          title: "Validation Error",
-          description: `${input.buildingName} valid from date must be before valid until date`,
-          variant: "destructive",
-        });
-        return false;
-      }
     }
     return true;
   };
@@ -146,6 +121,13 @@ export function PinManagementDialog({ open, onOpenChange }: PinManagementDialogP
 
     setSaving(true);
     try {
+      // Calculate current month dates
+      const today = new Date();
+      const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      const validFrom = firstDayOfMonth.toISOString().split('T')[0];
+      const validUntil = lastDayOfMonth.toISOString().split('T')[0];
+
       for (const input of pinInputs) {
         if (!input.pin) continue; // Skip if no PIN entered
 
@@ -163,8 +145,8 @@ export function PinManagementDialog({ open, onOpenChange }: PinManagementDialogP
             .from('active_pins')
             .update({
               pin_code: sanitizedPin,
-              valid_from: input.validFrom,
-              valid_until: input.validUntil,
+              valid_from: validFrom,
+              valid_until: validUntil,
             })
             .eq('id', (existingPin as any).id);
         } else {
@@ -173,8 +155,8 @@ export function PinManagementDialog({ open, onOpenChange }: PinManagementDialogP
             .insert({
               building_id: input.buildingId,
               pin_code: sanitizedPin,
-              valid_from: input.validFrom,
-              valid_until: input.validUntil,
+              valid_from: validFrom,
+              valid_until: validUntil,
             });
         }
       }
@@ -222,8 +204,8 @@ export function PinManagementDialog({ open, onOpenChange }: PinManagementDialogP
                   <span className="text-vice-cyan font-mono text-sm">Code: {input.buildingCode}</span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
+                <div className="flex items-center justify-center">
+                  <div className="w-full max-w-xs">
                     <Label className="text-white">4-Digit PIN</Label>
                     <Input
                       value={input.pin}
@@ -231,26 +213,6 @@ export function PinManagementDialog({ open, onOpenChange }: PinManagementDialogP
                       placeholder="0000"
                       maxLength={4}
                       className="bg-black/20 border-vice-cyan/30 text-white text-2xl text-center font-mono tracking-widest"
-                    />
-                  </div>
-
-                  <div>
-                    <Label className="text-white">Valid From</Label>
-                    <Input
-                      type="date"
-                      value={input.validFrom}
-                      onChange={(e) => updatePin(index, 'validFrom', e.target.value)}
-                      className="bg-black/20 border-vice-cyan/30 text-white"
-                    />
-                  </div>
-
-                  <div>
-                    <Label className="text-white">Valid Until</Label>
-                    <Input
-                      type="date"
-                      value={input.validUntil}
-                      onChange={(e) => updatePin(index, 'validUntil', e.target.value)}
-                      className="bg-black/20 border-vice-cyan/30 text-white"
                     />
                   </div>
                 </div>
