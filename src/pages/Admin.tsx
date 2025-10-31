@@ -874,7 +874,7 @@ Welcome to the team!`);
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <Key className="w-5 h-5 text-vice-cyan" />
-              Admin Tools
+              Update PINs
             </CardTitle>
             <CardDescription className="text-gray-300">
               Manage user settings and view conversations
