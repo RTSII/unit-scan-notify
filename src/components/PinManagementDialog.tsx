@@ -180,13 +180,13 @@ export function PinManagementDialog({ open, onOpenChange }: PinManagementDialogP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[82svh] sm:max-h-[90vh] overflow-y-auto bg-black/95 border-vice-cyan/30 p-4 sm:p-6">
+      <DialogContent className="max-w-4xl max-h-[75svh] sm:max-h-[90vh] overflow-y-auto bg-black/95 border-vice-cyan/30 p-3 sm:p-6">
         <DialogHeader className="text-center space-y-1 sm:space-y-2">
           <DialogTitle className="text-white text-lg sm:text-2xl flex items-center justify-center gap-2">
             <Key className="w-5 h-5 sm:w-6 sm:h-6 text-vice-cyan" />
             Update Monthly PINs
           </DialogTitle>
-          <DialogDescription className="text-gray-300 text-xs sm:text-sm">
+          <DialogDescription className="hidden sm:block text-gray-300 text-xs sm:text-sm">
             Enter 4-digit PIN codes for each building.
           </DialogDescription>
         </DialogHeader>
@@ -196,7 +196,7 @@ export function PinManagementDialog({ open, onOpenChange }: PinManagementDialogP
             <Loader2 className="w-8 h-8 animate-spin text-vice-cyan" />
           </div>
         ) : (
-          <div className="py-2 sm:py-4">
+          <div className="py-2 sm:py-4 pb-16 sm:pb-4">
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
               {pinInputs.map((input, index) => (
                 <div key={input.buildingId} className="p-3 sm:p-4 bg-black/40 border border-vice-cyan/30 rounded-lg space-y-2">
@@ -220,7 +220,7 @@ export function PinManagementDialog({ open, onOpenChange }: PinManagementDialogP
             </div>
 
 
-            <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-3 pt-3 sm:pt-4">
+            <div className="sticky bottom-0 z-10 bg-black/90 backdrop-blur-sm border-t border-vice-cyan/20 -mx-3 sm:mx-0 px-3 sm:px-0 flex flex-col sm:flex-row justify-center gap-2 sm:gap-3 pt-2 pb-2 sm:pt-3 sm:pb-3">
               <Button
                 onClick={() => onOpenChange(false)}
                 variant="outline"

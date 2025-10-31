@@ -1102,19 +1102,6 @@ Welcome to the team!`);
         </div>
       </div>
 
-      {/* Footer with RetroGrid */}
-      <footer className="relative mt-auto border-t border-vice-cyan/20 bg-black/40 backdrop-blur-sm overflow-hidden min-h-[200px]">
-        <RetroGrid className="opacity-40" angle={65} />
-        <div className="relative z-10 container mx-auto px-4 py-12">
-          <div className="flex flex-col items-center justify-center gap-4 text-center">
-            <div className="flex items-center gap-2">
-              <span className="text-vice-cyan font-bold text-3xl">SPR</span>
-              <span className="text-vice-pink font-bold text-3xl">Vice City</span>
-            </div>
-            <p className="text-gray-400 text-base">Admin Dashboard</p>
-          </div>
-        </div>
-      </footer>
       
       {/* Dialogs */}
       <PinManagementDialog open={pinDialogOpen} onOpenChange={setPinDialogOpen} />
