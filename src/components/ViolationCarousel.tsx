@@ -971,7 +971,7 @@ export const ViolationCarousel3D: React.FC<{
               
               {/* Top-Aligned Overlay Card */}
               <div 
-                className="fixed inset-0 flex items-start justify-center z-50 p-4 pt-[220px] sm:pt-[180px] pointer-events-none"
+                className="fixed inset-0 flex items-start justify-center z-50 p-4 pt-[120px] sm:pt-[100px] pointer-events-none"
                 style={{ touchAction: 'auto' }}
                 onTouchStart={(e) => e.stopPropagation()}
                 onTouchMove={(e) => e.stopPropagation()}
@@ -983,7 +983,7 @@ export const ViolationCarousel3D: React.FC<{
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
                   transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-                  className="w-full max-w-2xl max-h-[calc(90vh-220px)] sm:max-h-[calc(90vh-180px)] p-0 bg-gradient-to-br from-vice-purple/90 via-black to-vice-blue/90 border-2 border-vice-cyan/50 backdrop-blur-md rounded-2xl shadow-2xl pointer-events-auto"
+                  className="w-full max-w-2xl max-h-[calc(85vh-120px)] sm:max-h-[calc(85vh-100px)] p-0 bg-gradient-to-br from-vice-purple/90 via-black to-vice-blue/90 border-2 border-vice-cyan/50 backdrop-blur-md rounded-2xl shadow-2xl pointer-events-auto overflow-hidden"
                   onClick={(e) => e.stopPropagation()}
                 >
               <div className="flex flex-col h-full">
