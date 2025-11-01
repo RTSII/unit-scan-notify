@@ -6,11 +6,14 @@ import { useNavigate } from "react-router-dom";
 const CameraCapture = () => {
   const navigate = useNavigate();
   const [isPowerOn, setIsPowerOn] = useState(false);
-  const [captureState, setCaptureState] = useState<'initial' | 'confirm'>('initial');
+  const [captureState, setCaptureState] = useState<'initial' | 'confirm' | 'continue-prompt'>('initial');
   const [capturedImageUrl, setCapturedImageUrl] = useState<string>('');
+  const [capturedImages, setCapturedImages] = useState<string[]>([]);
   const [isCapturing, setIsCapturing] = useState(false);
   const [cameraError, setCameraError] = useState<string>('');
   const [isUsingFrontCamera, setIsUsingFrontCamera] = useState(false);
+  
+  const MAX_PHOTOS = 4;
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -300,20 +303,43 @@ const CameraCapture = () => {
   const handleConfirmCapture = () => {
     console.log('Confirming capture, capturedImageUrl length:', capturedImageUrl.length);
     if (capturedImageUrl) {
-      // Store captured image in sessionStorage to pass to details page
-      sessionStorage.setItem('capturedImage', capturedImageUrl);
-      console.log('Photo saved to session storage, navigating to details-live');
-
-      // Navigate to details-live page
-      navigate('/details-live');
-
-      // Reset states after navigation
-      setCaptureState('initial');
-      setCapturedImageUrl('');
+      // Add current photo to the array
+      const updatedImages = [...capturedImages, capturedImageUrl];
+      setCapturedImages(updatedImages);
+      
+      console.log(`Photo ${updatedImages.length} of ${MAX_PHOTOS} captured`);
+      
+      // If we've reached max photos, go directly to details
+      if (updatedImages.length >= MAX_PHOTOS) {
+        sessionStorage.setItem('capturedImages', JSON.stringify(updatedImages));
+        console.log('Max photos reached, navigating to details-live');
+        navigate('/details-live');
+      } else {
+        // Show "Continue stakeout?" prompt
+        setCaptureState('continue-prompt');
+      }
     } else {
       console.error('No captured image available for confirmation');
       alert('No image captured. Please try again.');
     }
+  };
+  
+  const handleContinueStakeout = () => {
+    console.log('Continuing stakeout for another photo');
+    setCaptureState('initial');
+    setCapturedImageUrl('');
+    // Ensure video is playing
+    if (videoRef.current && videoRef.current.paused) {
+      videoRef.current.play().catch(error => {
+        console.error('Error resuming video:', error);
+      });
+    }
+  };
+  
+  const handleFinishStakeout = () => {
+    console.log('Finishing stakeout, saving photos and navigating');
+    sessionStorage.setItem('capturedImages', JSON.stringify(capturedImages));
+    navigate('/details-live');
   };
 
   return (
@@ -402,6 +428,30 @@ const CameraCapture = () => {
 
       {/* Footer */}
       <footer className="bg-black/50 backdrop-blur-sm flex-shrink-0 pb-safe">
+        {/* Continue Stakeout Prompt */}
+        {captureState === 'continue-prompt' && (
+          <div className="p-4 space-y-4">
+            <div className="text-center">
+              <p className="text-white text-sm xs:text-base mb-1">Photo {capturedImages.length} of {MAX_PHOTOS} saved</p>
+              <p className="text-vice-cyan text-base xs:text-lg font-semibold">Continue stakeout?</p>
+            </div>
+            <div className="flex gap-4 justify-center">
+              <button
+                className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium shadow-lg transform active:scale-95 transition-all min-h-[44px]"
+                onClick={handleFinishStakeout}
+              >
+                No - Book Em
+              </button>
+              <button
+                className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium shadow-lg transform active:scale-95 transition-all min-h-[44px]"
+                onClick={handleContinueStakeout}
+              >
+                Yes - Continue
+              </button>
+            </div>
+          </div>
+        )}
+        
         {/* Capture Confirm State - Red X (Cancel) and Green Check (Approve) buttons */}
         {captureState === 'confirm' && (
           <div className="flex justify-center py-4">

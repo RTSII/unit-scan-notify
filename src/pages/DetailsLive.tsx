@@ -30,7 +30,7 @@ const DetailsLive = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
-  const [capturedImage, setCapturedImage] = useState<string>('');
+  const [capturedImages, setCapturedImages] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isUnitValid, setIsUnitValid] = useState<boolean | null>(null);
   const [formData, setFormData] = useState({
@@ -126,8 +126,8 @@ const DetailsLive = () => {
       selectedViolations.push('Items left in Parking lot');
     }
 
-    // Prepare photos array - include captured image if available
-    const photos = capturedImage ? [capturedImage] : [];
+    // Prepare photos array - include all captured images if available
+    const photos = capturedImages;
 
     // Convert date and time to occurred_at timestamp for violation_forms
     const occurredAt = (() => {
@@ -287,7 +287,7 @@ const DetailsLive = () => {
       }
 
       // Clear sessionStorage
-      sessionStorage.removeItem('capturedImage');
+      sessionStorage.removeItem('capturedImages');
 
       toast.success('Form saved successfully!');
       navigate('/books');
@@ -301,7 +301,7 @@ const DetailsLive = () => {
   };
 
   // Count photos
-  const photoCount = capturedImage ? 1 : 0;
+  const photoCount = capturedImages.length;
 
   useEffect(() => {
     const now = new Date();
@@ -318,10 +318,17 @@ const DetailsLive = () => {
       time: `${String(displayHours).padStart(2, '0')}:${minutes} ${ampm}`
     }));
 
-    // Load captured image from sessionStorage if available
-    const savedImage = sessionStorage.getItem('capturedImage');
-    if (savedImage) {
-      setCapturedImage(savedImage);
+    // Load captured images from sessionStorage if available
+    const savedImages = sessionStorage.getItem('capturedImages');
+    if (savedImages) {
+      try {
+        const images = JSON.parse(savedImages);
+        if (Array.isArray(images)) {
+          setCapturedImages(images);
+        }
+      } catch (error) {
+        console.error('Error parsing captured images:', error);
+      }
     }
   }, []);
 
@@ -546,6 +553,29 @@ const DetailsLive = () => {
                   />
                 )}
               </div>
+
+              {/* Captured Photos Display */}
+              {capturedImages.length > 0 && (
+                <div className="space-y-2">
+                  <label className="text-vice-cyan font-medium text-sm sm:text-base text-center block">
+                    Captured Photos ({capturedImages.length})
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {capturedImages.map((image, index) => (
+                      <div key={index} className="relative">
+                        <img 
+                          src={image} 
+                          alt={`Captured violation ${index + 1}`} 
+                          className="w-full h-auto rounded-lg border border-vice-cyan/30"
+                        />
+                        <div className="absolute top-1 right-1 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                          {index + 1}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </TextureCardContent>
           </TextureCard>
         </div>
