@@ -175,7 +175,7 @@ const formsWithPhotos: ViolationForm[] = (data ?? []).map((form) => {
 
 ## Interaction & Touch Controls
 
-### Drag System (Optimized Oct 27, 2025)
+### Drag System (Optimized Oct 31, 2025)
 
 **CRITICAL: Touch controls are isolated to thumbnail cards ONLY**
 
@@ -196,14 +196,14 @@ const formsWithPhotos: ViolationForm[] = (data ?? []).map((form) => {
 </div>
 ```
 
-**Drag Parameters:**
-- **Sensitivity:** `0.10` (mobile), `0.06` (desktop) - Fine control with rotation normalization
-- **Momentum Velocity:** `0.02` (mobile), `0.015` (desktop) - Controlled flick, reduced overshoot
-- **Velocity Threshold:** `600` - Higher threshold for tighter control
+**Drag Parameters (Based on 21st.dev Reference):**
+- **Sensitivity:** `0.05` (mobile), `0.035` (desktop) - Matching 21st.dev for stable control
+- **Momentum Velocity:** `0.05` (unified) - Consistent across mobile/desktop
+- **Velocity Threshold:** `500` - Lower threshold for better control
 - **Auto-rotation Speed:** `0.008` - Slow, non-intrusive
 - **Spring Physics:**
-  - Momentum: `{ stiffness: 250, damping: 32, mass: 0.4 }`
-  - Snap: `{ stiffness: 300, damping: 35, mass: 0.3 }` - Tighter snap behavior
+  - Momentum: `{ stiffness: 100, damping: 30, mass: 0.1 }` - Softer like 21st.dev
+  - Snap: `{ stiffness: 200, damping: 30, mass: 0.2 }` - Smoother snapping
 
 ### Click Detection
 
@@ -474,6 +474,17 @@ Then restore profiles join in queries.
 ---
 
 ## Change Log
+
+### October 31, 2025
+- **CRITICAL FIX:** UI layout breaking during carousel scrolling resolved
+- Matched 21st.dev reference implementation for stable touch controls
+- Reduced drag sensitivity: 0.05/0.035 (50% reduction from Oct 28)
+- Unified momentum: 0.05 for both mobile/desktop (like 21st.dev)
+- Reduced velocity threshold to 500 for more responsive control
+- Improved rotation normalization to -180 to 180 range (prevents accumulation)
+- Softer spring physics: stiffness 100, damping 30, mass 0.1 (matches 21st.dev)
+- Enhanced snap physics: stiffness 200, damping 30, mass 0.2
+- **Result:** No more UI layout breaks during rapid scrolling
 
 ### October 28, 2025 (Evening)
 - **CRITICAL FIX:** Carousel layout stability - cards stay locked in UI

@@ -325,31 +325,34 @@ export const ViolationCarousel3D: React.FC<{
   const snapToNearestCard = useCallback(() => {
     const currentRotation = rotation.get();
     const degreesPerCard = 360 / faceCount;
-    const normalizedRotation = ((currentRotation % 360) + 360) % 360;
-    const nearestCardIndex = Math.round(normalizedRotation / degreesPerCard);
+    
+    // Normalize current rotation to -180 to 180 range
+    let normalized = currentRotation % 360;
+    if (normalized > 180) normalized -= 360;
+    if (normalized < -180) normalized += 360;
+    
+    // Find nearest card
+    const nearestCardIndex = Math.round(normalized / degreesPerCard);
     const targetRotation = nearestCardIndex * degreesPerCard;
     
-    // Calculate the shortest path to target (prevent full 360 rotations)
-    let rotationDelta = targetRotation - normalizedRotation;
-    if (rotationDelta > 180) rotationDelta -= 360;
-    if (rotationDelta < -180) rotationDelta += 360;
+    // Calculate shortest path
+    let delta = targetRotation - normalized;
+    if (delta > 180) delta -= 360;
+    if (delta < -180) delta += 360;
     
-    const finalRotation = currentRotation + rotationDelta;
-    
-    // Normalize to prevent infinite accumulation
-    const normalizedFinal = ((finalRotation % 360) + 360) % 360;
+    const finalRotation = normalized + delta;
     
     controls.start({
-      rotateY: normalizedFinal,
+      rotateY: finalRotation,
       transition: { 
         type: "spring", 
-        stiffness: 300, 
-        damping: 35, 
-        mass: 0.3
+        stiffness: 200, // Slightly softer for smoother snap
+        damping: 30, 
+        mass: 0.2
       }
     }).then(() => {
-      // Lock rotation to exact value after snap completes
-      rotation.set(normalizedFinal);
+      // Lock rotation to exact value after snap
+      rotation.set(finalRotation);
     });
   }, [rotation, faceCount, controls]);
 
@@ -764,11 +767,18 @@ export const ViolationCarousel3D: React.FC<{
                         }}
                         onDrag={(_, info) => {
                           if (isCarouselActive) {
-                            // Reduced sensitivity for finer control and UI stability (first occurrence)
-                            const sensitivity = isScreenSizeSm ? 0.10 : 0.06;
-                            const newRotation = rotation.get() + info.offset.x * sensitivity;
-                            // Normalize rotation to prevent accumulation errors
-                            const normalized = ((newRotation % 360) + 360) % 360;
+                            // Further reduced sensitivity matching 21st.dev reference (0.05)
+                            const sensitivity = isScreenSizeSm ? 0.05 : 0.035;
+                            const delta = info.offset.x * sensitivity;
+                            const currentRotation = rotation.get();
+                            const newRotation = currentRotation + delta;
+                            
+                            // Immediate normalization to prevent any accumulation
+                            // Keep rotation in -180 to 180 range for stability
+                            let normalized = newRotation % 360;
+                            if (normalized > 180) normalized -= 360;
+                            if (normalized < -180) normalized += 360;
+                            
                             rotation.set(normalized);
                           }
                         }}
@@ -780,25 +790,30 @@ export const ViolationCarousel3D: React.FC<{
                           }, 100);
                           if (isCarouselActive) {
                             const velocity = info.velocity.x;
-                            const velocityThreshold = 600;
+                            const velocityThreshold = 500; // Lower threshold for better control
                             
                             if (Math.abs(velocity) > velocityThreshold) {
-                              // Reduced momentum for tighter control and prevent overshooting
-                              const velocityMultiplier = isScreenSizeSm ? 0.02 : 0.015;
+                              // Match 21st.dev momentum settings
+                              const velocityMultiplier = 0.05; // Unified for both mobile/desktop
                               const momentumRotation = velocity * velocityMultiplier;
-                              const targetRotation = rotation.get() + momentumRotation;
-                              // Normalize before applying momentum
-                              const normalized = ((targetRotation % 360) + 360) % 360;
+                              const currentRotation = rotation.get();
+                              const targetRotation = currentRotation + momentumRotation;
+                              
+                              // Normalize to -180 to 180 range
+                              let normalized = targetRotation % 360;
+                              if (normalized > 180) normalized -= 360;
+                              if (normalized < -180) normalized += 360;
                               
                               controls.start({
                                 rotateY: normalized,
                                 transition: { 
                                   type: "spring", 
-                                  stiffness: 250, 
-                                  damping: 32, 
-                                  mass: 0.4
+                                  stiffness: 100, // Softer spring like 21st.dev
+                                  damping: 30, // More damping
+                                  mass: 0.1 // Lighter mass
                                 }
                               }).then(() => {
+                                rotation.set(normalized);
                                 snapToNearestCard();
                               });
                             } else {
@@ -843,11 +858,18 @@ export const ViolationCarousel3D: React.FC<{
                         }}
                         onDrag={(_, info) => {
                           if (isCarouselActive) {
-                            // Reduced sensitivity for finer control and UI stability (second occurrence)
-                            const sensitivity = isScreenSizeSm ? 0.10 : 0.06;
-                            const newRotation = rotation.get() + info.offset.x * sensitivity;
-                            // Normalize rotation to prevent accumulation errors
-                            const normalized = ((newRotation % 360) + 360) % 360;
+                            // Further reduced sensitivity matching 21st.dev reference (0.05)
+                            const sensitivity = isScreenSizeSm ? 0.05 : 0.035;
+                            const delta = info.offset.x * sensitivity;
+                            const currentRotation = rotation.get();
+                            const newRotation = currentRotation + delta;
+                            
+                            // Immediate normalization to prevent any accumulation
+                            // Keep rotation in -180 to 180 range for stability
+                            let normalized = newRotation % 360;
+                            if (normalized > 180) normalized -= 360;
+                            if (normalized < -180) normalized += 360;
+                            
                             rotation.set(normalized);
                           }
                         }}
@@ -859,25 +881,30 @@ export const ViolationCarousel3D: React.FC<{
                           }, 100);
                           if (isCarouselActive) {
                             const velocity = info.velocity.x;
-                            const velocityThreshold = 600;
+                            const velocityThreshold = 500; // Lower threshold for better control
                             
                             if (Math.abs(velocity) > velocityThreshold) {
-                              // Reduced momentum for tighter control and prevent overshooting
-                              const velocityMultiplier = isScreenSizeSm ? 0.02 : 0.015;
+                              // Match 21st.dev momentum settings
+                              const velocityMultiplier = 0.05; // Unified for both mobile/desktop
                               const momentumRotation = velocity * velocityMultiplier;
-                              const targetRotation = rotation.get() + momentumRotation;
-                              // Normalize before applying momentum
-                              const normalized = ((targetRotation % 360) + 360) % 360;
+                              const currentRotation = rotation.get();
+                              const targetRotation = currentRotation + momentumRotation;
+                              
+                              // Normalize to -180 to 180 range
+                              let normalized = targetRotation % 360;
+                              if (normalized > 180) normalized -= 360;
+                              if (normalized < -180) normalized += 360;
                               
                               controls.start({
                                 rotateY: normalized,
                                 transition: { 
                                   type: "spring", 
-                                  stiffness: 250, 
-                                  damping: 32, 
-                                  mass: 0.4
+                                  stiffness: 100, // Softer spring like 21st.dev
+                                  damping: 30, // More damping
+                                  mass: 0.1 // Lighter mass
                                 }
                               }).then(() => {
+                                rotation.set(normalized);
                                 snapToNearestCard();
                               });
                             } else {
