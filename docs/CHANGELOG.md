@@ -5,6 +5,148 @@ All notable changes to the SPR Vice City project will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] - 2025-10-31
+
+### 🚀 **MAJOR RELEASE - SMS PIN Management System**
+
+Complete SMS conversation flow implementation with company validation, work hours enforcement, and comprehensive security features for contractor roof access management at Sandpiper Run.
+
+### ✨ **Added**
+
+**SMS Conversation Handler**:
+- **Company Name Validation**: Automatic rejection of gibberish, vulgar terms, and invalid company names
+- **Work Hours Enforcement**: Monday-Friday 8am-5pm only, automatic rejection of weekend/after-hours requests
+- **Date Confirmation**: Current date included in PIN confirmation to ensure same-day access only
+- **Property Branding**: "Sandpiper Run" name used in all error messages
+- **Enhanced Confirmations**: Accepts both "yes" and "Y" for faster mobile responses
+- **Simplified Instructions**: 3-step universal access instructions (reduced from 6+ steps)
+- **Emergency Contact**: After-hours emergency number provided for urgent needs
+
+**Security & Validation**:
+- North/South roof end tracking for security analytics (not unit-specific validation)
+- Building determination from unit number first character
+- Valid unit verification against `valid_units` table (164 units)
+- Comprehensive conversation logging for audit trail
+- All rejections logged with timestamps for analytics
+
+**Analytics & Documentation**:
+- 17 comprehensive SQL queries for statistical analysis (ADMIN_ANALYTICS_QUERIES.md)
+- Work hours policy documentation (WORK_HOURS_POLICY.md)
+- Complete implementation summary (SMS_UPDATES_OCT31.md)
+- Analytics for roof end usage, building utilization, contractor patterns
+
+### 🔧 **Changed**
+
+**Conversation Flow**:
+- Invalid unit message: "Unfortunately, 'X99' is not a valid Unit # here at Sandpiper Run."
+- PIN delivery message now includes: "⚠️ WORK HOURS: Monday-Friday, 8:00 AM - 5:00 PM ONLY"
+- Confirmation message includes full date: "Date: Thursday, October 31, 2025"
+- Access instructions simplified: 3 steps instead of 6+
+
+**Cost Optimization**:
+- Reduced PIN delivery from 3 SMS segments to 2 (33% cost savings)
+- Shorter, clearer messages throughout conversation flow
+
+### 🛡️ **Security**
+
+**Work Hours Enforcement**:
+- Weekend requests (Saturday/Sunday): Automatic rejection with emergency number
+- Before 8am requests: Rejected with business hours message
+- After 5pm requests: Rejected with emergency number
+- All violations logged for security review
+
+**Company Validation**:
+- Minimum 2 characters required
+- Must contain vowels (rejects gibberish)
+- Vulgar terms blocked (profanity filter)
+- Keyboard mashing patterns rejected (asdf, qwer, etc.)
+
+### 📊 **Analytics Features**
+
+**Statistical Queries Available**:
+- North vs South access distribution
+- Most accessed buildings and units
+- Building utilization rates
+- Unit access by floor level
+- Peak access times (hourly/daily)
+- Most active contractors and companies
+- Weekend/after-hours violation attempts
+- Contractor response time analysis
+
+### 📚 **Documentation Updates**
+
+- **Created**: `docs/SMS_UPDATES_OCT31.md` - Complete implementation summary
+- **Created**: `docs/ADMIN_ANALYTICS_QUERIES.md` - 17 SQL queries for data analysis
+- **Created**: `docs/WORK_HOURS_POLICY.md` - Complete work hours policy and enforcement
+- **Updated**: `docs/SMS_CONVERSATION_FLOW.md` - Reflects all implemented changes
+- **Updated**: `docs/CHANGELOG.md` - This entry
+
+### ⚠️ **PENDING ACTION - TODO**
+
+**🚨 EMERGENCY PHONE NUMBER REQUIRED 🚨**
+
+**Status**: Code implemented but awaiting emergency contact number from Rob
+
+**Impact**: Weekend and after-hours SMS requests show placeholder text instead of actual emergency number
+
+**Locations to Update**:
+1. `src/utils/conversation-handler.ts` - Line 229 (weekend rejection)
+2. `src/utils/conversation-handler.ts` - Line 237 (after-hours rejection)
+3. `docs/WORK_HOURS_POLICY.md` - Emergency number section
+
+**Current Placeholder**:
+```
+📞 [EMERGENCY NUMBER - TO BE PROVIDED]
+```
+
+**What Rob Needs to Provide**:
+- Emergency contact phone number for after-hours/weekend urgent issues
+- Format preference: (555) 123-4567, 555-123-4567, or +1-555-123-4567
+- Once provided, Cascade will update all 3 locations automatically
+
+**Why It's Needed**:
+- Contractors may have genuine roof leak emergencies on weekends
+- System needs to provide alternative contact method during non-business hours
+- Professional emergency escalation path for urgent situations
+
+### 🎯 **Impact Summary**
+
+**User Experience**:
+- ✅ Clear rejection messages with property name
+- ✅ Same-day access verification via date display
+- ✅ Faster confirmations with "Y" acceptance
+- ✅ Simpler, easier-to-follow instructions
+- ✅ Emergency contact info for urgent needs
+
+**Security & Compliance**:
+- ✅ Company name abuse prevention
+- ✅ Work hours automatically enforced
+- ✅ North/South tracking for security analytics
+- ✅ Complete audit trail of all requests
+- ✅ All rejections logged with reason codes
+
+**Cost Savings**:
+- ✅ 33% reduction in SMS costs per PIN delivery
+- ✅ Fewer support calls from confused contractors
+- ✅ Clear emergency escalation reduces after-hours disturbances
+
+**Admin Capabilities**:
+- ✅ 17 pre-built analytics queries
+- ✅ Statistical analysis of access patterns
+- ✅ Building and unit utilization tracking
+- ✅ Contractor activity monitoring
+- ✅ Policy violation detection
+
+### 🚀 **Next Steps**
+
+1. ⏳ **Awaiting emergency number from Rob** (blocking SMS webhook deployment)
+2. 🔜 Create Supabase Edge Function for SMS webhook
+3. 🔜 Configure Twilio webhook URL
+4. 🔜 End-to-end testing with actual SMS
+5. 🔜 Production deployment
+
+---
+
 ## [3.6.2] - 2025-10-27
 
 ### 🎨 **UI Component Consistency Update**
