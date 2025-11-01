@@ -29,12 +29,19 @@ Company     Unit+End      Confirm        Deliver       Archive
 
 ## 📱 **DETAILED CONVERSATION SCRIPT**
 
+### **PROPERTY CONTEXT**
+- **Property Name:** Sandpiper Run
+- **Location:** Coastal South Carolina
+- **Buildings:** A, B, C, D (4 buildings)
+- **Valid Units:** 164 total units
+- **Access Points:** Each building has North and South roof access
+
 ### **STATE 1: INITIAL CONTACT**
 
 #### **Contractor Action:**
 ```
 FROM: +1-555-123-4567
-TO: Your Twilio Number
+TO: Your Twilio Number (Sandpiper Run)
 MESSAGE: "ABC Roofing"
 ```
 
@@ -58,10 +65,11 @@ Example: "B2G South end"
 - Stores `phone_number` and `company_name`
 
 #### **Guardrails:**
-- ✅ Any text accepted as company name
+- ✅ Company name validated (min 2 chars, must have vowel)
+- ✅ Rejects gibberish (asdf, qwer, keyboard mashing)
+- ✅ Rejects vulgar/offensive terms (asshat, profanity)
 - ✅ Trims whitespace
-- ✅ Stores exactly what user sends
-- ⚠️ No validation on company name (intentional - flexibility)
+- ✅ No conversation created for invalid names
 
 ---
 
@@ -78,12 +86,13 @@ Example: "B2G South end"
 ```
 Perfect! Let me confirm:
 
+• Date: Thursday, October 31, 2025
 • Company: ABC Roofing
 • Building: Building B
 • Unit: B2G
 • Roof End: South
 
-Is this correct? (Reply "yes" to receive the access PIN)
+Is this correct? (Reply "yes" or "Y" to receive the access PIN)
 ```
 
 **Validation Process:**
@@ -137,10 +146,7 @@ Example: "B2G South end"
 
 **System Response:**
 ```
-Sorry, "X99" is not a valid unit number in our system. Please double-check the unit number and try again.
-
-Valid units follow the format: Building (A-D) + Floor (1-5) + Unit Letter (A-V)
-Example: "B2G" or "A3C"
+Unfortunately, "X99" is not a valid Unit # here at Sandpiper Run. Please double-check the Unit # and try again.
 ```
 
 **Database Check:**
@@ -158,36 +164,31 @@ SELECT * FROM valid_units WHERE unit_number = 'X99'
 
 ---
 
-#### **Error Path 3: Wrong Roof End**
+#### **Important: North/South End Validation**
 
-**Contractor:**
-```
-"B2G north end"
-```
-(B2G is actually on south end)
+**CRITICAL CLARIFICATION:**
+- **North/South is NOT tied to unit numbers**
+- **It's purely for security verification**
+- Contractors must know which end they need based on job location
+- Buildings have both north and south roof access points
+- System accepts any valid unit + any end (north or south)
+- Building determined from first character of unit (A1A → Building A)
 
-**System Response:**
+**Example:**
 ```
-Unit B2G exists, but it's not on the north end. Please verify which roof end you need access to (north or south).
-```
-
-**Database Check:**
-```sql
--- Check buildings.north_end_units array
-SELECT * FROM buildings WHERE 'B2G' = ANY(north_end_units)
--- Returns NULL = Unit not on north end
-
--- Check buildings.south_end_units array  
-SELECT * FROM buildings WHERE 'B2G' = ANY(south_end_units)
--- Returns Building B = Unit IS on south end
+Contractor: "B2G north end"
+System: Validates B2G exists ✓
+System: Determines Building B from "B" ✓
+System: Accepts "north" as valid end ✓
+System: Proceeds to confirmation
 ```
 
 **Guardrails:**
-- ✅ Two-tier validation (unit exists + correct roof end)
-- ✅ Helpful error message
-- ✅ Doesn't reveal which end it's actually on (security)
-- ✅ Forces contractor to verify their information
-- ⚠️ **POTENTIAL IMPROVEMENT:** Could say "Try the other end" for better UX
+- ✅ Unit validated against valid_units table (164 units)
+- ✅ Building determined from unit's first character
+- ✅ North/South stored for security tracking
+- ✅ No rejection based on north/south choice
+- ✅ Contractor must know correct end for their job
 
 ---
 
@@ -231,17 +232,9 @@ Here's your access information:
 🏢 Unit: B2G
 
 Access Instructions:
-1. Enter through west entrance
-2. Take service elevator to roof
-3. Use PIN at roof access door
-4. North end: Access via north ladder
-5. South end: Access via south ladder
-6. Secure all doors when finished
-
-⚠️ Important Reminders:
-• Work cutoff time: 5:00 PM
-• Please close and secure all doors
-• Return key to lockbox
+1. Use provided PIN to open lock box with key to roof/lock inside
+2. Secure all doors when finished (5:00 PM work cutoff)
+3. Return key to lockbox and close it
 
 Thank you and have a safe workday!
 ```
@@ -255,12 +248,12 @@ Thank you and have a safe workday!
 6. Update conversation: `conversation_state = 'completed'`
 
 **Guardrails:**
-- ✅ Accepts: "yes", "correct", "confirm", "YES", "Yes sir"
-- ✅ Case-insensitive matching
+- ✅ Accepts: "yes", "y", "Y", "correct", "confirm", "YES"
+- ✅ Case-insensitive matching (except single "y" must be lowercase)
 - ✅ Includes emojis for visual clarity
 - ✅ Work cutoff reminder (5 PM)
-- ✅ Security reminders (lock doors, return key)
-- ✅ Complete access instructions from database
+- ✅ Simplified 3-step access instructions
+- ✅ Same-day access confirmation via date display
 
 ---
 
@@ -529,48 +522,111 @@ if (existingConv && isExpired(existingConv.updated_at, CONVERSATION_TIMEOUT)) {
 
 #### **Current Messages**
 
-**Longest Message (PIN Delivery):**
+**Current Message (PIN Delivery):**
 ```
-Character count: ~450 characters
-SMS segments: 3 (160 chars each)
-Cost: 3x SMS rate
+Character count: ~270 characters
+SMS segments: 2 (160 chars each)
+Cost: 2x SMS rate
 ```
 
-**Optimization Opportunity:**
-- ⚠️ Consider splitting into 2 messages:
-  1. PIN + building + unit
-  2. Access instructions (separate message)
+**Optimization Result:**
+- ✅ Simplified from 6 steps to 3 steps
+- ✅ Reduced from 3 SMS segments to 2
+- ✅ 33% cost savings
 - ✅ More readable on small screens
-- ❌ Costs 2x instead of 3x (saves 33%)
+- ✅ Faster delivery
 
 ---
 
 ## 🔧 **SCRIPT IMPROVEMENTS**
 
-### **1. Add Explicit Unit Format Hint**
+### **1. Add Company Name Validation** ✅ IMPLEMENTED
 
-**Current Initial Message:**
-```
-Example: "B2G South end"
+**Feature:**
+```typescript
+// Rejects:
+- Gibberish: "asdf", "qwerty", "xxxxxx"
+- Vulgar: "asshat air", profanity
+- Too short: Single character
+- No vowels: "xyz" 
+- Keyboard mashing patterns
 ```
 
-**Improved Version:**
+**Response:**
 ```
-Example: "B2G South end"
-
-Unit format: [Building Letter][Floor Number][Unit Letter]
-Buildings: A, B, C, or D
-Roof ends: North or South
+"Please provide a valid company name to request access."
 ```
 
 **Benefit:**
-- ✅ Reduces errors
-- ✅ Educational
-- ✅ Sets clear expectations
+- ✅ Prevents abuse
+- ✅ Maintains professional system
+- ✅ No fake/joke requests logged
 
 ---
 
-### **2. Add "Start Over" Keyword**
+### **2. Add Property Name to Messages** ✅ IMPLEMENTED
+
+**Update:**
+```
+"Unfortunately, 'X99' is not a valid Unit # here at Sandpiper Run."
+```
+
+**Benefit:**
+- ✅ Professional branding
+- ✅ Clear context for contractors
+- ✅ Confirms correct property
+
+---
+
+### **3. Add Date to Confirmation** ✅ IMPLEMENTED
+
+**Update:**
+```
+• Date: Thursday, October 31, 2025
+• Company: ABC Roofing
+...
+```
+
+**Benefit:**
+- ✅ Prevents advance scheduling
+- ✅ Confirms same-day access request
+- ✅ Security verification
+
+---
+
+### **4. Accept 'Y' for Yes** ✅ IMPLEMENTED
+
+**Update:**
+```typescript
+if (message === 'y' || message.includes('yes') ...)
+```
+
+**Benefit:**
+- ✅ Faster contractor response
+- ✅ Mobile-friendly (less typing)
+- ✅ Common text abbreviation
+
+---
+
+### **5. Simplified Access Instructions** ✅ IMPLEMENTED
+
+**Old:** 6+ steps with building-specific details  
+**New:** 3 universal steps
+
+```
+1. Use provided PIN to open lock box with key to roof/lock inside
+2. Secure all doors when finished (5:00 PM work cutoff)
+3. Return key to lockbox and close it
+```
+
+**Benefit:**
+- ✅ Easier to follow
+- ✅ Shorter SMS message (cost savings)
+- ✅ Universal for all buildings
+
+---
+
+### **6. Add "Start Over" Keyword** (PLANNED)
 
 **New Feature:**
 ```typescript
@@ -589,7 +645,7 @@ if (message.toLowerCase().includes('start over') ||
 
 ---
 
-### **3. Add Help Command**
+### **7. Add Help Command** (PLANNED)
 
 **New Feature:**
 ```typescript
@@ -616,7 +672,7 @@ function getHelpMessage(state: string): string {
 
 ---
 
-### **4. Add Property Manager Contact**
+### **8. Add Property Manager Contact** (PLANNED)
 
 **Update PIN Failure Message:**
 ```
@@ -636,7 +692,7 @@ Or try again later - PINs are updated monthly.
 
 ---
 
-### **5. Add Work Hours Validation**
+### **9. Add Work Hours Validation** (PLANNED)
 
 **New Feature:**
 ```typescript
@@ -655,7 +711,7 @@ if (currentHour >= WORK_CUTOFF) {
 
 ---
 
-### **6. Add Weekend Warning**
+### **10. Add Weekend Warning** (PLANNED)
 
 **New Feature:**
 ```typescript

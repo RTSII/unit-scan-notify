@@ -80,6 +80,13 @@ export class ConversationHandler {
   ): Promise<string> {
     const companyName = context.messageContent.trim();
 
+    // Validate company name - reject gibberish and obvious fakes
+    if (!this.isValidCompanyName(companyName)) {
+      const response = "Please provide a valid company name to request access.";
+      // Don't create conversation for invalid names
+      return response;
+    }
+
     const { data: newConv, error } = await (supabase as any)
       .from('contractor_conversations')
       .insert({
@@ -99,6 +106,32 @@ export class ConversationHandler {
     await this.logMessage(supabase, (newConv as any).id, 'outgoing', response);
 
     return response;
+  }
+
+  private static isValidCompanyName(name: string): boolean {
+    // Reject if too short
+    if (name.length < 2) return false;
+
+    // Reject obvious gibberish (no vowels or all same character)
+    const hasVowel = /[aeiou]/i.test(name);
+    const allSameChar = /^(.)\1+$/.test(name.replace(/\s/g, ''));
+    if (!hasVowel || allSameChar) return false;
+
+    // Reject vulgar/offensive terms (basic filter)
+    const vulgarPatterns = [
+      /ass\s*hat/i, /fuck/i, /shit/i, /bitch/i, /damn/i,
+      /piss/i, /crap/i, /hell/i, /dick/i, /cock/i
+    ];
+    if (vulgarPatterns.some(pattern => pattern.test(name))) return false;
+
+    // Reject keyboard mashing patterns
+    const gibberishPatterns = [
+      /asdf/i, /qwer/i, /zxcv/i, /hjkl/i,
+      /[a-z]{8,}/i // 8+ consonants in a row unlikely
+    ];
+    if (gibberishPatterns.some(pattern => pattern.test(name))) return false;
+
+    return true;
   }
 
   private static async handleUnitInfoResponse(
@@ -130,17 +163,18 @@ export class ConversationHandler {
       .maybeSingle();
 
     if (!validUnit) {
-      const response = `Sorry, "${unitNumber}" is not a valid unit number in our system. Please double-check the unit number and try again.\n\nValid units follow the format: Building (A-D) + Floor (1-5) + Unit Letter (A-V)\nExample: "B2G" or "A3C"`;
+      const response = `Unfortunately, "${unitNumber}" is not a valid Unit # here at Sandpiper Run. Please double-check the Unit # and try again.`;
       await this.logMessage(supabase, context.conversation.id, 'incoming', context.messageContent);
       await this.logMessage(supabase, context.conversation.id, 'outgoing', response);
       return response;
     }
 
-    // Then check if unit is on the correct roof end
-    const building = this.findBuildingByUnit(context.buildings, unitNumber, roofEnd);
+    // Determine building from unit number (first character)
+    const buildingCode = unitNumber[0];
+    const building = context.buildings.find(b => b.building_code === buildingCode);
 
     if (!building) {
-      const response = `Unit ${unitNumber} exists, but it's not on the ${roofEnd} end. Please verify which roof end you need access to (north or south).`;
+      const response = `Unable to determine building for unit ${unitNumber}. Please contact property management.`;
       await this.logMessage(supabase, context.conversation.id, 'incoming', context.messageContent);
       await this.logMessage(supabase, context.conversation.id, 'outgoing', response);
       return response;
@@ -157,7 +191,15 @@ export class ConversationHandler {
       })
       .eq('id', context.conversation.id);
 
-    const response = `Perfect! Let me confirm:\n\n• Company: ${context.conversation.company_name}\n• Building: ${building.building_name}\n• Unit: ${unitNumber}\n• Roof End: ${roofEnd.charAt(0).toUpperCase() + roofEnd.slice(1)}\n\nIs this correct? (Reply "yes" to receive the access PIN)`;
+    // Get today's date for confirmation
+    const today = new Date().toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+
+    const response = `Perfect! Let me confirm:\n\n• Date: ${today}\n• Company: ${context.conversation.company_name}\n• Building: ${building.building_name}\n• Unit: ${unitNumber}\n• Roof End: ${roofEnd.charAt(0).toUpperCase() + roofEnd.slice(1)}\n\nIs this correct? (Reply "yes" or "Y" to receive the access PIN)`;
 
     await this.logMessage(supabase, context.conversation.id, 'incoming', context.messageContent);
     await this.logMessage(supabase, context.conversation.id, 'outgoing', response);
@@ -175,7 +217,28 @@ export class ConversationHandler {
 
     const message = context.messageContent.toLowerCase();
 
-    if (message.includes('yes') || message.includes('correct') || message.includes('confirm')) {
+    // Accept: yes, y, correct, confirm
+    if (message.includes('yes') || message === 'y' || message.includes('correct') || message.includes('confirm')) {
+      // Check work hours: Monday-Friday 8am-5pm only
+      const now = new Date();
+      const dayOfWeek = now.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
+      const hour = now.getHours();
+
+      // Reject weekends
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
+        const response = "⚠️ SERVICE HOURS NOTICE\n\nContractor work is only permitted Monday-Friday, 8:00 AM - 5:00 PM.\n\nFor emergency service needs, please call:\n📞 [EMERGENCY NUMBER - TO BE PROVIDED]\n\nRegular service requests will be processed on the next business day.";
+        await this.logMessage(supabase, context.conversation.id, 'incoming', context.messageContent);
+        await this.logMessage(supabase, context.conversation.id, 'outgoing', response);
+        return response;
+      }
+
+      // Reject outside 8am-5pm
+      if (hour < 8 || hour >= 17) {
+        const response = "⚠️ SERVICE HOURS NOTICE\n\nContractor work is only permitted Monday-Friday, 8:00 AM - 5:00 PM.\n\nCurrent time is outside permitted work hours.\n\nFor emergency service needs, please call:\n📞 [EMERGENCY NUMBER - TO BE PROVIDED]\n\nRegular service requests will be processed during business hours.";
+        await this.logMessage(supabase, context.conversation.id, 'incoming', context.messageContent);
+        await this.logMessage(supabase, context.conversation.id, 'outgoing', response);
+        return response;
+      }
       const { data: pin } = await (supabase as any)
         .from('active_pins')
         .select('*')
@@ -205,7 +268,20 @@ export class ConversationHandler {
         })
         .eq('id', context.conversation.id);
 
-      const response = `Here's your access information:\n\n🔑 PIN: ${(pin as any).pin_code}\n📍 Building: ${(building as any)?.building_name}\n🏢 Unit: ${context.conversation.unit_number}\n\nAccess Instructions:\n${(building as any)?.access_instructions}\n\n⚠️ Important Reminders:\n• Work cutoff time: 5:00 PM\n• Please close and secure all doors\n• Return key to lockbox\n\nThank you and have a safe workday!`;
+      const response = `Here's your access information:
+
+🔑 PIN: ${(pin as any).pin_code}
+📍 Building: ${(building as any)?.building_name}
+🏢 Unit: ${context.conversation.unit_number}
+
+Access Instructions:
+1. Use provided PIN to open lock box with key to roof/lock inside
+2. Secure all doors when finished (5:00 PM work cutoff)
+3. Return key to lockbox and close it
+
+⚠️ WORK HOURS: Monday-Friday, 8:00 AM - 5:00 PM ONLY
+
+Thank you and have a safe workday!`;
 
       await this.logMessage(supabase, context.conversation.id, 'incoming', context.messageContent);
       await this.logMessage(supabase, context.conversation.id, 'outgoing', response);
@@ -238,20 +314,6 @@ export class ConversationHandler {
 
       return response;
     }
-  }
-
-  private static findBuildingByUnit(
-    buildings: Building[],
-    unitNumber: string,
-    roofEnd: 'north' | 'south'
-  ): Building | null {
-    for (const building of buildings) {
-      const units = roofEnd === 'north' ? building.north_end_units : building.south_end_units;
-      if (units.includes(unitNumber)) {
-        return building;
-      }
-    }
-    return null;
   }
 
   private static async logMessage(
