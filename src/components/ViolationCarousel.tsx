@@ -969,9 +969,9 @@ export const ViolationCarousel3D: React.FC<{
                 style={{ touchAction: 'auto' }}
               />
               
-              {/* Centered Overlay Card */}
+              {/* Top-Aligned Overlay Card */}
               <div 
-                className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none"
+                className="fixed inset-0 flex items-start justify-center z-50 p-4 pt-[220px] sm:pt-[180px] pointer-events-none"
                 style={{ touchAction: 'auto' }}
                 onTouchStart={(e) => e.stopPropagation()}
                 onTouchMove={(e) => e.stopPropagation()}
@@ -983,7 +983,7 @@ export const ViolationCarousel3D: React.FC<{
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
                   transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-                  className="w-full max-w-2xl max-h-[90vh] p-0 bg-gradient-to-br from-vice-purple/20 via-black/95 to-vice-blue/20 border border-vice-cyan/30 backdrop-blur-sm rounded-2xl shadow-2xl pointer-events-auto"
+                  className="w-full max-w-2xl max-h-[calc(90vh-220px)] sm:max-h-[calc(90vh-180px)] p-0 bg-gradient-to-br from-vice-purple/90 via-black to-vice-blue/90 border-2 border-vice-cyan/50 backdrop-blur-md rounded-2xl shadow-2xl pointer-events-auto"
                   onClick={(e) => e.stopPropagation()}
                 >
               <div className="flex flex-col h-full">
@@ -1055,18 +1055,19 @@ export const ViolationCarousel3D: React.FC<{
                     </motion.div>
                   )}
 
-                  {/* Expanded Image View - Centered below header */}
+                  {/* Expanded Image View - Centered below header with top layer z-index */}
                   {!isDeleting && expandedImageUrl && (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.95 }}
-                      className="relative p-4 sm:p-6 flex items-center justify-center bg-black/60"
+                      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4"
+                      onClick={() => setExpandedImageUrl(null)}
                     >
-                      <div className="relative max-w-full">
+                      <div className="relative max-w-full max-h-full">
                         <button
                           onClick={() => setExpandedImageUrl(null)}
-                          className="absolute -top-2 -right-2 z-10 p-2 rounded-full bg-black/90 hover:bg-black text-white transition-colors shadow-lg"
+                          className="absolute -top-2 -right-2 z-[110] p-2 rounded-full bg-black/90 hover:bg-black text-white transition-colors shadow-lg border border-vice-cyan/50"
                           aria-label="Close expanded image"
                         >
                           <X className="w-5 h-5" />
@@ -1074,7 +1075,7 @@ export const ViolationCarousel3D: React.FC<{
                         <img
                           src={getPhotoUrl(expandedImageUrl, 'expanded')}
                           alt="Expanded photo"
-                          className="max-w-full max-h-[50vh] sm:max-h-[60vh] object-contain rounded-lg shadow-2xl"
+                          className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl ring-2 ring-vice-cyan/50"
                           onClick={(e) => e.stopPropagation()}
                         />
                       </div>
