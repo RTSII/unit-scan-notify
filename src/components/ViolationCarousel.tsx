@@ -102,7 +102,13 @@ function getPhotoUrl(storagePath: string, imageType: 'thumbnail' | 'expanded' | 
 }
 
 export function mapFormsToCarouselItems(forms: FormLike[]): CarouselItem[] {
-  return (forms || []).map((form, index) => {
+  // Deduplicate forms by ID to ensure each violation only appears once
+  // even if the same form appears multiple times in the input array
+  const uniqueForms = Array.from(
+    new Map((forms || []).map(form => [form.id, form])).values()
+  );
+  
+  return uniqueForms.map((form, index) => {
     // Handle both legacy 'date' field and new 'occurred_at' field
     let displayDate = '';
     if (form.date) {
@@ -114,6 +120,7 @@ export function mapFormsToCarouselItems(forms: FormLike[]): CarouselItem[] {
     }
     
     // Prioritize violation_photos (new storage) over legacy photos field
+    // Only use the FIRST photo for the carousel thumbnail
     let imageUrl = "placeholder";
     
     if (form.violation_photos && form.violation_photos.length > 0 && form.violation_photos[0].storage_path) {
