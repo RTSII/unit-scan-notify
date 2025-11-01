@@ -404,6 +404,40 @@ const CameraCapture = () => {
                   <p className="text-white text-xs xs:text-sm">Review Photo</p>
                 </div>
               </div>
+            ) : captureState === 'continue-prompt' ? (
+              // Show "Continue stakeout?" prompt centered on screen with live video in background
+              <>
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className={`absolute inset-0 w-full h-full object-cover ${isUsingFrontCamera ? 'scale-x-[-1]' : ''
+                    }`}
+                />
+                <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20">
+                  <div className="bg-black/90 rounded-2xl p-6 xs:p-8 mx-4 max-w-md w-full shadow-2xl border border-white/10">
+                    <div className="text-center space-y-4">
+                      <p className="text-white text-sm xs:text-base mb-1">Photo {capturedImages.length} of {MAX_PHOTOS} saved</p>
+                      <p className="text-vice-cyan text-xl xs:text-2xl font-bold">Continue stakeout?</p>
+                      <div className="flex gap-4 justify-center pt-4">
+                        <button
+                          className="px-8 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold shadow-lg transform active:scale-95 transition-all min-h-[48px] flex-1"
+                          onClick={handleFinishStakeout}
+                        >
+                          No - Book Em
+                        </button>
+                        <button
+                          className="px-8 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold shadow-lg transform active:scale-95 transition-all min-h-[48px] flex-1"
+                          onClick={handleContinueStakeout}
+                        >
+                          Yes - Continue
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
             ) : (
               // Fallback state - show loading or return to initial
               <div className="text-center text-white px-4">
@@ -428,30 +462,6 @@ const CameraCapture = () => {
 
       {/* Footer */}
       <footer className="bg-black/50 backdrop-blur-sm flex-shrink-0 pb-safe">
-        {/* Continue Stakeout Prompt */}
-        {captureState === 'continue-prompt' && (
-          <div className="p-4 space-y-4">
-            <div className="text-center">
-              <p className="text-white text-sm xs:text-base mb-1">Photo {capturedImages.length} of {MAX_PHOTOS} saved</p>
-              <p className="text-vice-cyan text-base xs:text-lg font-semibold">Continue stakeout?</p>
-            </div>
-            <div className="flex gap-4 justify-center">
-              <button
-                className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium shadow-lg transform active:scale-95 transition-all min-h-[44px]"
-                onClick={handleFinishStakeout}
-              >
-                No - Book Em
-              </button>
-              <button
-                className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium shadow-lg transform active:scale-95 transition-all min-h-[44px]"
-                onClick={handleContinueStakeout}
-              >
-                Yes - Continue
-              </button>
-            </div>
-          </div>
-        )}
-        
         {/* Capture Confirm State - Red X (Cancel) and Green Check (Approve) buttons */}
         {captureState === 'confirm' && (
           <div className="flex justify-center py-4">
