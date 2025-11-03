@@ -164,6 +164,8 @@ export const ViolationCarousel3D: React.FC<{
   const isScreenSizeSm = useMediaQuery("(max-width: 640px)");
   const isDraggingRef = useRef(false);
   const dragResetTimeoutRef = useRef<number | null>(null);
+  const lastDragTime = useRef<number>(0);
+  const dragDebounceMs = 16; // ~60fps max update rate
 
   const baseItems = useMemo(() => {
     // Smart cache management: Only clear cache if completely different form set
@@ -263,20 +265,21 @@ export const ViolationCarousel3D: React.FC<{
 
   const faceCount = displayItems.length;
   
-  // Dynamic sizing for infinite carousel - scales with actual item count
+  // Fixed sizing to maintain proper 3D structure
   const circumference = cylinderWidth;
   const radius = cylinderWidth / (2 * Math.PI);
   
-  // Calculate optimal card width based on available space and item count
-  const minCardWidth = isScreenSizeSm ? 65 : 75; // Minimum readable size
-  const maxCardWidth = isScreenSizeSm ? 120 : 140; // Maximum for visual appeal
-  const gapBetweenCards = isScreenSizeSm ? 8 : 12; // Consistent gap
+  // Fixed card sizing to prevent overlap and maintain spacing
+  const maxCardWidth = isScreenSizeSm ? 100 : 120; // Smaller cards to ensure spacing
+  const minCardWidth = isScreenSizeSm ? 60 : 70; // Minimum readable size
   
-  // Available space per card (circumference / number of cards - gap)
-  const availableSpacePerCard = (circumference / faceCount) - gapBetweenCards;
+  // Calculate face width based on number of cards to maintain consistent gaps
+  const degreesPerCard = 360 / faceCount;
+  const radiansPerCard = (degreesPerCard * Math.PI) / 180;
+  const chordLength = 2 * radius * Math.sin(radiansPerCard / 2);
   
-  // Dynamic face width that scales with item count
-  const faceWidth = Math.max(minCardWidth, Math.min(maxCardWidth, availableSpacePerCard));
+  // Face width with built-in gap (85% of chord length to ensure spacing)
+  const faceWidth = Math.min(maxCardWidth, Math.max(minCardWidth, chordLength * 0.85));
 
   const rotation = useMotionValue(0);
   const transform = useTransform(rotation, (value) => `rotate3d(0, 1, 0, ${value}deg)`);
@@ -697,7 +700,8 @@ export const ViolationCarousel3D: React.FC<{
           <div
             className="flex h-full items-center justify-center bg-black/10 px-2 sm:px-4 overflow-hidden"
             style={{
-              perspective: isScreenSizeSm ? "900px" : "800px", 
+              perspective: isScreenSizeSm ? "600px" : "800px", // Stronger 3D effect on mobile
+              perspectiveOrigin: "50% 50%",
               transformStyle: "preserve-3d",
               willChange: "transform",
               touchAction: 'pan-y'
@@ -710,6 +714,7 @@ export const ViolationCarousel3D: React.FC<{
                 rotateY: rotation, 
                 width: cylinderWidth, 
                 transformStyle: "preserve-3d",
+                transformOrigin: "center center",
                 willChange: 'transform',
                 touchAction: 'pan-y',
                 pointerEvents: 'none'
@@ -717,25 +722,28 @@ export const ViolationCarousel3D: React.FC<{
               animate={controls}
             >
               {displayItems.map((item, i) => {
-                const cardAngle = (i * (360 / faceCount) + rotDeg) % 360;
+                const baseAngle = i * (360 / faceCount);
+                const cardAngle = (baseAngle + rotDeg) % 360;
                 const normalizedAngle = ((cardAngle + 180) % 360) - 180;
-                const isVisible = Math.abs(normalizedAngle) < 90; // Improved visibility check
+                const isInFront = Math.abs(normalizedAngle) < 90;
+                const depth = Math.cos((normalizedAngle * Math.PI) / 180);
                 
                 return (
                   <motion.div 
                     key={`key-${item.imageUrl}-${i}`}
                     data-card-index={i}
-                    className="absolute flex h-full origin-center items-center justify-center px-1"
+                    className="absolute flex h-full origin-center items-center justify-center"
                     style={{
                       width: `${faceWidth}px`,
-                      transform: `rotateY(${i * (360 / faceCount)}deg) translateZ(${radius}px)`,
-                      backfaceVisibility: 'hidden',
-                      WebkitBackfaceVisibility: 'hidden',
-                      opacity: isVisible ? 1 : 0.3,
-                      willChange: 'transform',
-                      pointerEvents: isVisible ? 'auto' : 'none',
-                      touchAction: isVisible ? 'none' : 'auto',
-                      zIndex: isVisible ? 10 : 1
+                      transform: `rotateY(${baseAngle}deg) translateZ(${radius}px)`,
+                      backfaceVisibility: 'visible', // Show back cards for 3D effect
+                      WebkitBackfaceVisibility: 'visible',
+                      opacity: isInFront ? 1 : Math.max(0.2, 0.6 + depth * 0.4), // Depth-based opacity
+                      filter: isInFront ? 'none' : `blur(${Math.max(0, 2 - depth * 2)}px)`, // Depth blur
+                      willChange: 'transform, opacity, filter',
+                      pointerEvents: isInFront ? 'auto' : 'none',
+                      touchAction: isInFront ? 'none' : 'auto',
+                      zIndex: Math.round(10 + depth * 10) // Depth-based z-index
                     }}
                   >
                     {item.imageUrl === "placeholder" ? (
@@ -751,8 +759,8 @@ export const ViolationCarousel3D: React.FC<{
                         dragConstraints={{ left: 0, right: 0 }}
                         dragTransition={{ bounceStiffness: 0, bounceDamping: 0 }}
                         style={{ 
-                          pointerEvents: isVisible ? 'auto' : 'none',
-                          touchAction: isVisible ? 'none' : 'auto',
+                          pointerEvents: isInFront ? 'auto' : 'none',
+                          touchAction: isInFront ? 'none' : 'auto',
                           cursor: isCarouselActive ? 'grab' : 'default'
                         }}
                         onTouchStart={() => setActiveTouchCardIndex(i)}
@@ -766,21 +774,33 @@ export const ViolationCarousel3D: React.FC<{
                           if (dragResetTimeoutRef.current) { clearTimeout(dragResetTimeoutRef.current); dragResetTimeoutRef.current = null; }
                         }}
                         onDrag={(_, info) => {
-                          if (isCarouselActive) {
-                            // Further reduced sensitivity matching 21st.dev reference (0.05)
-                            const sensitivity = isScreenSizeSm ? 0.05 : 0.035;
-                            const delta = info.offset.x * sensitivity;
-                            const currentRotation = rotation.get();
-                            const newRotation = currentRotation + delta;
-                            
-                            // Immediate normalization to prevent any accumulation
-                            // Keep rotation in -180 to 180 range for stability
-                            let normalized = newRotation % 360;
-                            if (normalized > 180) normalized -= 360;
-                            if (normalized < -180) normalized += 360;
-                            
-                            rotation.set(normalized);
+                          if (!isCarouselActive) return;
+                          
+                          // Debounce drag updates to prevent accumulation
+                          const now = Date.now();
+                          if (now - lastDragTime.current < dragDebounceMs) return;
+                          lastDragTime.current = now;
+                          
+                          // Ultra-low sensitivity to prevent breaking
+                          const sensitivity = 0.025; // Unified ultra-low value
+                          const delta = info.offset.x * sensitivity;
+                          const currentRotation = rotation.get();
+                          
+                          // Calculate new rotation with hard limits
+                          let newRotation = currentRotation + delta;
+                          
+                          // Hard clamp to prevent excessive rotation
+                          const maxRotation = 360 * 3; // Max 3 full rotations
+                          if (Math.abs(newRotation) > maxRotation) {
+                            newRotation = Math.sign(newRotation) * maxRotation;
                           }
+                          
+                          // Normalize to -180 to 180 for display
+                          let normalized = newRotation % 360;
+                          if (normalized > 180) normalized -= 360;
+                          if (normalized < -180) normalized += 360;
+                          
+                          rotation.set(normalized);
                         }}
                         onDragEnd={(_, info) => {
                           if (dragResetTimeoutRef.current) { clearTimeout(dragResetTimeoutRef.current); }
@@ -790,17 +810,21 @@ export const ViolationCarousel3D: React.FC<{
                           }, 100);
                           if (isCarouselActive) {
                             const velocity = info.velocity.x;
-                            const velocityThreshold = 500; // Lower threshold for better control
+                            const velocityThreshold = 300; // Even lower threshold
                             
                             if (Math.abs(velocity) > velocityThreshold) {
-                              // Match 21st.dev momentum settings
-                              const velocityMultiplier = 0.05; // Unified for both mobile/desktop
+                              // Minimal momentum to prevent overshoot
+                              const velocityMultiplier = 0.02; // Very low momentum
                               const momentumRotation = velocity * velocityMultiplier;
                               const currentRotation = rotation.get();
                               const targetRotation = currentRotation + momentumRotation;
                               
+                              // Hard limit the target
+                              const maxRotation = 360 * 3;
+                              let clamped = Math.min(Math.max(targetRotation, -maxRotation), maxRotation);
+                              
                               // Normalize to -180 to 180 range
-                              let normalized = targetRotation % 360;
+                              let normalized = clamped % 360;
                               if (normalized > 180) normalized -= 360;
                               if (normalized < -180) normalized += 360;
                               
@@ -808,9 +832,9 @@ export const ViolationCarousel3D: React.FC<{
                                 rotateY: normalized,
                                 transition: { 
                                   type: "spring", 
-                                  stiffness: 100, // Softer spring like 21st.dev
-                                  damping: 30, // More damping
-                                  mass: 0.1 // Lighter mass
+                                  stiffness: 150, // Stiffer for quicker settle
+                                  damping: 40, // High damping to prevent oscillation
+                                  mass: 0.05 // Very light mass
                                 }
                               }).then(() => {
                                 rotation.set(normalized);
@@ -836,8 +860,8 @@ export const ViolationCarousel3D: React.FC<{
                             : 'ring-2 ring-vice-cyan/50'
                         }`}
                         style={{ 
-                          pointerEvents: isVisible ? 'auto' : 'none',
-                          touchAction: isVisible ? 'none' : 'auto',
+                          pointerEvents: isInFront ? 'auto' : 'none',
+                          touchAction: isInFront ? 'none' : 'auto',
                           cursor: isCarouselActive ? 'grab' : 'default',
                           backgroundColor: '#0a0a0a'
                         }}
@@ -857,21 +881,33 @@ export const ViolationCarousel3D: React.FC<{
                           if (dragResetTimeoutRef.current) { clearTimeout(dragResetTimeoutRef.current); dragResetTimeoutRef.current = null; }
                         }}
                         onDrag={(_, info) => {
-                          if (isCarouselActive) {
-                            // Further reduced sensitivity matching 21st.dev reference (0.05)
-                            const sensitivity = isScreenSizeSm ? 0.05 : 0.035;
-                            const delta = info.offset.x * sensitivity;
-                            const currentRotation = rotation.get();
-                            const newRotation = currentRotation + delta;
-                            
-                            // Immediate normalization to prevent any accumulation
-                            // Keep rotation in -180 to 180 range for stability
-                            let normalized = newRotation % 360;
-                            if (normalized > 180) normalized -= 360;
-                            if (normalized < -180) normalized += 360;
-                            
-                            rotation.set(normalized);
+                          if (!isCarouselActive) return;
+                          
+                          // Debounce drag updates to prevent accumulation
+                          const now = Date.now();
+                          if (now - lastDragTime.current < dragDebounceMs) return;
+                          lastDragTime.current = now;
+                          
+                          // Ultra-low sensitivity to prevent breaking
+                          const sensitivity = 0.025; // Unified ultra-low value
+                          const delta = info.offset.x * sensitivity;
+                          const currentRotation = rotation.get();
+                          
+                          // Calculate new rotation with hard limits
+                          let newRotation = currentRotation + delta;
+                          
+                          // Hard clamp to prevent excessive rotation
+                          const maxRotation = 360 * 3; // Max 3 full rotations
+                          if (Math.abs(newRotation) > maxRotation) {
+                            newRotation = Math.sign(newRotation) * maxRotation;
                           }
+                          
+                          // Normalize to -180 to 180 for display
+                          let normalized = newRotation % 360;
+                          if (normalized > 180) normalized -= 360;
+                          if (normalized < -180) normalized += 360;
+                          
+                          rotation.set(normalized);
                         }}
                         onDragEnd={(_, info) => {
                           if (dragResetTimeoutRef.current) { clearTimeout(dragResetTimeoutRef.current); }
@@ -881,17 +917,21 @@ export const ViolationCarousel3D: React.FC<{
                           }, 100);
                           if (isCarouselActive) {
                             const velocity = info.velocity.x;
-                            const velocityThreshold = 500; // Lower threshold for better control
+                            const velocityThreshold = 300; // Even lower threshold
                             
                             if (Math.abs(velocity) > velocityThreshold) {
-                              // Match 21st.dev momentum settings
-                              const velocityMultiplier = 0.05; // Unified for both mobile/desktop
+                              // Minimal momentum to prevent overshoot
+                              const velocityMultiplier = 0.02; // Very low momentum
                               const momentumRotation = velocity * velocityMultiplier;
                               const currentRotation = rotation.get();
                               const targetRotation = currentRotation + momentumRotation;
                               
+                              // Hard limit the target
+                              const maxRotation = 360 * 3;
+                              let clamped = Math.min(Math.max(targetRotation, -maxRotation), maxRotation);
+                              
                               // Normalize to -180 to 180 range
-                              let normalized = targetRotation % 360;
+                              let normalized = clamped % 360;
                               if (normalized > 180) normalized -= 360;
                               if (normalized < -180) normalized += 360;
                               
@@ -899,9 +939,9 @@ export const ViolationCarousel3D: React.FC<{
                                 rotateY: normalized,
                                 transition: { 
                                   type: "spring", 
-                                  stiffness: 100, // Softer spring like 21st.dev
-                                  damping: 30, // More damping
-                                  mass: 0.1 // Lighter mass
+                                  stiffness: 150, // Stiffer for quicker settle
+                                  damping: 40, // High damping to prevent oscillation
+                                  mass: 0.05 // Very light mass
                                 }
                               }).then(() => {
                                 rotation.set(normalized);
