@@ -164,8 +164,7 @@ export const ViolationCarousel3D: React.FC<{
   const isScreenSizeSm = useMediaQuery("(max-width: 640px)");
   const isDraggingRef = useRef(false);
   const dragResetTimeoutRef = useRef<number | null>(null);
-  const lastDragTime = useRef<number>(0);
-  const dragDebounceMs = 16; // ~60fps max update rate
+  // Remove complex drag handling - use simple 21st.dev pattern
 
   const baseItems = useMemo(() => {
     // Smart cache management: Only clear cache if completely different form set
@@ -269,17 +268,8 @@ export const ViolationCarousel3D: React.FC<{
   const circumference = cylinderWidth;
   const radius = cylinderWidth / (2 * Math.PI);
   
-  // Fixed card sizing to prevent overlap and maintain spacing
-  const maxCardWidth = isScreenSizeSm ? 100 : 120; // Smaller cards to ensure spacing
-  const minCardWidth = isScreenSizeSm ? 60 : 70; // Minimum readable size
-  
-  // Calculate face width based on number of cards to maintain consistent gaps
-  const degreesPerCard = 360 / faceCount;
-  const radiansPerCard = (degreesPerCard * Math.PI) / 180;
-  const chordLength = 2 * radius * Math.sin(radiansPerCard / 2);
-  
-  // Face width with built-in gap (85% of chord length to ensure spacing)
-  const faceWidth = Math.min(maxCardWidth, Math.max(minCardWidth, chordLength * 0.85));
+  // Simple face width calculation like 21st.dev
+  const faceWidth = cylinderWidth / faceCount;
 
   const rotation = useMotionValue(0);
   const transform = useTransform(rotation, (value) => `rotate3d(0, 1, 0, ${value}deg)`);
@@ -708,7 +698,8 @@ export const ViolationCarousel3D: React.FC<{
             }}
           >
             <motion.div
-              className="relative flex h-full origin-center justify-center select-none"
+              drag={isCarouselActive ? "x" : false}
+              className="relative flex h-full origin-center justify-center select-none cursor-grab active:cursor-grabbing"
               style={{ 
                 transform, 
                 rotateY: rotation, 
@@ -716,8 +707,32 @@ export const ViolationCarousel3D: React.FC<{
                 transformStyle: "preserve-3d",
                 transformOrigin: "center center",
                 willChange: 'transform',
-                touchAction: 'pan-y',
-                pointerEvents: 'none'
+                touchAction: 'pan-y'
+              }}
+              onDragStart={() => {
+                isDraggingRef.current = true;
+              }}
+              onDrag={(_, info) => {
+                if (isCarouselActive) {
+                  rotation.set(rotation.get() + info.offset.x * 0.05);
+                }
+              }}
+              onDragEnd={(_, info) => {
+                if (isCarouselActive) {
+                  controls.start({
+                    rotateY: rotation.get() + info.velocity.x * 0.05,
+                    transition: {
+                      type: "spring",
+                      stiffness: 100,
+                      damping: 30,
+                      mass: 0.1,
+                    },
+                  });
+                }
+                // Reset drag state after a small delay
+                setTimeout(() => {
+                  isDraggingRef.current = false;
+                }, 100);
               }}
               animate={controls}
             >
@@ -732,226 +747,38 @@ export const ViolationCarousel3D: React.FC<{
                   <motion.div 
                     key={`key-${item.imageUrl}-${i}`}
                     data-card-index={i}
-                    className="absolute flex h-full origin-center items-center justify-center"
+                    className="absolute flex h-full origin-center items-center justify-center p-2"
                     style={{
                       width: `${faceWidth}px`,
                       transform: `rotateY(${baseAngle}deg) translateZ(${radius}px)`,
-                      backfaceVisibility: 'visible', // Show back cards for 3D effect
-                      WebkitBackfaceVisibility: 'visible',
-                      opacity: isInFront ? 1 : Math.max(0.2, 0.6 + depth * 0.4), // Depth-based opacity
-                      filter: isInFront ? 'none' : `blur(${Math.max(0, 2 - depth * 2)}px)`, // Depth blur
-                      willChange: 'transform, opacity, filter',
-                      pointerEvents: isInFront ? 'auto' : 'none',
-                      touchAction: isInFront ? 'none' : 'auto',
-                      zIndex: Math.round(10 + depth * 10) // Depth-based z-index
+                      pointerEvents: isInFront ? 'auto' : 'none'
+                    }}
+                    onClick={() => {
+                      if (isDraggingRef.current || !isInFront) return;
+                      handleClick(item.fullForm);
                     }}
                   >
                     {item.imageUrl === "placeholder" ? (
-                      <motion.div 
-                        className={`relative w-full rounded-xl bg-black/90 aspect-square opacity-100 shadow-lg transition-all duration-200 ${
+                      <div 
+                        className={`relative w-full rounded-xl bg-black/90 aspect-square shadow-lg transition-all duration-200 ${
                           activeTouchCardIndex === i 
                             ? 'ring-2 ring-vice-cyan shadow-[0_0_20px_#00ffff,0_0_40px_#00ffff60]' 
                             : 'ring-1 ring-vice-cyan/50'
                         }`}
-                        drag={isCarouselActive ? "x" : false}
-                        dragElastic={0}
-                        dragMomentum={true}
-                        dragConstraints={{ left: 0, right: 0 }}
-                        dragTransition={{ bounceStiffness: 0, bounceDamping: 0 }}
                         style={{ 
-                          pointerEvents: isInFront ? 'auto' : 'none',
-                          touchAction: isInFront ? 'none' : 'auto',
-                          cursor: isCarouselActive ? 'grab' : 'default'
-                        }}
-                        onTouchStart={() => setActiveTouchCardIndex(i)}
-                        onTouchEnd={() => setActiveTouchCardIndex(null)}
-                        onMouseDown={() => setActiveTouchCardIndex(i)}
-                        onMouseUp={() => setActiveTouchCardIndex(null)}
-                        onMouseLeave={() => setActiveTouchCardIndex(null)}
-                        onDragStart={() => {
-                          isDraggingRef.current = true;
-                          setActiveTouchCardIndex(i);
-                          if (dragResetTimeoutRef.current) { clearTimeout(dragResetTimeoutRef.current); dragResetTimeoutRef.current = null; }
-                        }}
-                        onDrag={(_, info) => {
-                          if (!isCarouselActive) return;
-                          
-                          // Debounce drag updates to prevent accumulation
-                          const now = Date.now();
-                          if (now - lastDragTime.current < dragDebounceMs) return;
-                          lastDragTime.current = now;
-                          
-                          // Ultra-low sensitivity to prevent breaking
-                          const sensitivity = 0.025; // Unified ultra-low value
-                          const delta = info.offset.x * sensitivity;
-                          const currentRotation = rotation.get();
-                          
-                          // Calculate new rotation with hard limits
-                          let newRotation = currentRotation + delta;
-                          
-                          // Hard clamp to prevent excessive rotation
-                          const maxRotation = 360 * 3; // Max 3 full rotations
-                          if (Math.abs(newRotation) > maxRotation) {
-                            newRotation = Math.sign(newRotation) * maxRotation;
-                          }
-                          
-                          // Normalize to -180 to 180 for display
-                          let normalized = newRotation % 360;
-                          if (normalized > 180) normalized -= 360;
-                          if (normalized < -180) normalized += 360;
-                          
-                          rotation.set(normalized);
-                        }}
-                        onDragEnd={(_, info) => {
-                          if (dragResetTimeoutRef.current) { clearTimeout(dragResetTimeoutRef.current); }
-                          dragResetTimeoutRef.current = window.setTimeout(() => { 
-                            isDraggingRef.current = false;
-                            setActiveTouchCardIndex(null);
-                          }, 100);
-                          if (isCarouselActive) {
-                            const velocity = info.velocity.x;
-                            const velocityThreshold = 300; // Even lower threshold
-                            
-                            if (Math.abs(velocity) > velocityThreshold) {
-                              // Minimal momentum to prevent overshoot
-                              const velocityMultiplier = 0.02; // Very low momentum
-                              const momentumRotation = velocity * velocityMultiplier;
-                              const currentRotation = rotation.get();
-                              const targetRotation = currentRotation + momentumRotation;
-                              
-                              // Hard limit the target
-                              const maxRotation = 360 * 3;
-                              let clamped = Math.min(Math.max(targetRotation, -maxRotation), maxRotation);
-                              
-                              // Normalize to -180 to 180 range
-                              let normalized = clamped % 360;
-                              if (normalized > 180) normalized -= 360;
-                              if (normalized < -180) normalized += 360;
-                              
-                              controls.start({
-                                rotateY: normalized,
-                                transition: { 
-                                  type: "spring", 
-                                  stiffness: 150, // Stiffer for quicker settle
-                                  damping: 40, // High damping to prevent oscillation
-                                  mass: 0.05 // Very light mass
-                                }
-                              }).then(() => {
-                                rotation.set(normalized);
-                                snapToNearestCard();
-                              });
-                            } else {
-                              // Immediate snap for precise control
-                              snapToNearestCard();
-                            }
-                          }
+                          pointerEvents: 'none' // No individual touch events
                         }}
                       />
                     ) : (
-                      <motion.div 
-                        drag={isCarouselActive ? "x" : false}
-                        dragElastic={0}
-                        dragMomentum={true}
-                        dragConstraints={{ left: 0, right: 0 }}
-                        dragTransition={{ bounceStiffness: 0, bounceDamping: 0 }}
+                      <div 
                         className={`group relative w-full aspect-square overflow-hidden rounded-xl shadow-lg transition-all duration-200 ${
                           activeTouchCardIndex === i 
                             ? 'ring-2 ring-vice-cyan shadow-[0_0_20px_#00ffff,0_0_40px_#00ffff60]' 
                             : 'ring-2 ring-vice-cyan/50'
                         }`}
                         style={{ 
-                          pointerEvents: isInFront ? 'auto' : 'none',
-                          touchAction: isInFront ? 'none' : 'auto',
-                          cursor: isCarouselActive ? 'grab' : 'default',
-                          backgroundColor: '#0a0a0a'
-                        }}
-                        onClick={(e) => {
-                          if (isDraggingRef.current) return;
-                          handleClick(item.fullForm);
-                        }}
-                        onMouseEnter={() => handleCardHover(i)}
-                        onMouseLeave={() => handleCardHover(null)}
-                        onTouchStart={() => setActiveTouchCardIndex(i)}
-                        onTouchEnd={() => setActiveTouchCardIndex(null)}
-                        onMouseDown={() => setActiveTouchCardIndex(i)}
-                        onMouseUp={() => setActiveTouchCardIndex(null)}
-                        onDragStart={() => {
-                          isDraggingRef.current = true;
-                          setActiveTouchCardIndex(i);
-                          if (dragResetTimeoutRef.current) { clearTimeout(dragResetTimeoutRef.current); dragResetTimeoutRef.current = null; }
-                        }}
-                        onDrag={(_, info) => {
-                          if (!isCarouselActive) return;
-                          
-                          // Debounce drag updates to prevent accumulation
-                          const now = Date.now();
-                          if (now - lastDragTime.current < dragDebounceMs) return;
-                          lastDragTime.current = now;
-                          
-                          // Ultra-low sensitivity to prevent breaking
-                          const sensitivity = 0.025; // Unified ultra-low value
-                          const delta = info.offset.x * sensitivity;
-                          const currentRotation = rotation.get();
-                          
-                          // Calculate new rotation with hard limits
-                          let newRotation = currentRotation + delta;
-                          
-                          // Hard clamp to prevent excessive rotation
-                          const maxRotation = 360 * 3; // Max 3 full rotations
-                          if (Math.abs(newRotation) > maxRotation) {
-                            newRotation = Math.sign(newRotation) * maxRotation;
-                          }
-                          
-                          // Normalize to -180 to 180 for display
-                          let normalized = newRotation % 360;
-                          if (normalized > 180) normalized -= 360;
-                          if (normalized < -180) normalized += 360;
-                          
-                          rotation.set(normalized);
-                        }}
-                        onDragEnd={(_, info) => {
-                          if (dragResetTimeoutRef.current) { clearTimeout(dragResetTimeoutRef.current); }
-                          dragResetTimeoutRef.current = window.setTimeout(() => { 
-                            isDraggingRef.current = false;
-                            setActiveTouchCardIndex(null);
-                          }, 100);
-                          if (isCarouselActive) {
-                            const velocity = info.velocity.x;
-                            const velocityThreshold = 300; // Even lower threshold
-                            
-                            if (Math.abs(velocity) > velocityThreshold) {
-                              // Minimal momentum to prevent overshoot
-                              const velocityMultiplier = 0.02; // Very low momentum
-                              const momentumRotation = velocity * velocityMultiplier;
-                              const currentRotation = rotation.get();
-                              const targetRotation = currentRotation + momentumRotation;
-                              
-                              // Hard limit the target
-                              const maxRotation = 360 * 3;
-                              let clamped = Math.min(Math.max(targetRotation, -maxRotation), maxRotation);
-                              
-                              // Normalize to -180 to 180 range
-                              let normalized = clamped % 360;
-                              if (normalized > 180) normalized -= 360;
-                              if (normalized < -180) normalized += 360;
-                              
-                              controls.start({
-                                rotateY: normalized,
-                                transition: { 
-                                  type: "spring", 
-                                  stiffness: 150, // Stiffer for quicker settle
-                                  damping: 40, // High damping to prevent oscillation
-                                  mass: 0.05 // Very light mass
-                                }
-                              }).then(() => {
-                                rotation.set(normalized);
-                                snapToNearestCard();
-                              });
-                            } else {
-                              // Immediate snap for precise control
-                              snapToNearestCard();
-                            }
-                          }
+                          backgroundColor: '#0a0a0a',
+                          pointerEvents: 'none' // No individual touch events
                         }}
                       >
                         <img
@@ -985,7 +812,7 @@ export const ViolationCarousel3D: React.FC<{
                             </div>
                           </div>
                         )}
-                      </motion.div>
+                      </div>
                     )}
                   </motion.div>
                 );
