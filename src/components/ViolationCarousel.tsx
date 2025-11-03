@@ -751,6 +751,11 @@ export const ViolationCarousel3D: React.FC<{
                     style={{
                       width: `${faceWidth}px`,
                       transform: `rotateY(${baseAngle}deg) translateZ(${radius}px)`,
+                      backfaceVisibility: 'visible', // Show back cards for 3D effect
+                      WebkitBackfaceVisibility: 'visible',
+                      opacity: isInFront ? 1 : Math.max(0.3, 0.5 + depth * 0.3), // Depth-based opacity
+                      filter: isInFront ? 'none' : `brightness(${0.7 + depth * 0.2})`, // Darken back cards
+                      zIndex: Math.round(50 + depth * 50), // Depth-based layering
                       pointerEvents: isInFront ? 'auto' : 'none'
                     }}
                     onClick={() => {
@@ -761,31 +766,39 @@ export const ViolationCarousel3D: React.FC<{
                     {item.imageUrl === "placeholder" ? (
                       <div 
                         className={`relative w-full rounded-xl bg-black/90 aspect-square shadow-lg transition-all duration-200 ${
-                          activeTouchCardIndex === i 
-                            ? 'ring-2 ring-vice-cyan shadow-[0_0_20px_#00ffff,0_0_40px_#00ffff60]' 
-                            : 'ring-1 ring-vice-cyan/50'
+                          isInFront 
+                            ? (activeTouchCardIndex === i 
+                                ? 'ring-2 ring-vice-cyan shadow-[0_0_20px_#00ffff,0_0_40px_#00ffff60]' 
+                                : 'ring-1 ring-vice-cyan/50')
+                            : 'ring-1 ring-vice-cyan/20' // Dimmer rings for back cards
                         }`}
                         style={{ 
-                          pointerEvents: 'none' // No individual touch events
+                          pointerEvents: 'none',
+                          transform: `scale(${isInFront ? 1 : 0.95 + depth * 0.05})` // Slight scaling for depth
                         }}
                       />
                     ) : (
                       <div 
                         className={`group relative w-full aspect-square overflow-hidden rounded-xl shadow-lg transition-all duration-200 ${
-                          activeTouchCardIndex === i 
-                            ? 'ring-2 ring-vice-cyan shadow-[0_0_20px_#00ffff,0_0_40px_#00ffff60]' 
-                            : 'ring-2 ring-vice-cyan/50'
+                          isInFront 
+                            ? (activeTouchCardIndex === i 
+                                ? 'ring-2 ring-vice-cyan shadow-[0_0_20px_#00ffff,0_0_40px_#00ffff60]' 
+                                : 'ring-2 ring-vice-cyan/50')
+                            : 'ring-1 ring-vice-cyan/20' // Dimmer rings for back cards
                         }`}
                         style={{ 
                           backgroundColor: '#0a0a0a',
-                          pointerEvents: 'none' // No individual touch events
+                          pointerEvents: 'none',
+                          transform: `scale(${isInFront ? 1 : 0.95 + depth * 0.05})` // Slight scaling for depth
                         }}
                       >
                         <img
                           src={item.imageUrl}
                           alt={`${item.unit} ${item.date}`}
                           className="absolute inset-0 w-full h-full object-cover touch-none pointer-events-none transition-transform duration-300 group-hover:scale-105"
-                          style={{ opacity: 1 }}
+                          style={{ 
+                            opacity: isInFront ? 1 : 0.8 + depth * 0.15 // Fade back card images slightly
+                          }}
                           loading="lazy"
                           decoding="async"
                           draggable={false}
@@ -805,7 +818,16 @@ export const ViolationCarousel3D: React.FC<{
                         {/* Overlay badge - Combined Date & Unit */}
                         {(item.date || item.unit) && (
                           <div className="absolute inset-x-0 top-0 flex items-center justify-center p-2 pointer-events-none z-10">
-                            <div className="text-[10px] sm:text-xs font-medium text-vice-pink drop-shadow-[0_0_10px_#ff1493] bg-black/40 backdrop-blur-md ring-1 ring-vice-cyan/40 px-2 sm:px-3 py-1 rounded-lg whitespace-nowrap shadow-xl">
+                            <div 
+                              className={`text-[10px] sm:text-xs font-medium drop-shadow-[0_0_10px_#ff1493] backdrop-blur-md px-2 sm:px-3 py-1 rounded-lg whitespace-nowrap shadow-xl ${
+                                isInFront 
+                                  ? 'text-vice-pink bg-black/40 ring-1 ring-vice-cyan/40'
+                                  : 'text-vice-pink/70 bg-black/60 ring-1 ring-vice-cyan/20' // Dimmer for back cards
+                              }`}
+                              style={{
+                                opacity: isInFront ? 1 : 0.7 + depth * 0.2 // Depth-based badge opacity
+                              }}
+                            >
                               {item.unit && <span className="font-semibold">{item.unit}</span>}
                               {item.unit && item.date && <span className="mx-1.5 opacity-60">•</span>}
                               {item.date && <span>{item.date}</span>}
