@@ -851,20 +851,24 @@ export const ViolationCarousel3D: React.FC<{
         <AnimatePresence mode="wait">
           {isPopoverOpen && activeForm && (
             <>
-              {/* Backdrop - Click outside to close */}
+              {/* Enhanced Backdrop - Click outside to close */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+                className="fixed inset-0 bg-black/80 backdrop-blur-md z-40"
                 onClick={handleClose}
-                style={{ touchAction: 'auto' }}
+                style={{ 
+                  touchAction: 'auto',
+                  WebkitBackdropFilter: 'blur(8px)',
+                  backdropFilter: 'blur(8px)'
+                }}
               />
               
-              {/* Top-Aligned Overlay Card */}
+              {/* Enhanced Mobile-Responsive Overlay Card */}
               <div 
-                className="fixed inset-0 flex items-start justify-center z-50 p-4 pt-[96px] sm:pt-[84px] pointer-events-none"
+                className="fixed inset-0 flex items-start justify-center z-50 p-2 sm:p-4 pt-[80px] sm:pt-[84px] pointer-events-none safe-area-inset-top"
                 style={{ touchAction: 'auto' }}
                 onTouchStart={(e) => e.stopPropagation()}
                 onTouchMove={(e) => e.stopPropagation()}
@@ -876,15 +880,15 @@ export const ViolationCarousel3D: React.FC<{
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
                   transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-                  className="w-full max-w-2xl max-h-[calc(85vh-96px)] sm:max-h-[calc(85vh-84px)] p-0 bg-gradient-to-br from-vice-purple/95 via-black/95 to-vice-blue/95 border-2 border-vice-cyan backdrop-blur-xl rounded-2xl shadow-2xl pointer-events-auto overflow-hidden"
+                  className="w-full max-w-2xl max-h-[calc(90vh-80px)] sm:max-h-[calc(85vh-84px)] p-0 bg-gradient-to-br from-vice-purple/98 via-black/98 to-vice-blue/98 border-2 border-vice-cyan/80 backdrop-blur-xl rounded-2xl shadow-2xl pointer-events-auto overflow-hidden ring-1 ring-white/10"
                   onClick={(e) => e.stopPropagation()}
                 >
               <div className="flex flex-col h-full">
-                {/* Header with title, admin controls, and close button */}
-                <div className="flex items-center justify-between border-b border-vice-cyan/30 p-4 sm:p-6 pb-3 flex-shrink-0">
+                {/* Enhanced Header with better mobile spacing */}
+                <div className="flex items-center justify-between border-b border-vice-cyan/30 bg-black/20 p-3 sm:p-6 pb-3 flex-shrink-0">
                   <div>
-                    <h3 className="text-xl font-bold text-white">Violation Details</h3>
-                    <p className="text-sm text-vice-cyan/70">Unit {activeForm.unit_number}</p>
+                    <h3 className="text-lg sm:text-xl font-bold text-white">Violation Details</h3>
+                    <p className="text-sm text-vice-cyan/80">Unit {activeForm.unit_number}</p>
                   </div>
                   
                   <div className="flex items-center gap-3">
@@ -930,8 +934,8 @@ export const ViolationCarousel3D: React.FC<{
                   </div>
                 </div>
 
-                {/* Scrollable Content Area */}
-                <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-vice-cyan/20 scrollbar-track-transparent">
+                {/* Enhanced Scrollable Content Area with better mobile spacing */}
+                <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-vice-cyan/30 scrollbar-track-black/20 bg-black/10">
                   {/* Delete Sphere Spinner - Shown during deletion */}
                   {isDeleting && (
                     <motion.div 
@@ -954,30 +958,30 @@ export const ViolationCarousel3D: React.FC<{
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.95 }}
-                      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4"
+                      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-lg p-2 sm:p-4"
                       onClick={() => setExpandedImageUrl(null)}
                     >
                       <div className="relative max-w-full max-h-full">
                         <button
                           onClick={() => setExpandedImageUrl(null)}
-                          className="absolute -top-2 -right-2 z-[110] p-2 rounded-full bg-black/90 hover:bg-black text-white transition-colors shadow-lg border border-vice-cyan/50"
+                          className="absolute -top-2 -right-2 z-[110] p-2 sm:p-3 rounded-full bg-black/90 hover:bg-black text-white transition-colors shadow-lg border border-vice-cyan/50 backdrop-blur-md"
                           aria-label="Close expanded image"
                         >
-                          <X className="w-5 h-5" />
+                          <X className="w-4 h-4 sm:w-5 sm:h-5" />
                         </button>
                         <img
-                          src={getPhotoUrl(expandedImageUrl, 'expanded')}
+                          src={getPhotoUrl(expandedImageUrl, 'full')}
                           alt="Expanded photo"
-                          className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl ring-2 ring-vice-cyan/50"
+                          className="max-w-[95vw] max-h-[90vh] sm:max-w-full sm:max-h-[85vh] object-contain rounded-lg shadow-2xl ring-2 ring-vice-cyan/60"
                           onClick={(e) => e.stopPropagation()}
                         />
                       </div>
                     </motion.div>
                   )}
 
-                  {/* Details in specified order - Only show when no expanded image */}
+                  {/* Enhanced Details with better mobile spacing */}
                   {!isDeleting && !expandedImageUrl && (
-                    <div className="p-4 sm:p-6 space-y-4">
+                    <div className="p-3 sm:p-6 space-y-3 sm:space-y-4">
                   {/* Date */}
                   <div className="space-y-1">
                     <div className="text-vice-cyan text-sm font-medium flex items-center gap-1">
@@ -1032,16 +1036,28 @@ export const ViolationCarousel3D: React.FC<{
                           <ImageIcon className="w-4 h-4" />
                           Photos ({activeForm.photos.length})
                         </div>
-                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
                           {activeForm.photos.map((photo, idx) => (
-                            <img
+                            <div
                               key={idx}
-                              src={getPhotoUrl(photo, 'expanded')}
-                              alt={`Photo ${idx + 1}`}
-                              loading="lazy"
-                              className="w-full aspect-square object-cover rounded-lg ring-1 ring-vice-cyan/30 hover:ring-2 hover:ring-vice-pink transition-all cursor-pointer active:scale-95"
+                              className="relative group cursor-pointer"
                               onClick={() => setExpandedImageUrl(photo)}
-                            />
+                            >
+                              <img
+                                src={getPhotoUrl(photo, 'expanded')}
+                                alt={`Photo ${idx + 1}`}
+                                loading="lazy"
+                                className="w-full aspect-square object-cover rounded-lg ring-1 ring-vice-cyan/40 hover:ring-2 hover:ring-vice-pink transition-all active:scale-95 group-hover:brightness-110"
+                              />
+                              {/* Expand indicator */}
+                              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 rounded-lg">
+                                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-vice-cyan/80 flex items-center justify-center">
+                                  <svg className="w-3 h-3 sm:w-4 sm:h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                  </svg>
+                                </div>
+                              </div>
+                            </div>
                           ))}
                         </div>
                       </div>
