@@ -529,9 +529,9 @@ export default function Export() {
                 <Clock className="w-6 h-6 text-vice-pink" />
               </div>
             </CardHeader>
-            <CardContent className="pt-2">
-              {/* 3D Carousel (enlarged and centered) */}
-              <div className="my-2 sm:my-3 -mx-2 sm:mx-0 flex items-center justify-center">
+            <CardContent className="pt-2 pb-6">
+              {/* 3D Carousel - Full width with proper spacing for popovers */}
+              <div className="my-2 sm:my-3 -mx-2 sm:mx-0 flex items-center justify-center relative">
                 <div className="w-full max-w-5xl">
                   <ViolationCarousel3D 
                     forms={filteredForms} 
@@ -569,36 +569,40 @@ export default function Export() {
                 </div>
               )}
 
-              {selectedForms.length > 0 && <Separator className="bg-vice-cyan/20 my-2" />}
-
-              {/* Export Actions - Lower z-index to not interfere with popovers */}
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mt-2 relative z-10">
-                <Button
-                  onClick={handleEmailExport}
-                  className="flex-1 bg-gradient-to-r from-vice-cyan to-vice-blue hover:from-vice-blue hover:to-vice-cyan text-white min-h-[44px] rounded-lg"
-                  disabled={selectedForms.length === 0}
-                >
-                  <Mail className="h-4 w-4 mr-2" />
-                  Email
-                </Button>
-                
-                <Button
-                  onClick={handlePrintExport}
-                  className="flex-1 bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink text-white min-h-[44px] rounded-lg"
-                  disabled={selectedForms.length === 0}
-                >
-                  <Printer className="h-4 w-4 mr-2" />
-                  Print
-                </Button>
-              </div>
-              
-              {selectedForms.length > 0 && (
-                <p className="text-vice-cyan/60 text-xs text-center">
-                  {selectedForms.length} notice(s) selected {selectedForms.length > 4 && '(max 4 for print)'}
-                </p>
-              )}
+              {selectedForms.length > 0 && <Separator className="bg-vice-cyan/20 my-3" />}
             </CardContent>
           </Card>
+          
+          {/* Export Actions - Separate card to avoid popover interference */}
+          {selectedForms.length > 0 && (
+            <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.35)] max-w-7xl mx-auto mt-4">
+              <CardContent className="p-4">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+                  <Button
+                    onClick={handleEmailExport}
+                    className="flex-1 bg-gradient-to-r from-vice-cyan to-vice-blue hover:from-vice-blue hover:to-vice-cyan text-white min-h-[44px] rounded-lg"
+                    disabled={selectedForms.length === 0}
+                  >
+                    <Mail className="h-4 w-4 mr-2" />
+                    Email ({selectedForms.length})
+                  </Button>
+                  
+                  <Button
+                    onClick={handlePrintExport}
+                    className="flex-1 bg-gradient-to-r from-vice-pink to-vice-purple hover:from-vice-purple hover:to-vice-pink text-white min-h-[44px] rounded-lg"
+                    disabled={selectedForms.length === 0}
+                  >
+                    <Printer className="h-4 w-4 mr-2" />
+                    Print ({Math.min(selectedForms.length, 4)})
+                  </Button>
+                </div>
+                
+                <p className="text-vice-cyan/60 text-xs text-center mt-3">
+                  {selectedForms.length} notice(s) selected {selectedForms.length > 4 && '(max 4 for print)'}
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
