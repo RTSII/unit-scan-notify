@@ -866,13 +866,13 @@ export const ViolationCarousel3D: React.FC<{
                 }}
               />
               
-              {/* Mobile-First Responsive Overlay - No Vertical Scroll */}
+              {/* Mobile-First Responsive Overlay - Aligned with page header */}
               <div 
-                className="fixed inset-0 flex items-center justify-center z-[70] p-safe-2 sm:p-4 pointer-events-none"
+                className="fixed inset-0 flex items-start justify-center z-[70] p-2 sm:p-4 pt-[60px] sm:pt-[70px] pointer-events-none"
                 style={{ 
                   touchAction: 'auto',
-                  paddingTop: 'env(safe-area-inset-top, 20px)',
-                  paddingBottom: 'env(safe-area-inset-bottom, 20px)'
+                  paddingTop: 'max(env(safe-area-inset-top, 8px), 60px)',
+                  paddingBottom: 'env(safe-area-inset-bottom, 8px)'
                 }}
                 onTouchStart={(e) => e.stopPropagation()}
                 onTouchMove={(e) => e.stopPropagation()}
@@ -884,15 +884,17 @@ export const ViolationCarousel3D: React.FC<{
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
                   transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-                  className="w-full max-w-sm sm:max-w-md lg:max-w-2xl h-[85vh] sm:h-[80vh] p-0 bg-gradient-to-br from-vice-purple/98 via-black/98 to-vice-blue/98 border-2 border-vice-cyan/80 backdrop-blur-xl rounded-2xl shadow-2xl pointer-events-auto overflow-hidden ring-1 ring-white/10"
+                  className="w-full max-w-sm sm:max-w-lg lg:max-w-2xl h-[calc(100vh-120px)] sm:h-[calc(100vh-140px)] p-0 bg-gradient-to-br from-vice-purple/98 via-black/98 to-vice-blue/98 border-2 border-vice-cyan/80 backdrop-blur-xl rounded-2xl shadow-2xl pointer-events-auto overflow-hidden ring-1 ring-white/10"
                   onClick={(e) => e.stopPropagation()}
                 >
               <div className="flex flex-col h-full">
-                {/* Compact Header - Mobile First */}
-                <div className="flex items-center justify-between border-b border-vice-cyan/30 bg-black/20 p-3 sm:p-4 flex-shrink-0">
-                  <div>
-                    <h3 className="text-base sm:text-lg font-bold text-white">Unit {activeForm.unit_number}</h3>
-                    <p className="text-xs sm:text-sm text-vice-cyan/80">{formatDate(activeForm)}</p>
+                {/* Optimized Header - Minimal space usage */}
+                <div className="flex items-center justify-between border-b border-vice-cyan/30 bg-black/20 p-2 sm:p-3 flex-shrink-0">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm sm:text-base font-bold text-white truncate">Unit {activeForm.unit_number} - {formatDate(activeForm)}</h3>
+                    {activeForm.time && (
+                      <p className="text-xs text-vice-cyan/80">{activeForm.time}</p>
+                    )}
                   </div>
                   
                   <div className="flex items-center gap-3">
@@ -983,48 +985,51 @@ export const ViolationCarousel3D: React.FC<{
                     </motion.div>
                   )}
 
-                  {/* Compact Mobile Layout - Key Info Only */}
+                  {/* Mobile-Optimized Layout - All Details Included */}
                   {!isDeleting && !expandedImageUrl && (
-                    <div className="p-3 sm:p-4 space-y-2 sm:space-y-3 h-full flex flex-col">
-                  {/* Compact Info Grid - Mobile Optimized */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                    <div className="p-2 sm:p-3 space-y-2 h-full flex flex-col overflow-y-auto">
+                  {/* Complete Violation Details - Space Optimized */}
+                  <div className="space-y-1.5">
                     {/* Violation Type - Primary Info */}
                     {activeForm.location && (
-                      <div className="col-span-full">
-                        <div className="text-vice-cyan text-xs sm:text-sm font-medium flex items-center gap-1">
-                          <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <div className="bg-black/30 p-2 rounded border-l-2 border-vice-pink">
+                        <div className="text-vice-cyan text-xs font-medium flex items-center gap-1">
+                          <MapPin className="w-3 h-3" />
                           Violation Type
                         </div>
-                        <div className="text-white text-sm sm:text-base font-medium">{formatViolationType(activeForm.location)}</div>
+                        <div className="text-white text-sm font-medium mt-0.5">{formatViolationType(activeForm.location)}</div>
                       </div>
                     )}
                     
-                    {/* Time (if present) */}
-                    {activeForm.time && (
-                      <div>
-                        <div className="text-vice-cyan text-xs font-medium flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          Time
-                        </div>
-                        <div className="text-white text-sm">{activeForm.time}</div>
+                    {/* Date & Time Row */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="bg-black/20 p-2 rounded">
+                        <div className="text-vice-cyan text-xs font-medium">Date</div>
+                        <div className="text-white text-sm">{formatDate(activeForm)}</div>
                       </div>
-                    )}
+                      {activeForm.time && (
+                        <div className="bg-black/20 p-2 rounded">
+                          <div className="text-vice-cyan text-xs font-medium">Time</div>
+                          <div className="text-white text-sm">{activeForm.time}</div>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
 
-                  {/* Description (if present) - Compact */}
+                  {/* Description - Full text with scroll if needed */}
                   {activeForm.description && (
-                    <div className="space-y-1 flex-1">
-                      <div className="text-vice-cyan text-xs sm:text-sm font-medium">Description</div>
-                      <div className="text-white text-xs sm:text-sm bg-black/40 p-2 sm:p-3 rounded-lg border border-vice-cyan/20 line-clamp-3 sm:line-clamp-none">
+                    <div className="flex-1">
+                      <div className="text-vice-cyan text-xs font-medium mb-1">Description</div>
+                      <div className="text-white text-xs bg-black/40 p-2 rounded border border-vice-cyan/20 max-h-20 overflow-y-auto">
                         {activeForm.description}
                       </div>
                     </div>
                   )}
 
-                  {/* Photos (if present) - Mobile Optimized */}
+                  {/* Photos - Compact but accessible */}
                   {((activeForm.violation_photos && activeForm.violation_photos.length > 0) || (activeForm.photos && activeForm.photos.length > 0)) && (
-                    <div className="space-y-2 flex-shrink-0">
+                    <div className="flex-shrink-0">
                       {(() => {
                         // Prioritize violation_photos (new storage) over legacy photos
                         const photos = activeForm.violation_photos && activeForm.violation_photos.length > 0 
@@ -1033,17 +1038,17 @@ export const ViolationCarousel3D: React.FC<{
                         
                         return (
                           <>
-                            <div className="text-vice-cyan text-xs sm:text-sm font-medium flex items-center gap-1">
-                              <ImageIcon className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <div className="text-vice-cyan text-xs font-medium flex items-center gap-1 mb-1">
+                              <ImageIcon className="w-3 h-3" />
                               Photos ({photos.length}) - Tap to expand
                             </div>
-                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-1 sm:gap-2">
-                              {photos.slice(0, 6).map((photo, idx) => (
+                            <div className="grid grid-cols-4 sm:grid-cols-5 gap-1">
+                              {photos.slice(0, 8).map((photo, idx) => (
                                 <div
                                   key={idx}
-                                  className="relative group cursor-pointer touch-target"
+                                  className="relative group cursor-pointer"
                                   onClick={() => setExpandedImageUrl(photo)}
-                                  style={{ minHeight: '44px', minWidth: '44px' }}
+                                  style={{ minHeight: '40px', minWidth: '40px' }}
                                 >
                                   <img
                                     src={getPhotoUrl(photo, 'expanded')}
@@ -1052,26 +1057,24 @@ export const ViolationCarousel3D: React.FC<{
                                     className="w-full aspect-square object-cover rounded ring-1 ring-vice-cyan/40 hover:ring-2 hover:ring-vice-pink transition-all active:scale-95"
                                     onError={(e) => {
                                       console.log('Photo load error:', photo);
-                                      // Try fallback URL generation
                                       const target = e.currentTarget;
                                       if (!target.src.includes('?')) {
                                         target.src = getPhotoUrl(photo, 'thumbnail');
                                       }
                                     }}
                                   />
-                                  {/* Expand indicator */}
                                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 rounded">
-                                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-vice-cyan/80 flex items-center justify-center">
-                                      <svg className="w-2 h-2 sm:w-3 sm:h-3 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div className="w-4 h-4 rounded-full bg-vice-cyan/80 flex items-center justify-center">
+                                      <svg className="w-2 h-2 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                       </svg>
                                     </div>
                                   </div>
                                 </div>
                               ))}
-                              {photos.length > 6 && (
+                              {photos.length > 8 && (
                                 <div className="flex items-center justify-center bg-black/40 rounded border border-vice-cyan/20 aspect-square">
-                                  <span className="text-vice-cyan text-xs font-medium">+{photos.length - 6}</span>
+                                  <span className="text-vice-cyan text-xs font-medium">+{photos.length - 8}</span>
                                 </div>
                               )}
                             </div>
@@ -1081,12 +1084,12 @@ export const ViolationCarousel3D: React.FC<{
                     </div>
                   )}
 
-                  {/* Reported By - Footer */}
+                  {/* Reported By - Compact Footer */}
                   {activeForm.profiles && (
-                    <div className="mt-auto pt-2 border-t border-vice-cyan/20">
-                      <div className="text-vice-cyan text-xs font-medium flex items-center gap-1">
+                    <div className="mt-auto pt-1 border-t border-vice-cyan/20">
+                      <div className="text-vice-cyan text-xs flex items-center gap-1">
                         <User className="w-3 h-3" />
-                        Reported by {activeForm.profiles.full_name || activeForm.profiles.email}
+                        {activeForm.profiles.full_name || activeForm.profiles.email}
                       </div>
                     </div>
                   )}
