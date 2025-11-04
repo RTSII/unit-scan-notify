@@ -268,8 +268,8 @@ export const ViolationCarousel3D: React.FC<{
   const circumference = cylinderWidth;
   const radius = cylinderWidth / (2 * Math.PI);
   
-  // Simple face width calculation like 21st.dev
-  const faceWidth = cylinderWidth / faceCount;
+  // Reduce face width to create gaps for 3D effect (like 21st.dev)
+  const faceWidth = (cylinderWidth / faceCount) * 0.85; // 85% to create gaps between cards
 
   const rotation = useMotionValue(0);
   const transform = useTransform(rotation, (value) => `rotate3d(0, 1, 0, ${value}deg)`);
@@ -714,17 +714,21 @@ export const ViolationCarousel3D: React.FC<{
               }}
               onDrag={(_, info) => {
                 if (isCarouselActive) {
-                  rotation.set(rotation.get() + info.offset.x * 0.05);
+                  // Ultra-conservative sensitivity for iPhone stability
+                  const sensitivity = isScreenSizeSm ? 0.025 : 0.05; // Half sensitivity on mobile
+                  rotation.set(rotation.get() + info.offset.x * sensitivity);
                 }
               }}
               onDragEnd={(_, info) => {
                 if (isCarouselActive) {
+                  // More conservative momentum for iPhone
+                  const momentum = isScreenSizeSm ? 0.025 : 0.05; // Half momentum on mobile
                   controls.start({
-                    rotateY: rotation.get() + info.velocity.x * 0.05,
+                    rotateY: rotation.get() + info.velocity.x * momentum,
                     transition: {
                       type: "spring",
-                      stiffness: 100,
-                      damping: 30,
+                      stiffness: isScreenSizeSm ? 150 : 100, // Stiffer on mobile for quicker settle
+                      damping: isScreenSizeSm ? 40 : 30, // More damping on mobile
                       mass: 0.1,
                     },
                   });
@@ -753,8 +757,8 @@ export const ViolationCarousel3D: React.FC<{
                       transform: `rotateY(${baseAngle}deg) translateZ(${radius}px)`,
                       backfaceVisibility: 'visible', // Show back cards for 3D effect
                       WebkitBackfaceVisibility: 'visible',
-                      opacity: isInFront ? 1 : Math.max(0.3, 0.5 + depth * 0.3), // Depth-based opacity
-                      filter: isInFront ? 'none' : `brightness(${0.7 + depth * 0.2})`, // Darken back cards
+                      opacity: isInFront ? 1 : Math.max(0.5, 0.6 + depth * 0.4), // Higher opacity for back cards
+                      filter: isInFront ? 'none' : `brightness(${0.8 + depth * 0.15})`, // Less darkening for visibility
                       zIndex: Math.round(50 + depth * 50), // Depth-based layering
                       pointerEvents: isInFront ? 'auto' : 'none'
                     }}
@@ -770,7 +774,7 @@ export const ViolationCarousel3D: React.FC<{
                             ? (activeTouchCardIndex === i 
                                 ? 'ring-2 ring-vice-cyan shadow-[0_0_20px_#00ffff,0_0_40px_#00ffff60]' 
                                 : 'ring-1 ring-vice-cyan/50')
-                            : 'ring-1 ring-vice-cyan/20' // Dimmer rings for back cards
+                            : 'ring-1 ring-vice-cyan/30' // Brighter rings for back cards visibility
                         }`}
                         style={{ 
                           pointerEvents: 'none',
@@ -784,7 +788,7 @@ export const ViolationCarousel3D: React.FC<{
                             ? (activeTouchCardIndex === i 
                                 ? 'ring-2 ring-vice-cyan shadow-[0_0_20px_#00ffff,0_0_40px_#00ffff60]' 
                                 : 'ring-2 ring-vice-cyan/50')
-                            : 'ring-1 ring-vice-cyan/20' // Dimmer rings for back cards
+                            : 'ring-1 ring-vice-cyan/30' // Brighter rings for back cards visibility
                         }`}
                         style={{ 
                           backgroundColor: '#0a0a0a',
@@ -797,7 +801,7 @@ export const ViolationCarousel3D: React.FC<{
                           alt={`${item.unit} ${item.date}`}
                           className="absolute inset-0 w-full h-full object-cover touch-none pointer-events-none transition-transform duration-300 group-hover:scale-105"
                           style={{ 
-                            opacity: isInFront ? 1 : 0.8 + depth * 0.15 // Fade back card images slightly
+                            opacity: isInFront ? 1 : 0.85 + depth * 0.1 // Less fading for back card visibility
                           }}
                           loading="lazy"
                           decoding="async"
@@ -822,10 +826,10 @@ export const ViolationCarousel3D: React.FC<{
                               className={`text-[10px] sm:text-xs font-medium drop-shadow-[0_0_10px_#ff1493] backdrop-blur-md px-2 sm:px-3 py-1 rounded-lg whitespace-nowrap shadow-xl ${
                                 isInFront 
                                   ? 'text-vice-pink bg-black/40 ring-1 ring-vice-cyan/40'
-                                  : 'text-vice-pink/70 bg-black/60 ring-1 ring-vice-cyan/20' // Dimmer for back cards
+                                  : 'text-vice-pink/80 bg-black/50 ring-1 ring-vice-cyan/30' // Brighter for back cards
                               }`}
                               style={{
-                                opacity: isInFront ? 1 : 0.7 + depth * 0.2 // Depth-based badge opacity
+                                opacity: isInFront ? 1 : 0.8 + depth * 0.15 // Higher badge opacity for back cards
                               }}
                             >
                               {item.unit && <span className="font-semibold">{item.unit}</span>}
