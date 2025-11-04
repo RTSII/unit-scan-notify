@@ -857,7 +857,7 @@ export const ViolationCarousel3D: React.FC<{
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="fixed inset-0 bg-black/80 backdrop-blur-md z-40"
+                className="fixed inset-0 bg-black/80 backdrop-blur-md z-[60]"
                 onClick={handleClose}
                 style={{ 
                   touchAction: 'auto',
@@ -868,7 +868,7 @@ export const ViolationCarousel3D: React.FC<{
               
               {/* Mobile-First Responsive Overlay - No Vertical Scroll */}
               <div 
-                className="fixed inset-0 flex items-center justify-center z-50 p-safe-2 sm:p-4 pointer-events-none"
+                className="fixed inset-0 flex items-center justify-center z-[70] p-safe-2 sm:p-4 pointer-events-none"
                 style={{ 
                   touchAction: 'auto',
                   paddingTop: 'env(safe-area-inset-top, 20px)',
@@ -962,13 +962,13 @@ export const ViolationCarousel3D: React.FC<{
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.95 }}
-                      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-lg p-2 sm:p-4"
+                      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/95 backdrop-blur-lg p-2 sm:p-4"
                       onClick={() => setExpandedImageUrl(null)}
                     >
                       <div className="relative max-w-full max-h-full">
                         <button
                           onClick={() => setExpandedImageUrl(null)}
-                          className="absolute -top-2 -right-2 z-[110] p-2 sm:p-3 rounded-full bg-black/90 hover:bg-black text-white transition-colors shadow-lg border border-vice-cyan/50 backdrop-blur-md"
+                          className="absolute -top-2 -right-2 z-[90] p-2 sm:p-3 rounded-full bg-black/90 hover:bg-black text-white transition-colors shadow-lg border border-vice-cyan/50 backdrop-blur-md"
                           aria-label="Close expanded image"
                         >
                           <X className="w-4 h-4 sm:w-5 sm:h-5" />

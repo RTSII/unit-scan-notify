@@ -516,8 +516,8 @@ export default function Export() {
             </div>
           </div>
 
-          {/* Export Selection Card */}
-          <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.35)] max-w-7xl mx-auto">
+          {/* Export Selection Card - Lower z-index to not interfere with popovers */}
+          <Card className="bg-black/40 border-vice-cyan/30 backdrop-blur-sm rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.35)] max-w-7xl mx-auto relative z-0">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <div>
@@ -571,8 +571,8 @@ export default function Export() {
 
               {selectedForms.length > 0 && <Separator className="bg-vice-cyan/20 my-2" />}
 
-              {/* Export Actions */}
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mt-2">
+              {/* Export Actions - Lower z-index to not interfere with popovers */}
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mt-2 relative z-10">
                 <Button
                   onClick={handleEmailExport}
                   className="flex-1 bg-gradient-to-r from-vice-cyan to-vice-blue hover:from-vice-blue hover:to-vice-cyan text-white min-h-[44px] rounded-lg"
