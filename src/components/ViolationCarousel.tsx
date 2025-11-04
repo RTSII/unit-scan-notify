@@ -880,7 +880,7 @@ export const ViolationCarousel3D: React.FC<{
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
                   transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-                  className="w-full max-w-2xl max-h-[calc(90vh-80px)] sm:max-h-[calc(85vh-84px)] p-0 bg-gradient-to-br from-vice-purple/98 via-black/98 to-vice-blue/98 border-2 border-vice-cyan/80 backdrop-blur-xl rounded-2xl shadow-2xl pointer-events-auto overflow-hidden ring-1 ring-white/10"
+                  className="w-full max-w-2xl h-[calc(85vh-80px)] sm:h-[calc(80vh-84px)] p-0 bg-gradient-to-br from-vice-purple/98 via-black/98 to-vice-blue/98 border-2 border-vice-cyan/80 backdrop-blur-xl rounded-2xl shadow-2xl pointer-events-auto overflow-hidden ring-1 ring-white/10"
                   onClick={(e) => e.stopPropagation()}
                 >
               <div className="flex flex-col h-full">
@@ -935,7 +935,7 @@ export const ViolationCarousel3D: React.FC<{
                 </div>
 
                 {/* Enhanced Scrollable Content Area with better mobile spacing */}
-                <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-vice-cyan/30 scrollbar-track-black/20 bg-black/10">
+                <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-vice-cyan/30 scrollbar-track-black/20 bg-black/10" style={{ maxHeight: 'calc(100% - 80px)' }}>
                   {/* Delete Sphere Spinner - Shown during deletion */}
                   {isDeleting && (
                     <motion.div 
